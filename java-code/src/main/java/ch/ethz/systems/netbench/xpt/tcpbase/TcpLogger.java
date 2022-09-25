@@ -18,6 +18,9 @@ public class TcpLogger implements LoggerCallback {
     private final boolean logPacketBurstGapEnabled;
     private final boolean logCongestionWindowEnabled;
     private final boolean isReceiver;
+    //WFQ_add
+    private final BufferedWriter PacketIATWriter;
+    private final boolean logPacketIATEnabled;
 
     public TcpLogger(long flowId, boolean isReceiver) {
         this.flowId = flowId;
@@ -25,6 +28,10 @@ public class TcpLogger implements LoggerCallback {
         this.congestionWindowWriter = SimulationLogger.getExternalWriter("congestion_window.csv.log");
         this.packetBurstGapWriter = SimulationLogger.getExternalWriter("packet_burst_gap.csv.log");
         this.maxFlowletWriter = SimulationLogger.getExternalWriter("max_flowlet.csv.log");
+        //WFQ_add_IAT_logger
+        this.PacketIATWriter = SimulationLogger.getExternalWriter("flow_IAT.csv.log");
+        this.logPacketIATEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_IAT", false);
+        //
         this.logPacketBurstGapEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_burst_gap", false);
         this.logCongestionWindowEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_congestion_window", false);
         this.isReceiver = isReceiver;
@@ -68,6 +75,21 @@ public class TcpLogger implements LoggerCallback {
             }
         } catch (IOException e) {
             throw new LogFailureException(e);
+        }
+    }
+
+    /**
+     * log the flow IAT
+     *
+     */
+    public void logPacketIAT(long sequenceNumber,long sizeBit){
+        if(logPacketIATEnabled)
+        {
+            try{
+                PacketIATWriter.write(flowId+","+sequenceNumber+","+sizeBit/8+","+Simulator.getCurrentTime()+"\n");
+            } catch (IOException e){
+                throw new LogFailureException(e);
+            }
         }
     }
 

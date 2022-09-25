@@ -320,6 +320,8 @@ public class NewRenoTcpSocket extends Socket {
                     ));
 
                     // System.out.println("3-WAY HANDSHAKE: 1. Receiver received SYN, sent back ACK+SYN.");
+                    //WFQ_log
+                    tcpLogger.logPacketIAT(((FullExtTcpPacket) genericPacket).getSequenceNumber(),genericPacket.getSizeBit());
 
                 }
 
@@ -408,6 +410,8 @@ public class NewRenoTcpSocket extends Socket {
                     currentState = ESTABLISHED;
 
                     // System.out.println("3-WAY HANDSHAKE: 3. Receiver received ACK.");
+                    //WFQ_log
+                    tcpLogger.logPacketIAT(((FullExtTcpPacket) genericPacket).getSequenceNumber(),genericPacket.getSizeBit());
 
                 }
 
@@ -748,6 +752,8 @@ public class NewRenoTcpSocket extends Socket {
             .setSelectiveAck(selectiveAckSet.createSelectiveAckData()))
             .setEchoDepartureTime(packet.getDepartureTime())
         );
+        //WFQ_log
+        tcpLogger.logPacketIAT(seqNumber,packet.getSizeBit());
 
     }
 
