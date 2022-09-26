@@ -7,7 +7,7 @@ import java.util.Collection;
 
 public class FullExtTcpPacket extends TcpPacket implements SelectiveAckHeader, EchoHeader, PriorityHeader, Comparable {
 
-    private long priority;
+    private float priority;
     private Collection<AckRange> selectiveAck;
     private long echoDepartureTime;
     private int echoFlowletId;
