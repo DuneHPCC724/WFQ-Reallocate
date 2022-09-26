@@ -43,7 +43,7 @@ class Flow:
         self.flowID = flowID
         self.source_id = source_id
         self.target_id = target_id
-        self.sent_bytes = sent_bytes
+        self.sent_bytes = 0
         self.total_size_bytes = total_size_bytes
         self.start_time = start_time
         self.end_ent = end_time
@@ -54,14 +54,18 @@ class Flow:
         self.rates = []
         self.weight = 0
         self.current_pkt_time = 0
+        self.current_seqnum = -1
         self.p00 = 0
         self.p01 = 0
         self.p10 = 0
         self.p11 = 0
-        self.ave_rate = self.sent_bytes*1.0/self.duration
+        self.ave_rate = 0
         self.current_state = -1          #设2个状态为0,1,normal,burst
         self.burst_duration = 0.0
         self.burst_bytes = 0.0
+
+    def calcu_rate(self):
+        self.ave_rate = self.sent_bytes/self.duration
     def calcu_pp(self,L):     #第一种方式：第一个和第二个各自除以第一个IAT的一半
         for i in range(0,len(self.IATs)):
             self.rates.append(self.pkt_bytes[i]/self.IATs[i])
@@ -322,20 +326,26 @@ def analyze_IAT():
                 if(flow.current_pkt_time == 0.0):
                     flow.current_pkt_time = timeNs
                     flow.IATs.append(0.0)
+                    flow.current_seqnum = seq_num
+                elif(flow.current_seqnum == seq_num):
+                    continue
                 else:
                     flow.IATs.append(timeNs-flow.current_pkt_time)
                     flow.current_pkt_time = timeNs
+                    flow.current_seqnum = seq_num
                 flow.pkt_bytes.append(byte)
+                flow.sent_bytes += byte
     for flow in flows.values():
         if len(flow.IATs) > 1:
+            flow.calcu_rate()
             flow.IATs[0] = flow.IATs[1]/2.0
             flow.IATs[1] = flow.IATs[0]
             flow.calcu_pp(L)
-    sorted_flows = sorted(flows.values(),key=lambda x:x.sent_bytes,reverse=True)
+   # sorted_flows = sorted(flows.values(),key=lambda x:x.sent_bytes,reverse=True)
     print('Writing to result file pktIAT.statistics...')
     with open(analysis_folder_path+"/pkt_IAT.statistics"+str(L)+".csv","w",newline = '') as csvfile:
         writer = csv.writer(csvfile)
-        for flow in sorted_flows:
+        for flow in flows.values():
             writer.writerow([flow.flowID,flow.p00,flow.p01,flow.p10,flow.p11,flow.pp,flow.burst_duration/1000.0,flow.burst_bytes,flow.duration/1000.0,flow.sent_bytes,len(flow.IATs)])
 
 
