@@ -3,10 +3,13 @@ import csv
 import sys
 import os
 
+#Problem: counted retransmited pkts
 
 ##################################
 # Setup
 #
+
+#analyze for IAT in WFQ
 
 print("NetBench python analysis tool v0.01")
 
@@ -31,6 +34,73 @@ if not os.path.isdir(run_folder_path):
 analysis_folder_path = run_folder_path + '/analysis'
 if not os.path.exists(analysis_folder_path):
     os.makedirs(analysis_folder_path)
+
+
+
+#class flow to manage flow info
+class Flow:
+    def __init__(self,flowID,source_id,target_id,sent_bytes,total_size_bytes,start_time,end_time,duration,completed):
+        self.flowID = flowID
+        self.source_id = source_id
+        self.target_id = target_id
+        self.sent_bytes = sent_bytes
+        self.total_size_bytes = total_size_bytes
+        self.start_time = start_time
+        self.end_ent = end_time
+        self.duration = duration
+        self.completed = completed
+        self.IATs = []
+        self.pkt_bytes = []
+        self.rates = []
+        self.weight = 0
+        self.current_pkt_time = 0
+        self.p00 = 0
+        self.p01 = 0
+        self.p10 = 0
+        self.p11 = 0
+        self.ave_rate = self.sent_bytes*1.0/self.duration
+        self.current_state = -1          #设2个状态为0,1,normal,burst
+        self.burst_duration = 0.0
+        self.burst_bytes = 0.0
+    def calcu_pp(self,L):     #第一种方式：第一个和第二个各自除以第一个IAT的一半
+        for i in range(0,len(self.IATs)):
+            self.rates.append(self.pkt_bytes[i]/self.IATs[i])
+        for i in range(0,len(self.rates)):
+            rate = self.rates[i]
+            time = self.IATs[i]
+            bytes = self.pkt_bytes[i]
+            if(self.current_state == -1):
+                if(rate > L*self.ave_rate):
+                    self.current_state = 1
+                    self.burst_duration += time
+                    self.burst_bytes += bytes
+                else:
+                    self.current_state = 0
+            elif self.current_state == 0:
+                if(rate > L*self.ave_rate):
+                    self.current_state = 1
+                    self.p01 += 1
+                    self.burst_duration += time
+                    self.burst_bytes += bytes
+                else:
+                    self.current_state = 0
+                    self.p00 += 1
+            else:
+                if(rate > L*self.ave_rate):
+                    self.current_state = 1
+                    self.p11 += 1
+                    self.burst_duration += time
+                    self.burst_bytes += bytes
+                else:
+                    self.current_state = 0
+                    self.p10 += 1
+        if(self.p10 != 0):
+            self.pp = self.p11*1.0/self.p10
+        else:
+            self.pp = -1
+
+
+
 
 
 ##################################
@@ -107,7 +177,7 @@ def analyze_flow_completion():
                         range_completed_throughput[j].append(total_size_bytes[i] * 8 / duration[i])
 
                 else:
-                        range_num_unfinished_flows[j] += 1
+                    range_num_unfinished_flows[j] += 1
 
         # Ranges statistics
         for j in range(0, len(range_name)):
@@ -223,6 +293,56 @@ def analyze_port_utilization():
             for key, value in sorted(statistics.items()):
                 outfile.write(str(key) + "=" + str(value) + "\n")
 
+#analyze IAT and Burst:
+def analyze_IAT():
+    L = 2
+    flows = {}
+    with open(run_folder_path + '/flow_completion.csv.log') as FCT_file:
+        with open (run_folder_path + "/flow_IAT.csv.log") as IAT_file:
+            FCT_Reader = csv.reader(FCT_file)
+            for row in FCT_Reader:
+                flow_id = int(row[0])
+                source_id = int(row[1])
+                target_id = int(row[2])
+                sent_bytes = float(row[3])
+                total_size_bytes = float(row[4])
+                start_time = float(row[5])
+                end_time = float(row[6])
+                duration = float(row[7])
+                completed = row[8] == 'TRUE'
+                flows[flow_id] = Flow(flow_id,source_id,target_id,sent_bytes,total_size_bytes,start_time,end_time,duration,completed)
+            IAT_Reader = csv.reader(IAT_file)
+            for row in IAT_Reader:
+                flow_id = int(row[0])
+                seq_num = int(row[1])
+                byte = float(row[2])
+                timeNs = float(row[3])
+                flow = flows[flow_id]
+                #first pkt
+                if(flow.current_pkt_time == 0.0):
+                    flow.current_pkt_time = timeNs
+                    flow.IATs.append(0.0)
+                else:
+                    flow.IATs.append(timeNs-flow.current_pkt_time)
+                    flow.current_pkt_time = timeNs
+                flow.pkt_bytes.append(byte)
+    for flow in flows.values():
+        if len(flow.IATs) > 1:
+            flow.IATs[0] = flow.IATs[1]/2.0
+            flow.IATs[1] = flow.IATs[0]
+            flow.calcu_pp(L)
+    sorted_flows = sorted(flows.values(),key=lambda x:x.sent_bytes,reverse=True)
+    print('Writing to result file pktIAT.statistics...')
+    with open(analysis_folder_path+"/pkt_IAT.statistics"+str(L)+".csv","w",newline = '') as csvfile:
+        writer = csv.writer(csvfile)
+        for flow in sorted_flows:
+            writer.writerow([flow.flowID,flow.p00,flow.p01,flow.p10,flow.p11,flow.pp,flow.burst_duration/1000.0,flow.burst_bytes,flow.duration/1000.0,flow.sent_bytes,len(flow.IATs)])
+
+
+
+
+
 # Call analysis functions
-analyze_flow_completion()
-analyze_port_utilization()
+# analyze_flow_completion()
+# analyze_port_utilization()
+analyze_IAT()
