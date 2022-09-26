@@ -59,6 +59,7 @@ class Flow:
         self.p01 = 0
         self.p10 = 0
         self.p11 = 0
+        self.pp = 0.0
         self.ave_rate = 0
         self.current_state = -1          #设2个状态为0,1,normal,burst
         self.burst_duration = 0.0
@@ -341,7 +342,7 @@ def analyze_IAT():
             flow.IATs[0] = flow.IATs[1]/2.0
             flow.IATs[1] = flow.IATs[0]
             flow.calcu_pp(L)
-   # sorted_flows = sorted(flows.values(),key=lambda x:x.sent_bytes,reverse=True)
+    sorted_flows = sorted(flows.values(),key=lambda x:x.ave_rate,reverse=True)
     print('Writing to result file pktIAT.statistics...')
     with open(analysis_folder_path+"/pkt_IAT.statistics"+str(L)+".csv","w",newline = '') as csvfile:
         writer = csv.writer(csvfile)
