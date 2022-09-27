@@ -11,6 +11,8 @@ public class PCQQueue implements Queue {
 
     private final ArrayList<ArrayBlockingQueue> queueList;
     private final Map flowBytesSent;
+
+    private final Map<Integer, Long> FIFOBytesOccupied;//<yuxin> Occupancy of the queue in Bytes
     private long bytesPerRound;// <yuxin> in theory, bytesPerRound = size of a FIFO in Bytes
     private long currentRound;
     private long servingQueue;
@@ -19,11 +21,13 @@ public class PCQQueue implements Queue {
 
     public PCQQueue(long numQueues, long bytesPerRound, int ownId){
         long perQueueCapacity = 320;// <yuxin> size of a FIFO in packets
+        this.FIFOBytesOccupied = new HashMap();
         this.queueList = new ArrayList((int)numQueues);
         ArrayBlockingQueue fifo;
         for (int i=0; i<(int)numQueues; i++){
             fifo = new ArrayBlockingQueue((int)perQueueCapacity);
             queueList.add(fifo);
+            FIFOBytesOccupied.put(i, (long)0);
         }
 
         this.flowBytesSent = new HashMap();
@@ -59,10 +63,18 @@ public class PCQQueue implements Queue {
             if((packetRound - this.currentRound) > queueList.size()){
                 result = false; // Packet dropped since computed round is too far away
             } else {
-                result = queueList.get((int)packetRound%(queueList.size())).offer(p);
-                if (!result){
-                } else {
-                    flowBytesSent.put(p.getFlowId(), bid);
+                int QueueToSend = (int)packetRound%(queueList.size());
+                long FIFOSizeEstimate = p.getSizeBit()/8 + FIFOBytesOccupied.get(QueueToSend);
+                if (FIFOSizeEstimate > this.bytesPerRound){
+                    result = false;//<yuxin> Packet dropped because of tail drop
+                }
+                else{
+                    result = queueList.get(QueueToSend).offer(p);
+                    if (!result) {
+                    } else {
+                        flowBytesSent.put(p.getFlowId(), bid);
+                        FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
+                    }
                 }
             }
         } catch (Exception e){
@@ -84,8 +96,11 @@ public class PCQQueue implements Queue {
                 if (this.size() != 0) {
                     if (!queueList.get((int) this.servingQueue).isEmpty()) {
                         p = (Packet) queueList.get((int) this.servingQueue).poll();
+                        //long FIFOSizeDecreaseEstimate = FIFOBytesOccupied.get((int) this.servingQueue) - p.getSizeBit()/8;
+                        //FIFOBytesOccupied.put((int) this.servingQueue, FIFOSizeDecreaseEstimate);//<yuxin> decrease when send a packet
                         return p;
                     } else {
+                        FIFOBytesOccupied.put((int)this.servingQueue, (long)0);
                         this.servingQueue = (this.servingQueue + 1) % this.queueList.size();
                         this.currentRound++;
                     }
