@@ -94,7 +94,7 @@ public abstract class Socket {
      * socket is constructed, it is assumed that it is the receiver.
      * Do not override.
      */
-    void markAsSender() {
+    public void markAsSender() {
         this.isReceiver = false;
     }
 

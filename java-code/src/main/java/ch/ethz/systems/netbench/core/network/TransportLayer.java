@@ -21,11 +21,11 @@ import java.util.Set;
 public abstract class TransportLayer {
 
     // Generator for unique flow identifiers amongst all transport layers
-    private static long flowIdCounter = 0;
+    protected static long flowIdCounter = 0;
     private static Map<Long, TransportLayer> flowIdToReceiver = new HashMap<>();
 
     // Map the flow identifier to the responsible socket
-    private Map<Long, Socket> flowIdToSocket;
+    protected Map<Long, Socket> flowIdToSocket;
     private Set<Long> finishedFlowIds;
 
     // Map priority carried by data packets to flow identifier. Purpose: so that the same priority can
@@ -110,6 +110,21 @@ public abstract class TransportLayer {
 
     }
 
+    //startFlow with weight
+    //add for WFQ
+    public void startFlow(int destination, long flowSizeByte,float weight) {
+
+        // Create new outgoing socket
+        //add type transform
+        Socket socket = createSocket(flowIdCounter, destination, flowSizeByte);
+        flowIdToSocket.put(flowIdCounter, socket);
+        flowIdCounter++;
+
+        // Start the socket off as initiator
+        socket.markAsSender();
+        socket.start();
+    }
+
     /**
      * Create a socket instance
      * .
@@ -123,6 +138,7 @@ public abstract class TransportLayer {
      * @return  Socket instance
      */
     protected abstract Socket createSocket(long flowId, int destinationId, long flowSizeByte);
+
 
     /**
      * Remove the socket from the transport layer after the flow has been finished.
