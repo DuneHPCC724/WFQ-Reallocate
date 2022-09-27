@@ -15,6 +15,7 @@ import ch.ethz.systems.netbench.core.run.infrastructure.BaseInitializer;
 import ch.ethz.systems.netbench.core.run.routing.RoutingPopulator;
 import ch.ethz.systems.netbench.core.run.traffic.TrafficPlanner;
 import ch.ethz.systems.netbench.core.utility.UnitConverter;
+import ch.ethz.systems.netbench.xpt.WFQTCP.Weight_Distribution;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -50,7 +51,15 @@ public class MainFromProperties {
         // Initialization of the three components
         BaseInitializer initializer = generateInfrastructure();
         populateRoutingState(initializer.getIdToNetworkDevice());
-        planTraffic(runtimeNs, initializer.getIdToTransportLayer());
+
+        //wfq plan diffrent traffic
+        if(runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp") ){
+            Weight_Distribution wd = new Weight_Distribution(runConfiguration.getPropertyOrFail("weight_distribution"),runConfiguration.getIntegerPropertyOrFail("weight_num"));
+            float[] weights = wd.get_weights();
+            planTraffic(runtimeNs,initializer.getIdToTransportLayer(),weights);
+        }
+        else
+            planTraffic(runtimeNs, initializer.getIdToTransportLayer());
 
         // Save analysis command
         String analysisCommand = Simulator.getConfiguration().getPropertyWithDefault("analysis_command", null);
@@ -196,6 +205,23 @@ public class MainFromProperties {
         // 3.1) Create flow plan for the simulator
         TrafficPlanner planner = TrafficSelector.selectPlanner(idToTransportLayer);
         planner.createPlan(runtimeNs);
+
+        // Finish traffic generation
+        System.out.println("Finished generating traffic flow starts.\n");
+
+    }
+
+    //WFQ plantraffic with weight
+    private static void planTraffic(long runtimeNs, Map<Integer, TransportLayer> idToTransportLayer,float[] weights) {
+
+        // Start traffic generation
+        System.out.println("TRAFFIC\n==================");
+
+        // 3.1) Create flow plan for the simulator
+        for(int i=0;i<weights.length;i++){
+            TrafficPlanner planner = TrafficSelector.selectPlanner(idToTransportLayer,i);
+            planner.createPlan(runtimeNs,weights[i],i);
+        }
 
         // Finish traffic generation
         System.out.println("Finished generating traffic flow starts.\n");
