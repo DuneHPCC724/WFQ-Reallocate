@@ -37,10 +37,10 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
         this.ownIndependentRng = Simulator.selectIndependentRandom("poisson_inter_arrival");
         this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"));
     }
-
-    private PoissonArrivalPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, double lambdaFlowStartsPerSecond, FlowSizeDistribution flowSizeDistribution,int flowset_num) {
+    //add by WFQ
+    private PoissonArrivalPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, double lambdaFlowStartsPerSecond, FlowSizeDistribution flowSizeDistribution,int flowset_num,int multiple) {
         super(idToTransportLayerMap);
-        this.lambdaFlowStartsPerSecond = lambdaFlowStartsPerSecond;
+        this.lambdaFlowStartsPerSecond = lambdaFlowStartsPerSecond*multiple;        //modified by WFQ
         this.flowSizeDistribution = flowSizeDistribution;
         this.ownIndependentRng = Simulator.selectIndependentRandom("poisson_inter_arrival"+Integer.toString(flowset_num));
         this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"+Integer.toString(flowset_num)));
@@ -110,8 +110,8 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
 
 
     //constructor for WFQ
-    public PoissonArrivalPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, double lambdaFlowStartsPerSecond, FlowSizeDistribution flowSizeDistribution, PairDistribution pairDistribution,int flowset_num) {
-        this(idToTransportLayerMap, lambdaFlowStartsPerSecond, flowSizeDistribution,flowset_num);
+    public PoissonArrivalPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, double lambdaFlowStartsPerSecond, FlowSizeDistribution flowSizeDistribution, PairDistribution pairDistribution,int flowset_num,int multiple) {
+        this(idToTransportLayerMap, lambdaFlowStartsPerSecond, flowSizeDistribution,flowset_num,multiple);
         switch (pairDistribution) {
 
             case ALL_TO_ALL:

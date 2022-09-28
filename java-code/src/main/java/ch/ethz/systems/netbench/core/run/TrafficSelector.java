@@ -222,7 +222,7 @@ class TrafficSelector {
 
 
     //add by WFQ,only to introduce weight set
-    static TrafficPlanner selectPlanner(Map<Integer, TransportLayer> idToTransportLayer,int flowset_num) {
+    static TrafficPlanner selectPlanner(Map<Integer, TransportLayer> idToTransportLayer,int flowset_num,int multiple) {
 
         switch (Simulator.getConfiguration().getPropertyOrFail("traffic")) {
 
@@ -302,6 +302,7 @@ class TrafficSelector {
                     String generativePairProbabilities = Simulator.getConfiguration().getPropertyWithDefault("traffic_probabilities_generator", "all_to_all");
 
                     switch (generativePairProbabilities) {
+                        //modified by WFQ
                         case "all_to_all":
 
                             return new PoissonArrivalPlanner(
@@ -309,7 +310,8 @@ class TrafficSelector {
                                     Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
                                     flowSizeDistribution,
                                     PoissonArrivalPlanner.PairDistribution.ALL_TO_ALL,
-                                    flowset_num
+                                    flowset_num,
+                                    multiple
                             );
 
                         case "all_to_all_fraction":

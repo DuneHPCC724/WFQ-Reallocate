@@ -21,7 +21,7 @@ import java.util.Set;
 public abstract class TransportLayer {
 
     // Generator for unique flow identifiers amongst all transport layers
-    protected static long flowIdCounter = 0;
+    private static long flowIdCounter = 0;
     protected static Map<Long, TransportLayer> flowIdToReceiver = new HashMap<>();
 
     // Map the flow identifier to the responsible socket
@@ -116,9 +116,9 @@ public abstract class TransportLayer {
 
         // Create new outgoing socket
         //add type transform
-        long real_flowID = flowIdCounter*10+flowset_num;
-        Socket socket = createSocket(real_flowID, destination, flowSizeByte,weight,flowset_num);
-        flowIdToSocket.put(real_flowID, socket);
+       // long real_flowID = flowIdCounter*10+flowset_num;
+        Socket socket = createSocket(flowIdCounter, destination, flowSizeByte,weight,flowset_num);
+        flowIdToSocket.put(flowIdCounter, socket);
         flowIdCounter++;
 
         // Start the socket off as initiator

@@ -11,16 +11,16 @@ public class WFQTcpTransportLayer extends TransportLayer {
         super(indentifier);
     }
 
-    @Override
-    public void startFlow(int destination, long flowSizeByte,float weight,int flow_num_set){
-        long real_flowID = flowIdCounter*10+flow_num_set;
-        Socket socket = createSocket(real_flowID, destination, flowSizeByte,weight,flow_num_set);
-        flowIdToSocket.put(real_flowID, socket);
-        flowIdCounter++;
-        // Start the socket off as initiator
-        socket.markAsSender();
-        socket.start();
-    }
+//    @Override
+//    public void startFlow(int destination, long flowSizeByte,float weight,int flow_num_set){
+//        //long real_flowID = flowIdCounter*10+flow_num_set;
+//        Socket socket = createSocket(flowIdCounter, destination, flowSizeByte,weight,flow_num_set);
+//        flowIdToSocket.put(flowIdCounter, socket);
+//        flowIdCounter++;
+//        // Start the socket off as initiator
+//        socket.markAsSender();
+//        socket.start();
+//    }
 
     @Override
     protected Socket createSocket(long flowId, int destinationId, long flowSizeByte) {

@@ -86,7 +86,7 @@ public class TcpLogger implements LoggerCallback {
         if(logPacketIATEnabled)
         {
             try{
-                PacketIATWriter.write(flowId+flowset_num+","+sequenceNumber+","+sizeBit/8+","+Simulator.getCurrentTime()+"\n");
+                PacketIATWriter.write(flowId+","+sequenceNumber+","+sizeBit/8+","+Simulator.getCurrentTime()+"\n");
             } catch (IOException e){
                 throw new LogFailureException(e);
             }
