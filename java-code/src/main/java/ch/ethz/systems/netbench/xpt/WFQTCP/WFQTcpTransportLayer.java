@@ -13,8 +13,9 @@ public class WFQTcpTransportLayer extends TransportLayer {
 
     @Override
     public void startFlow(int destination, long flowSizeByte,float weight,int flow_num_set){
-        Socket socket = createSocket(flowIdCounter, destination, flowSizeByte,weight,flow_num_set);
-        flowIdToSocket.put(flowIdCounter, socket);
+        long real_flowID = flowIdCounter*10+flow_num_set;
+        Socket socket = createSocket(real_flowID, destination, flowSizeByte,weight,flow_num_set);
+        flowIdToSocket.put(real_flowID, socket);
         flowIdCounter++;
         // Start the socket off as initiator
         socket.markAsSender();

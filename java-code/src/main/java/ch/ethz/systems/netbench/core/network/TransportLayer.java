@@ -116,8 +116,9 @@ public abstract class TransportLayer {
 
         // Create new outgoing socket
         //add type transform
-        Socket socket = createSocket(flowIdCounter, destination, flowSizeByte,weight,flowset_num);
-        flowIdToSocket.put(flowIdCounter, socket);
+        long real_flowID = flowIdCounter*10+flowset_num;
+        Socket socket = createSocket(real_flowID, destination, flowSizeByte,weight,flowset_num);
+        flowIdToSocket.put(real_flowID, socket);
         flowIdCounter++;
 
         // Start the socket off as initiator
