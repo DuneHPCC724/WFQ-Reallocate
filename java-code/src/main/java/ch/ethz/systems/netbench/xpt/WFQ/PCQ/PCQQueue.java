@@ -2,7 +2,7 @@ package ch.ethz.systems.netbench.xpt.WFQ.PCQ;
 
 import ch.ethz.systems.netbench.core.network.Packet;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
-
+import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
@@ -16,10 +16,18 @@ public class PCQQueue implements Queue {
     private long bytesPerRound;// <yuxin> in theory, bytesPerRound = size of a FIFO in Bytes
     private long currentRound;
     private long servingQueue;
+
+    private long taildrop;
+
+    private long rounddrop;
+
+    private long totalpackets;
     private ReentrantLock reentrantLock;
     private int ownId;
 
-    public PCQQueue(long numQueues, long bytesPerRound, int ownId){
+    private int targetId;
+
+    public PCQQueue(long numQueues, long bytesPerRound, int ownId, int targetId){
         long perQueueCapacity = 320;// <yuxin> size of a FIFO in packets
         this.FIFOBytesOccupied = new HashMap();
         this.queueList = new ArrayList((int)numQueues);
@@ -34,8 +42,12 @@ public class PCQQueue implements Queue {
         this.bytesPerRound = bytesPerRound;
         this.currentRound = 0;
         this.servingQueue = 0;
+        this.taildrop = 0;
+        this.rounddrop = 0;
+        this.totalpackets = 0;
         this.reentrantLock = new ReentrantLock();
         this.ownId = ownId;
+        this.targetId = targetId;
     }
 
     @Override
@@ -57,16 +69,18 @@ public class PCQQueue implements Queue {
             }
             bid = bid + (p.getSizeBit()/8);
 
-            double weight = 1.0;// <yuxin> flow weight
+            double weight = 0.4;// <yuxin> flow weight
             long packetRound = (long) (bid/(this.bytesPerRound*weight));
 
             if((packetRound - this.currentRound) > queueList.size()){
                 result = false; // Packet dropped since computed round is too far away
+                rounddrop += 1;
             } else {
                 int QueueToSend = (int)packetRound%(queueList.size());
                 long FIFOSizeEstimate = p.getSizeBit()/8 + FIFOBytesOccupied.get(QueueToSend);
                 if (FIFOSizeEstimate > this.bytesPerRound){
                     result = false;//<yuxin> Packet dropped because of tail drop
+                    taildrop += 1;
                 }
                 else{
                     result = queueList.get(QueueToSend).offer(p);
@@ -100,6 +114,7 @@ public class PCQQueue implements Queue {
                         //FIFOBytesOccupied.put((int) this.servingQueue, FIFOSizeDecreaseEstimate);//<yuxin> decrease when send a packet
                         return p;
                     } else {
+                        SimulationLogger.logDropRate(ownId, targetId, currentRound, taildrop * 1.0 / totalpackets, rounddrop * 1.0 / totalpackets, (taildrop + rounddrop) * 1.0 / totalpackets);
                         FIFOBytesOccupied.put((int)this.servingQueue, (long)0);
                         this.servingQueue = (this.servingQueue + 1) % this.queueList.size();
                         this.currentRound++;
@@ -132,6 +147,11 @@ public class PCQQueue implements Queue {
             }
         }
         return empty;
+    }
+
+    public long increaseTotalPackets(){
+        totalpackets += 1;
+        return totalpackets;
     }
 
     @Override

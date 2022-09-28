@@ -25,6 +25,10 @@ public class SimulationLogger {
     private static BufferedWriter writerPortUtilizationCsvFile;
     private static Map<String, BufferedWriter> writersAdded = new HashMap<>();
 
+    //WFQ+add drop rates log
+    private static boolean DropRatesEnabled = true;
+    private static BufferedWriter writerDropRates;
+
     // SP-PIFO Extension
     private static BufferedWriter writerRanktoQueuesMapping;
     private static boolean rankMappingEnabled;
@@ -123,6 +127,8 @@ public class SimulationLogger {
             // Enabling human readable version
             logHumanReadableFlowCompletionEnabled = tempRunConfiguration.getBooleanPropertyWithDefault("enable_generate_human_readable_flow_completion_log", true);
 
+            //WFQ+Drop rate enable
+            //DropRatesEnabled = tempRunConfiguration.getBooleanPropertyWithDefault("enable_drop_statistic", true);
             // SP-PIFO: Enabling logs
             rankMappingEnabled = tempRunConfiguration.getBooleanPropertyWithDefault("enable_rank_mapping", false);
             queueBoundTrackingEnabled = tempRunConfiguration.getBooleanPropertyWithDefault("enable_queue_bound_tracking", false);
@@ -166,6 +172,9 @@ public class SimulationLogger {
             writerPortQueueStateFile = openWriter("port_queue_length.csv.log");
             writerPortUtilizationCsvFile = openWriter("port_utilization.csv.log");
             writerPortUtilizationFile = openWriter("port_utilization.log");
+            if(DropRatesEnabled){
+                writerDropRates = openWriter("drop_rates.csv.log");
+            }
 
             // SP-PIFO log writers
             if (rankMappingEnabled){
@@ -276,6 +285,9 @@ public class SimulationLogger {
             writerPortUtilizationFile.close();
             writerPortUtilizationCsvFile.close();
             writerFlowCompletionFile.close();
+            if(DropRatesEnabled){
+                writerDropRates.close();
+            }
 
             // SP-PIFO: Close log files
             if (rankMappingEnabled){
@@ -342,6 +354,14 @@ public class SimulationLogger {
     public static void logUnpifoness(int id, long unpifoness) {
         try {
             writerUnpifonessTracking.write(id + "," + unpifoness + "\n");
+        } catch (IOException e) {
+            throw new LogFailureException(e);
+        }
+    }
+
+    public static void logDropRate(int ownId, int targetId, long round, double tailDropRate, double roundDropRate, double totalDropRate){
+        try {
+            writerDropRates.write(ownId + "," + targetId + "," + round + "," + tailDropRate + "," + roundDropRate + "," + totalDropRate + "\n");
         } catch (IOException e) {
             throw new LogFailureException(e);
         }

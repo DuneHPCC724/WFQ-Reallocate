@@ -6,12 +6,14 @@ import ch.ethz.systems.netbench.core.network.*;
 import ch.ethz.systems.netbench.ext.basic.IpHeader;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 
+import java.lang.reflect.Method;
+
 
 public class PCQOutputPort extends OutputPort {
 
 
     public PCQOutputPort(NetworkDevice ownNetworkDevice, NetworkDevice targetNetworkDevice, Link link, long numQueues, long bytesPerRound) {
-        super(ownNetworkDevice, targetNetworkDevice, link, new PCQQueue(numQueues, bytesPerRound, ownNetworkDevice.getIdentifier()));
+        super(ownNetworkDevice, targetNetworkDevice, link, new PCQQueue(numQueues, bytesPerRound, ownNetworkDevice.getIdentifier(), targetNetworkDevice.getIdentifier()));
     }
 
     /**
@@ -23,6 +25,7 @@ public class PCQOutputPort extends OutputPort {
     @Override
     public void enqueue(Packet packet) {
 
+        ((PCQQueue)getQueue()).increaseTotalPackets();
         // If it is not sending, then the queue is empty at the moment,
         // so this packet can be immediately send
         if (!getIsSending()) {
