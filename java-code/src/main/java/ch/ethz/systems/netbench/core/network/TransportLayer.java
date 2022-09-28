@@ -22,11 +22,11 @@ public abstract class TransportLayer {
 
     // Generator for unique flow identifiers amongst all transport layers
     protected static long flowIdCounter = 0;
-    private static Map<Long, TransportLayer> flowIdToReceiver = new HashMap<>();
+    protected static Map<Long, TransportLayer> flowIdToReceiver = new HashMap<>();
 
     // Map the flow identifier to the responsible socket
     protected Map<Long, Socket> flowIdToSocket;
-    private Set<Long> finishedFlowIds;
+    protected Set<Long> finishedFlowIds;
 
     // Map priority carried by data packets to flow identifier. Purpose: so that the same priority can
     // be applied to ACK packets as well. Only works for those cases in which priorities are fixed throughout all packets
@@ -112,11 +112,11 @@ public abstract class TransportLayer {
 
     //startFlow with weight
     //add for WFQ
-    public void startFlow(int destination, long flowSizeByte,float weight) {
+    public void startFlow(int destination, long flowSizeByte,float weight,int flowset_num) {
 
         // Create new outgoing socket
         //add type transform
-        Socket socket = createSocket(flowIdCounter, destination, flowSizeByte);
+        Socket socket = createSocket(flowIdCounter, destination, flowSizeByte,weight,flowset_num);
         flowIdToSocket.put(flowIdCounter, socket);
         flowIdCounter++;
 
@@ -139,6 +139,8 @@ public abstract class TransportLayer {
      */
     protected abstract Socket createSocket(long flowId, int destinationId, long flowSizeByte);
 
+    //WFQ create socket
+    protected Socket createSocket(long flowId, int destinationId, long flowSizeByte,float weight,int flowset_num) {return null;};
 
     /**
      * Remove the socket from the transport layer after the flow has been finished.

@@ -11,6 +11,7 @@ public class FlowStartEvent extends Event {
 
     //add by WFQ
     private float weight = 0;
+    private int flowset_num = -1;
 
     /**
      * Create event which will happen the given amount of nanoseconds later.
@@ -36,27 +37,23 @@ public class FlowStartEvent extends Event {
      * @param flowSizeByte      Size of the flow to send in bytes
      * @param weight            weight of this flow
      */
-    public FlowStartEvent(long timeFromNowNs, TransportLayer transportLayer, int targetId, long flowSizeByte,float weight) {
+    public FlowStartEvent(long timeFromNowNs, TransportLayer transportLayer, int targetId, long flowSizeByte,float weight,int flowset_num) {
         super(timeFromNowNs);
         this.transportLayer = transportLayer;
         this.targetId = targetId;
         this.flowSizeByte = flowSizeByte;
         this.weight = weight;
+        this.flowset_num = flowset_num;
     }
 
+    //modified by WFQ
     @Override
     public void trigger() {
-        transportLayer.startFlow(targetId, flowSizeByte);
-    }
-
-    //add by WFQ, override for convenioence
-    public void trigger(boolean enable_weight){
-        if(enable_weight) {
-            transportLayer.startFlow(targetId,flowSizeByte,weight);
-        }
+        if(weight != 0)
+            transportLayer.startFlow(this.targetId,this.flowSizeByte,this.weight,this.flowset_num);
         else
-            this.trigger();
-
+            transportLayer.startFlow(this.targetId, this.flowSizeByte);
     }
+
 
 }

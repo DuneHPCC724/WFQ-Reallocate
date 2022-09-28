@@ -82,11 +82,11 @@ public class TcpLogger implements LoggerCallback {
      * log the flow IAT
      *
      */
-    public void logPacketIAT(long sequenceNumber,long sizeBit){
+    public void logPacketIAT(long sequenceNumber,long sizeBit,int flowset_num){
         if(logPacketIATEnabled)
         {
             try{
-                PacketIATWriter.write(flowId+","+sequenceNumber+","+sizeBit/8+","+Simulator.getCurrentTime()+"\n");
+                PacketIATWriter.write(flowId+flowset_num+","+sequenceNumber+","+sizeBit/8+","+Simulator.getCurrentTime()+"\n");
             } catch (IOException e){
                 throw new LogFailureException(e);
             }

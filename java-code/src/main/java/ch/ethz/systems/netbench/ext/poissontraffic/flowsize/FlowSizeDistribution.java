@@ -12,5 +12,10 @@ public abstract class FlowSizeDistribution {
         this.independentRng = Simulator.selectIndependentRandom("flow_size");
     }
 
+    //modified by WFQ,generate diffrent flows for diffrent weights
+    FlowSizeDistribution(int flowset_num) {
+        this.independentRng = Simulator.selectIndependentRandom("flow_size"+Integer.toString(flowset_num));
+    }
+
     public abstract long generateFlowSizeByte();
 }

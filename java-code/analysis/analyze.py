@@ -69,6 +69,10 @@ class Flow:
         self.ave_rate = self.sent_bytes/self.duration
     def calcu_pp(self,L):     #第一种方式：第一个和第二个各自除以第一个IAT的一半
         for i in range(0,len(self.IATs)):
+            if(self.IATs[i] == 0):
+                print(self.IATs)
+                print(self.flowID)
+                exit(0)
             self.rates.append(self.pkt_bytes[i]/self.IATs[i])
         for i in range(0,len(self.rates)):
             rate = self.rates[i]

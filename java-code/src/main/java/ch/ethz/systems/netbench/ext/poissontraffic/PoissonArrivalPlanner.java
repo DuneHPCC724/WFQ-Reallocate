@@ -38,6 +38,14 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
         this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"));
     }
 
+    private PoissonArrivalPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, double lambdaFlowStartsPerSecond, FlowSizeDistribution flowSizeDistribution,int flowset_num) {
+        super(idToTransportLayerMap);
+        this.lambdaFlowStartsPerSecond = lambdaFlowStartsPerSecond;
+        this.flowSizeDistribution = flowSizeDistribution;
+        this.ownIndependentRng = Simulator.selectIndependentRandom("poisson_inter_arrival"+Integer.toString(flowset_num));
+        this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"+Integer.toString(flowset_num)));
+    }
+
     /**
      * Constructor.
      *
@@ -98,6 +106,48 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
         }
         SimulationLogger.logInfo("Flow planner", "POISSON_ARRIVAL(lambda=" + lambdaFlowStartsPerSecond + ", pairDistribution=" + pairDistribution + ")");
     }
+
+
+
+    //constructor for WFQ
+    public PoissonArrivalPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, double lambdaFlowStartsPerSecond, FlowSizeDistribution flowSizeDistribution, PairDistribution pairDistribution,int flowset_num) {
+        this(idToTransportLayerMap, lambdaFlowStartsPerSecond, flowSizeDistribution,flowset_num);
+        switch (pairDistribution) {
+
+            case ALL_TO_ALL:
+                this.setPairProbabilitiesAllToAll();
+                break;
+
+            case ALL_TO_ALL_FRACTION:
+                this.setPairProbabilitiesAllToAllInFraction();
+                break;
+
+            case ALL_TO_ALL_SERVER_FRACTION:
+                this.setPairProbabilitiesAllToAllInServerFraction(idToTransportLayerMap);
+                break;
+
+            case PAIRINGS_FRACTION:
+                this.setPairProbabilitiesPairingsInFraction();
+                break;
+
+            case PARETO_SKEW_DISTRIBUTION:
+                this.setPairProbabilitiesParetoSkew();
+                break;
+
+            case DUAL_ALL_TO_ALL_FRACTION:
+                this.setPairProbabilitiesDualAllToAllFraction();
+                break;
+
+            case DUAL_ALL_TO_ALL_SERVER_FRACTION:
+                this.setPairProbabilitiesDualAllToAllServerFraction();
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid pair distribution given: " + pairDistribution + ".");
+        }
+        SimulationLogger.logInfo("Flow planner", "POISSON_ARRIVAL(lambda=" + lambdaFlowStartsPerSecond + ", pairDistribution=" + pairDistribution + ")");
+    }
+
     
     /**
      * Set the communication pair probabilities to be all-to-all uniform.
@@ -601,6 +651,70 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
             // Register flow
             Pair<Integer, Integer> pair = choosePair();
             registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte());
+            // Advance time to next arrival
+            time += interArrivalTime;
+            x++;
+
+            if (time > nextProgressLog) {
+                System.out.print(" " + (100 * time / durationNs) + "%...");
+                nextProgressLog += durationNs / 10;
+            }
+
+        }
+
+        System.out.println(" done.");
+
+        // Log plan created
+        System.out.println("Poisson Arrival plan created.");
+        System.out.println("Number of flows created: " + x + ".");
+        System.out.println("Mean inter-arrival time: " + (sum / x) + " (expectation: "
+                + (1 / (lambdaFlowStartsPerSecond / 1e9)) + ")");
+        SimulationLogger.logInfo("Flow planner number flows", String.valueOf(x));
+        SimulationLogger.logInfo("Flow planner mean inter-arrival time", String.valueOf((sum / x)));
+        SimulationLogger.logInfo("Flow planner expected inter-arrival time", String.valueOf((1 / (lambdaFlowStartsPerSecond / 1e9))));
+        SimulationLogger.logInfo("Flow planner poisson rate lambda (flow starts/s)", String.valueOf(lambdaFlowStartsPerSecond));
+
+    }
+
+
+    //create traffic with weight
+    @Override
+    public void createPlan(long durationNs,float weight,int flowset_num) {
+
+        System.out.print("Creating arrival plan...");
+
+        // Statistics tracking
+        long time = 0;
+        int x = 0;
+        long sum = 0;
+
+        // Generate flow start events until the duration
+        // of the experiment has lapsed
+        long nextProgressLog = durationNs / 10;
+        while (time <= durationNs) {
+
+            // Poisson arrival
+            //
+            // F(x) = 1 - e^(-lambda * x)
+            // <=>
+            // ln( 1 - F(x) ) = -lambda * x
+            // <=>
+            // x = -ln( 1 - F(x) ) / lambda
+            // <=>
+            // x = -ln( Uniform(x) ) / lambda
+            //
+            long interArrivalTime = (long) (-Math.log(ownIndependentRng.nextDouble()) / (lambdaFlowStartsPerSecond / 1e9));
+
+            // Uniform arrival
+            //
+            // long interArrivalTime = (long) (1 / (lambdaFlowStartsPerSecond / 1e9));
+
+            // Add to sum for later statistics
+            sum += interArrivalTime;
+
+            // Register flow
+            Pair<Integer, Integer> pair = choosePair();
+            registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),weight,flowset_num);
             // Advance time to next arrival
             time += interArrivalTime;
             x++;

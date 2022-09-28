@@ -26,6 +26,9 @@ public abstract class TrafficPlanner {
 
     public abstract void createPlan(long durationNs);
 
+    //WFQ create plan
+    public void createPlan(long durationNs,float weight,int flowset_num)
+    {}
     /**
      * Register the flow from [srcId] to [dstId].
      *
@@ -51,6 +54,31 @@ public abstract class TrafficPlanner {
 
         // Create event
         FlowStartEvent event = new FlowStartEvent(time, idToTransportLayerMap.get(srcId), dstId, flowSizeByte);
+
+        // Register event
+        Simulator.registerEvent(event);
+
+    }
+
+
+    //WFQ register flow with weight
+    protected void registerFlow(long time, int srcId, int dstId, long flowSizeByte,float weight,int flow_set_num) {
+
+        // Some checking
+        if (srcId == dstId) {
+            throw new RuntimeException("Invalid traffic pair; source (" + srcId + ") and destination (" + dstId + ") are the same.");
+        } else if (idToTransportLayerMap.get(srcId) == null) {
+            throw new RuntimeException("Source network device " + srcId + " does not have a transport layer.");
+        } else if (idToTransportLayerMap.get(dstId) == null) {
+            throw new RuntimeException("Destination network device " + dstId + ") does not have a transport layer.");
+        } else if (time < 0) {
+            throw new RuntimeException("Cannot register a flow with a negative timestamp of " + time);
+        } else if (flowSizeByte < 0) {
+            throw new RuntimeException("Cannot register a flow with a negative flow size (in bytes) of " + flowSizeByte);
+        }
+
+        // Create event
+        FlowStartEvent event = new FlowStartEvent(time, idToTransportLayerMap.get(srcId), dstId, flowSizeByte,weight,flow_set_num);
 
         // Register event
         Simulator.registerEvent(event);

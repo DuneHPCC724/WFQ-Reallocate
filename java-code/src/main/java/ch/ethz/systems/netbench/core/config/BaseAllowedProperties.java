@@ -99,6 +99,10 @@ public class BaseAllowedProperties {
             "transport_layer_rank_distribution",
             "transport_layer_rank_bound",
 
+            //WFQ weights
+            "weight_num",
+            "weight_distribution",
+
             // TCP
             "TCP_ROUND_TRIP_TIMEOUT_NS",
             "TCP_MAX_SEGMENT_SIZE",
@@ -111,7 +115,7 @@ public class BaseAllowedProperties {
             "DCTCP_WEIGHT_NEW_ESTIMATION",
             "enable_log_congestion_window",
             "enable_log_packet_burst_gap",
-            "enable_log_packet_IAT",
+            "enable_log_packet_IAT",        //wfq
 
             // K-shortest-paths
             "k_for_k_shortest_paths",

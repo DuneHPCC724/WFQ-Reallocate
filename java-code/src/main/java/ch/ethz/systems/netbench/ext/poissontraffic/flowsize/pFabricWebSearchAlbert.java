@@ -9,6 +9,12 @@ public class pFabricWebSearchAlbert extends FlowSizeDistribution {
         SimulationLogger.logInfo("Flow planner flow size dist.", "pFabric data mining lower bound discrete");
     }
 
+    //add by WFQ
+    public pFabricWebSearchAlbert(int flowset_num) {
+        super(flowset_num);
+        SimulationLogger.logInfo("Flow planner flow size dist.", "pFabric data mining lower bound discrete");
+    }
+
     @Override
     public long generateFlowSizeByte() {
 
