@@ -40,8 +40,8 @@ public class WFQTcpTransportLayer extends TransportLayer {
         if (socket == null && !finishedFlowIds.contains(packet.getFlowId())) {
 
             // Create the socket instance in the other direction
-            float weight = genericPacket.getWeight();
-            int flowset_num = genericPacket.getFlowset_num();
+            float weight = packet.getWeight();
+            int flowset_num = packet.getFlowset_num();
             socket = createSocket(packet.getFlowId(), packet.getSourceId(),-1,weight,flowset_num);
             flowIdToReceiver.put(packet.getFlowId(), this);
             flowIdToSocket.put(packet.getFlowId(), socket);

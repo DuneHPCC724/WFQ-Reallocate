@@ -22,7 +22,7 @@ public abstract class TransportLayer {
 
     // Generator for unique flow identifiers amongst all transport layers
     protected static long flowIdCounter = 0;
-    private static Map<Long, TransportLayer> flowIdToReceiver = new HashMap<>();
+    protected static Map<Long, TransportLayer> flowIdToReceiver = new HashMap<>();
 
     // Map the flow identifier to the responsible socket
     protected Map<Long, Socket> flowIdToSocket;

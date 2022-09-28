@@ -26,7 +26,7 @@ public class FullExtTcpPacket extends TcpPacket implements SelectiveAckHeader, E
     public FullExtTcpPacket(long flowId, long dataSizeByte, int sourceId, int destinationId, int TTL, int sourcePort, int destinationPort, long sequenceNumber, long acknowledgementNumber, boolean NS, boolean CWR, boolean ECE, boolean URG, boolean ACK, boolean PSH, boolean RST, boolean SYN, boolean FIN, double windowSize,float weight,int flowset_num) {
         super(flowId, dataSizeByte, sourceId, destinationId, TTL, sourcePort, destinationPort, sequenceNumber, acknowledgementNumber, NS, CWR, ECE, URG, ACK, PSH, RST, SYN, FIN, windowSize);
         this.weight = weight;
-        this.flowset_num = -1;
+        this.flowset_num = flowset_num;
     }
     @Override
     public TcpPacket setEchoDepartureTime(long echoDepartureTime) {
