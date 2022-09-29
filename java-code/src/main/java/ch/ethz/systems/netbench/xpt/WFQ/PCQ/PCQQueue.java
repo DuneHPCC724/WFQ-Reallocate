@@ -62,17 +62,17 @@ public class PCQQueue implements Queue {
             // Compute the packet bid (when will the last byte be transmitted) as the max. between the current round (in bytes) and the last bid of the flow
             long bid = this.currentRound * this.bytesPerRound;
 
-            if(flowBytesSent.containsKey(p.getFlowId())){
-                if(bid < (Long)flowBytesSent.get(p.getFlowId())){
-                    bid = (Long)flowBytesSent.get(p.getFlowId());
+            if(flowBytesSent.containsKey(p.getDiffFlowId3())){
+                if(bid < (Long)flowBytesSent.get(p.getDiffFlowId3())){
+                    bid = (Long)flowBytesSent.get(p.getDiffFlowId3());
                 }
             }
             bid = bid + (p.getSizeBit()/8);
 
-            double weight = 0.4;// <yuxin> flow weight
+            float weight = p.getWeight();// <yuxin> flow weight
             long packetRound = (long) (bid/(this.bytesPerRound*weight));
 
-            if((packetRound - this.currentRound) > queueList.size()){
+            if((packetRound - this.currentRound) > queueList.size() - 1){
                 result = false; // Packet dropped since computed round is too far away
                 rounddrop += 1;
             } else {
@@ -86,7 +86,7 @@ public class PCQQueue implements Queue {
                     result = queueList.get(QueueToSend).offer(p);
                     if (!result) {
                     } else {
-                        flowBytesSent.put(p.getFlowId(), bid);
+                        flowBytesSent.put(p.getDiffFlowId3(), bid);
                         FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
                     }
                 }

@@ -108,4 +108,10 @@ public class FullExtTcpPacket extends TcpPacket implements SelectiveAckHeader, E
     public float getWeight(){return this.weight;}
 
     public int getFlowset_num(){return this.flowset_num;};
+
+    public String getDiffFlowId3(){
+        return getFlowset_num() + "," + getFlowId();
+        // return getFlowset_num() + ",";
+        // return getFlowset_num() + "," + getSourceId() + "," + getDestinationId();
+    }
 }

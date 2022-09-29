@@ -1,19 +1,20 @@
-package ch.ethz.systems.netbench.xpt.WFQ.PCQ;
+package ch.ethz.systems.netbench.xpt.WFQ.EPSWFQ;
 
 import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import ch.ethz.systems.netbench.core.network.*;
 import ch.ethz.systems.netbench.ext.basic.IpHeader;
+import ch.ethz.systems.netbench.xpt.WFQ.EPSWFQ.EPSWFQQueue;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 
 
 
 
-public class PCQOutputPort extends OutputPort {
+public class EPSWFQOutputPort extends OutputPort {
 
 
-    public PCQOutputPort(NetworkDevice ownNetworkDevice, NetworkDevice targetNetworkDevice, Link link, long numQueues, long bytesPerRound) {
-        super(ownNetworkDevice, targetNetworkDevice, link, new PCQQueue(numQueues, bytesPerRound, ownNetworkDevice.getIdentifier(), targetNetworkDevice.getIdentifier()));
+    public EPSWFQOutputPort(NetworkDevice ownNetworkDevice, NetworkDevice targetNetworkDevice, Link link, long numQueues, long bytesPerRound) {
+        super(ownNetworkDevice, targetNetworkDevice, link, new EPSWFQQueue(numQueues, bytesPerRound, ownNetworkDevice.getIdentifier(), targetNetworkDevice.getIdentifier(), link.getBandwidthBitPerNs()));
     }
 
     /**
@@ -25,10 +26,12 @@ public class PCQOutputPort extends OutputPort {
     @Override
     public void enqueue(Packet packet) {
 
-        ((PCQQueue)getQueue()).increaseTotalPackets();
+        EPSWFQQueue q = (EPSWFQQueue)getQueue();
+        q.increaseTotalPackets();
         // If it is not sending, then the queue is empty at the moment,
         // so this packet can be immediately send
         if (!getIsSending()) {
+            q.UpdateST((FullExtTcpPacket)packet);
 
             // Link is now being utilized
             getLogger().logLinkUtilized(true);
