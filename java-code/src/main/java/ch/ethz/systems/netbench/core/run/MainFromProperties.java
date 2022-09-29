@@ -56,7 +56,8 @@ public class MainFromProperties {
         if(runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp") ){
             Weight_Distribution wd = new Weight_Distribution(runConfiguration.getPropertyOrFail("weight_distribution"),runConfiguration.getIntegerPropertyOrFail("weight_num"));
             float[] weights = wd.get_weights();
-            planTraffic(runtimeNs,initializer.getIdToTransportLayer(),weights);
+            int[] multiples = wd.getMultiples();
+            planTraffic(runtimeNs,initializer.getIdToTransportLayer(),weights,multiples);
         }
         else
             planTraffic(runtimeNs, initializer.getIdToTransportLayer());
@@ -212,14 +213,14 @@ public class MainFromProperties {
     }
 
     //WFQ plantraffic with weight
-    private static void planTraffic(long runtimeNs, Map<Integer, TransportLayer> idToTransportLayer,float[] weights) {
+    private static void planTraffic(long runtimeNs, Map<Integer, TransportLayer> idToTransportLayer,float[] weights,int[] multiples) {
 
         // Start traffic generation
         System.out.println("TRAFFIC\n==================");
 
         // 3.1) Create flow plan for the simulator
         for(int i=0;i<weights.length;i++){
-            TrafficPlanner planner = TrafficSelector.selectPlanner(idToTransportLayer,i);
+            TrafficPlanner planner = TrafficSelector.selectPlanner(idToTransportLayer,i,multiples[i]);
             planner.createPlan(runtimeNs,weights[i],i);
         }
 
