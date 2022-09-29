@@ -42,7 +42,7 @@ public class EPSWFQQueue implements Queue {
     private double BandwidthBitPerNs;
 
     public EPSWFQQueue(long numQueues, long bytesPerRound, int ownId, int targetId, double BandwidthBitPerNs){
-        long perQueueCapacity = 320;// <yuxin> size of a FIFO in packets
+        long perQueueCapacity = 320;// <yuxin> physical size of a FIFO in packets
         this.FIFOBytesOccupied = new HashMap();
         this.queueList = new ArrayList((int)numQueues);
         ArrayBlockingQueue fifo;
@@ -86,6 +86,7 @@ public class EPSWFQQueue implements Queue {
                 FinalQueue = 0;
                 bid = 0;
             }
+
             //<yuxin> phase 1 start
             else{
                 // Compute the packet bid (when will the last byte be transmitted) as the max. between the current round (in bytes) and the last bid of the flow
@@ -101,17 +102,20 @@ public class EPSWFQQueue implements Queue {
                 float weight = p.getWeight();// <yuxin> flow weight
                 long packetRound = (long) (bid/(this.bytesPerRound*weight));
                 long AnchorQueue = (packetRound - this.currentRound);
+
                 //<yuxin> phase 2 start
                 if(AnchorQueue > (long)0){//<yuxin> not head queue
                     double s = FlowBytesArrived.get(Id)*1.0/FlowPacketsArrived.get(Id);//<yuxin>average packet size
-                    double t = FlowTimeInterval.get(Id)*((BandwidthBitPerNs/8)/bytesPerRound);//<yuxin>average interval per round
+                    double t = FlowTimeInterval.get(Id)*(BandwidthBitPerNs/8)/bytesPerRound;//<yuxin>average interval per round
                     double speed = s/t;
                     double prediction = bytesPerRound*weight;
                     double AlphaFactor;
                     if(speed < prediction){
+                        //System.out.println("slow");
                         AlphaFactor = 1;
                     }
                     else {
+                        //System.out.println("fast");
                         AlphaFactor = Math.pow((speed/prediction), 1.0/AnchorQueue);
                     }
                     double PromoteWeight = weight*AlphaFactor;
@@ -124,6 +128,7 @@ public class EPSWFQQueue implements Queue {
                     FinalQueue = 0;
                 }
             }
+
             //<yuxin> phase 3 start
             if (FinalQueue > queueList.size()-1){//<yuxin> Packet dropped since computed round is too far away
                 result = false;
@@ -138,6 +143,7 @@ public class EPSWFQQueue implements Queue {
                         result = queueList.get(QueueToSend).offer(p);
                         TailDropMark = false;
                         if (!result) {
+                            System.out.println("!!!maybe value perQueueCapacity should be larger");
                         } else {
                             flowBytesSent.put(Id, bid);
                             FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);

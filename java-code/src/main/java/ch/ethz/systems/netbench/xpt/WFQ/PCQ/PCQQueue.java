@@ -28,7 +28,7 @@ public class PCQQueue implements Queue {
     private int targetId;
 
     public PCQQueue(long numQueues, long bytesPerRound, int ownId, int targetId){
-        long perQueueCapacity = 320;// <yuxin> size of a FIFO in packets
+        long perQueueCapacity = 320;// <yuxin> physical size of a FIFO in packets
         this.FIFOBytesOccupied = new HashMap();
         this.queueList = new ArrayList((int)numQueues);
         ArrayBlockingQueue fifo;
@@ -85,6 +85,7 @@ public class PCQQueue implements Queue {
                 else{
                     result = queueList.get(QueueToSend).offer(p);
                     if (!result) {
+                        System.out.println("!!!maybe perQueueCapacity should be larger");
                     } else {
                         flowBytesSent.put(p.getDiffFlowId3(), bid);
                         FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
