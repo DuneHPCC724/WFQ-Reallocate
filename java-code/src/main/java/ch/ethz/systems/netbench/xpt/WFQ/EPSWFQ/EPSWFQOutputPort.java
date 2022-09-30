@@ -31,6 +31,7 @@ public class EPSWFQOutputPort extends OutputPort {
         // If it is not sending, then the queue is empty at the moment,
         // so this packet can be immediately send
         if (!getIsSending()) {
+            q.UpdateBi((FullExtTcpPacket)packet);
             q.UpdateST((FullExtTcpPacket)packet);
 
             // Link is now being utilized

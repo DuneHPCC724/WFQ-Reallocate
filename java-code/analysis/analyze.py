@@ -358,6 +358,6 @@ def analyze_IAT():
 
 
 # Call analysis functions
-# analyze_flow_completion()
-# analyze_port_utilization()
+analyze_flow_completion()
+analyze_port_utilization()
 analyze_IAT()

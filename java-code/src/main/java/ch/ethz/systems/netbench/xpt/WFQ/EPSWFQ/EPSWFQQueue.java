@@ -15,6 +15,7 @@ public class EPSWFQQueue implements Queue {
 
     private final Map<Integer, Long> FIFOBytesOccupied;//<yuxin> Occupancy of the queue in Bytes
 
+    private final Map <Integer, Long> FIFOBytesSend;
     private final Map<String, Long> FlowBytesArrived;
 
     private final Map<String, Long> FlowPacketsArrived;
@@ -32,6 +33,8 @@ public class EPSWFQQueue implements Queue {
     private long rounddrop;
 
     private long totalpackets;
+
+    private long queueLength = 20000;
     private ReentrantLock reentrantLock;
     private int ownId;
 
@@ -44,12 +47,14 @@ public class EPSWFQQueue implements Queue {
     public EPSWFQQueue(long numQueues, long bytesPerRound, int ownId, int targetId, double BandwidthBitPerNs){
         long perQueueCapacity = 320;// <yuxin> physical size of a FIFO in packets
         this.FIFOBytesOccupied = new HashMap();
+        this.FIFOBytesSend = new HashMap();
         this.queueList = new ArrayList((int)numQueues);
         ArrayBlockingQueue fifo;
         for (int i=0; i<(int)numQueues; i++){
             fifo = new ArrayBlockingQueue((int)perQueueCapacity);
             queueList.add(fifo);
             FIFOBytesOccupied.put(i, (long)0);
+            FIFOBytesSend.put(i, (long)0);
         }
 
         this.flowBytesSent = new HashMap();
@@ -89,8 +94,9 @@ public class EPSWFQQueue implements Queue {
 
             //<yuxin> phase 1 start
             else{
+                float weight = p.getWeight();// <yuxin> flow weight
                 // Compute the packet bid (when will the last byte be transmitted) as the max. between the current round (in bytes) and the last bid of the flow
-                bid = this.currentRound * this.bytesPerRound;
+                bid = (long)(this.currentRound * this.bytesPerRound * weight);
 
                 if(flowBytesSent.containsKey(Id)){
                     if(bid < (Long)flowBytesSent.get(Id)){
@@ -99,7 +105,6 @@ public class EPSWFQQueue implements Queue {
                 }
                 bid = bid + (p.getSizeBit()/8);
 
-                float weight = p.getWeight();// <yuxin> flow weight
                 long packetRound = (long) (bid/(this.bytesPerRound*weight));
                 long AnchorQueue = (packetRound - this.currentRound);
 
@@ -123,6 +128,9 @@ public class EPSWFQQueue implements Queue {
                         PromoteWeight = 1;
                     }
                     FinalQueue = (long) (bid/(this.bytesPerRound*PromoteWeight) - this.currentRound);
+                    if(FinalQueue < 0){
+                        FinalQueue = 0;
+                    }
                 }
                 else {//<yuxin> head queue
                     FinalQueue = 0;
@@ -139,7 +147,7 @@ public class EPSWFQQueue implements Queue {
                 for (int i = (int)FinalQueue; i<queueList.size(); i++){
                     int QueueToSend = (int)((FinalQueue+this.servingQueue)%(queueList.size()));
                     long FIFOSizeEstimate = p.getSizeBit()/8 + FIFOBytesOccupied.get(QueueToSend);
-                    if(FIFOSizeEstimate <= this.bytesPerRound){//<yuxin> find a available FIFO
+                    if(FIFOSizeEstimate <= this.queueLength){//<yuxin> find a available FIFO
                         result = queueList.get(QueueToSend).offer(p);
                         TailDropMark = false;
                         if (!result) {
@@ -147,6 +155,8 @@ public class EPSWFQQueue implements Queue {
                         } else {
                             flowBytesSent.put(Id, bid);
                             FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
+                            long FIFOBytesSendEstimate = p.getSizeBit()/8 + FIFOBytesSend.get(QueueToSend);
+                            FIFOBytesSend.put(QueueToSend, FIFOBytesSendEstimate);
                         }
                         break;
                     }
@@ -175,12 +185,14 @@ public class EPSWFQQueue implements Queue {
                 if (this.size() != 0) {
                     if (!queueList.get((int) this.servingQueue).isEmpty()) {
                         p = (Packet) queueList.get((int) this.servingQueue).poll();
-                        //long FIFOSizeDecreaseEstimate = FIFOBytesOccupied.get((int) this.servingQueue) - p.getSizeBit()/8;
-                        //FIFOBytesOccupied.put((int) this.servingQueue, FIFOSizeDecreaseEstimate);//<yuxin> decrease when send a packet
+                        long FIFOSizeDecreaseEstimate = FIFOBytesOccupied.get((int) this.servingQueue) - p.getSizeBit()/8;
+                        FIFOBytesOccupied.put((int) this.servingQueue, FIFOSizeDecreaseEstimate);//<yuxin> decrease when send a packet
                         return p;
                     } else {
                         SimulationLogger.logDropRate(ownId, targetId, currentRound, taildrop * 1.0 / totalpackets, rounddrop * 1.0 / totalpackets, (taildrop + rounddrop) * 1.0 / totalpackets);
-                        FIFOBytesOccupied.put((int)this.servingQueue, (long)0);
+//                        FIFOBytesOccupied.put((int)this.servingQueue, (long)0);
+                        SimulationLogger.logFIFOsend(ownId, targetId, currentRound, this.FIFOBytesSend.get((int)servingQueue));
+                        FIFOBytesSend.put((int)servingQueue, (long)0);
                         this.servingQueue = (this.servingQueue + 1) % this.queueList.size();
                         this.currentRound++;
                     }
@@ -217,6 +229,18 @@ public class EPSWFQQueue implements Queue {
     public long increaseTotalPackets(){
         totalpackets += 1;
         return totalpackets;
+    }
+
+    public void UpdateBi(FullExtTcpPacket p){//<yuxin> update Bi for outputport
+        long bid = (long)(this.currentRound * this.bytesPerRound * p.getWeight());
+
+        if(flowBytesSent.containsKey(p.getDiffFlowId3())){
+            if(bid < (Long)flowBytesSent.get(p.getDiffFlowId3())){
+                bid = (Long)flowBytesSent.get(p.getDiffFlowId3());
+            }
+        }
+        bid = bid + (p.getSizeBit()/8);
+        flowBytesSent.put(p.getDiffFlowId3(), bid);
     }
 
     public void UpdateST(FullExtTcpPacket p){

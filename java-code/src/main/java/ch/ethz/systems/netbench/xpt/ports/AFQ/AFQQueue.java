@@ -19,7 +19,7 @@ public class AFQQueue implements Queue {
     private int ownId;
 
     public AFQQueue(long numQueues, long perQueueCapacity, long bytesPerRound, int ownId){
-        perQueueCapacity = 320;
+        perQueueCapacity = 10;
         // bytesPerRound = 2000;
         this.queueList = new ArrayList((int)numQueues);
         this.queuePriorities = new HashMap();
@@ -59,7 +59,7 @@ public class AFQQueue implements Queue {
 
             long packetRound = bid/this.bytesPerRound;
 
-            if((packetRound - this.currentRound) > queueList.size()){
+            if((packetRound - this.currentRound) > queueList.size() - 1){
                 result = false; // Packet dropped since computed round is too far away
             } else {
                 result = queueList.get((int)packetRound%(queueList.size())).offer(p);

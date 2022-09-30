@@ -5,7 +5,10 @@ public class MainFromIntelliJ {
 
     public static void main(String args[]) {
 
-            MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});
+
+            MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQ.properties"});
+            MainFromProperties.main(new String[]{"projects/WFQ/run/test/EPSWFQ.properties"});
+    //    MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});
 //        /* Figure 5: SP-PIFO performance (uniform rank distribution) */
 //
 //            /* Figure 5a: Uniform 8 queues */

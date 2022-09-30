@@ -32,6 +32,9 @@ public class BaseAllowedProperties {
             "run_folder_base_dir",
             "analysis_command",
             "finish_when_first_flows_finish",
+            //add by WFQ:
+            "finish_time_s",
+            "finish_time_ns",
 
             // Infrastructure
             "transport_layer",

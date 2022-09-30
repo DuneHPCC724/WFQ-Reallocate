@@ -29,6 +29,8 @@ public class SimulationLogger {
     private static boolean DropRatesEnabled = true;
     private static BufferedWriter writerDropRates;
 
+    private static BufferedWriter writerFIFOSent;
+
     // SP-PIFO Extension
     private static BufferedWriter writerRanktoQueuesMapping;
     private static boolean rankMappingEnabled;
@@ -175,6 +177,8 @@ public class SimulationLogger {
             if(DropRatesEnabled){
                 writerDropRates = openWriter("drop_rates.csv.log");
             }
+
+            writerFIFOSent = openWriter(("FIFOBytesSent.csv.log"));
 
             // SP-PIFO log writers
             if (rankMappingEnabled){
@@ -362,6 +366,14 @@ public class SimulationLogger {
     public static void logDropRate(int ownId, int targetId, long round, double tailDropRate, double roundDropRate, double totalDropRate){
         try {
             writerDropRates.write(ownId + "," + targetId + "," + round + "," + tailDropRate + "," + roundDropRate + "," + totalDropRate + "\n");
+        } catch (IOException e) {
+            throw new LogFailureException(e);
+        }
+    }
+
+    public static void logFIFOsend(int ownId, int targetId, long round,long BytesSent){
+        try {
+            writerFIFOSent.write(ownId + "," + targetId + "," + round + "," + BytesSent + "\n");
         } catch (IOException e) {
             throw new LogFailureException(e);
         }

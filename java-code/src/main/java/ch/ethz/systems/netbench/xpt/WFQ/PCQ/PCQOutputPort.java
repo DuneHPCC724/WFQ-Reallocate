@@ -25,11 +25,13 @@ public class PCQOutputPort extends OutputPort {
     @Override
     public void enqueue(Packet packet) {
 
-        ((PCQQueue)getQueue()).increaseTotalPackets();
+        PCQQueue q = (PCQQueue)getQueue();
+        q.increaseTotalPackets();
         // If it is not sending, then the queue is empty at the moment,
         // so this packet can be immediately send
         if (!getIsSending()) {
 
+            q.UpdateBi((FullExtTcpPacket)packet);
             // Link is now being utilized
             getLogger().logLinkUtilized(true);
 

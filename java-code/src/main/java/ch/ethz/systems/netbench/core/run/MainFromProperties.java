@@ -38,6 +38,7 @@ public class MainFromProperties {
 
         // General property: running time in nanoseconds
         long runtimeNs = determineRuntimeNs(runConfiguration);
+        long finishtimeNs = determineFinishtimeNs(runConfiguration);
 
         // Setup simulator (it is now public known)
         Simulator.setup(seed, runConfiguration);
@@ -67,7 +68,7 @@ public class MainFromProperties {
 
         // Perform run
         System.out.println("ACTUAL RUN\n==================");
-        Simulator.runNs(runtimeNs, Simulator.getConfiguration().getLongPropertyWithDefault("finish_when_first_flows_finish", -1));
+        Simulator.runNs(finishtimeNs, Simulator.getConfiguration().getLongPropertyWithDefault("finish_when_first_flows_finish", -1));
         Simulator.reset(false);
         System.out.println("Finished run.\n");
 
@@ -140,6 +141,24 @@ public class MainFromProperties {
 
         } else {
             throw new PropertyMissingException(runConfiguration, "run_time_s");
+        }
+
+    }
+
+    //add by WFQ
+    private static long determineFinishtimeNs(NBProperties runConfiguration) {
+
+        if (runConfiguration.isPropertyDefined("finish_time_s") && runConfiguration.isPropertyDefined("finish_time_ns")) {
+            throw new PropertyConflictException(runConfiguration, "finish_time_s", "finish_time_ns");
+
+        } else if (runConfiguration.isPropertyDefined("finish_time_s")) {
+            return UnitConverter.convertSecondsToNanoseconds(runConfiguration.getDoublePropertyOrFail("finish_time_s"));
+
+        } else if (runConfiguration.isPropertyDefined("finish_time_ns")) {
+            return runConfiguration.getLongPropertyOrFail("finish_time_ns");
+
+        } else {
+            throw new PropertyMissingException(runConfiguration, "finish_time_s");
         }
 
     }
