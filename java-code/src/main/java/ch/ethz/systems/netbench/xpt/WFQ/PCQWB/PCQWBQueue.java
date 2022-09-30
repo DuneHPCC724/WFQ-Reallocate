@@ -1,4 +1,4 @@
-package ch.ethz.systems.netbench.xpt.WFQ.PCQ;
+package ch.ethz.systems.netbench.xpt.WFQ.PCQWB;
 
 import ch.ethz.systems.netbench.core.network.Packet;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
@@ -7,10 +7,12 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class PCQQueue implements Queue {
+public class PCQWBQueue implements Queue {
 
     private final ArrayList<ArrayBlockingQueue> queueList;
     private final Map flowBytesSent;
+
+    private final Map flowTotalReceivedBytes;
 
     private final Map <Integer, Long> FIFOBytesSend;
 
@@ -23,6 +25,8 @@ public class PCQQueue implements Queue {
 
     private long rounddrop;
 
+    private long burstsize = 6000;
+
     private long totalpackets;
 
     private long queueLength = 15000;
@@ -31,7 +35,7 @@ public class PCQQueue implements Queue {
 
     private int targetId;
 
-    public PCQQueue(long numQueues, long bytesPerRound, int ownId, int targetId){
+    public PCQWBQueue(long numQueues, long bytesPerRound, int ownId, int targetId){
         long perQueueCapacity = 320;// <yuxin> physical size of a FIFO in packets
         this.FIFOBytesOccupied = new HashMap();
         this.FIFOBytesSend = new HashMap();
@@ -45,6 +49,7 @@ public class PCQQueue implements Queue {
         }
 
         this.flowBytesSent = new HashMap();
+        this.flowTotalReceivedBytes = new HashMap();
         this.bytesPerRound = bytesPerRound;
         this.currentRound = 0;
         this.servingQueue = 0;
@@ -77,8 +82,20 @@ public class PCQQueue implements Queue {
             }
             bid = bid + (p.getSizeBit()/8);
 
+            float weightedBytesPerRound = this.bytesPerRound*weight;
+            if(flowTotalReceivedBytes.containsKey(p.getDiffFlowId3())){//<yuxin> max with burstsize - bytes[f]
+                if(weightedBytesPerRound < burstsize - (long)flowTotalReceivedBytes.get(p.getDiffFlowId3())){
+                    weightedBytesPerRound = burstsize - (long)flowTotalReceivedBytes.get(p.getDiffFlowId3());
+                }
+            }
+            else{
+                if(weightedBytesPerRound < burstsize){
+                    weightedBytesPerRound = burstsize;
+                }
+            }
+
             //float weight = p.getWeight();// <yuxin> flow weight
-            long packetRound = (long) (bid/(this.bytesPerRound*weight));
+            long packetRound = (long) (bid/(this.bytesPerRound*weightedBytesPerRound));
 
             if((packetRound - this.currentRound) > queueList.size() - 1){
                 result = false; // Packet dropped since computed round is too far away
@@ -95,6 +112,7 @@ public class PCQQueue implements Queue {
                     if (!result) {
                         System.out.println("!!!maybe perQueueCapacity should be larger");
                     } else {
+                        UpdateFlowTotalReceived(p);
                         flowBytesSent.put(p.getDiffFlowId3(), bid);
                         FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
                         long FIFOBytesSendEstimate = p.getSizeBit()/8 + FIFOBytesSend.get(QueueToSend);
@@ -105,7 +123,7 @@ public class PCQQueue implements Queue {
         } catch (Exception e){
             e.printStackTrace();
             System.out.println("Probably the bid size has been exceeded, transmit less packets ");
-            System.out.println("Exception PCQ offer: " + e.getMessage() + e.getLocalizedMessage());
+            System.out.println("Exception PCQWB offer: " + e.getMessage() + e.getLocalizedMessage());
         } finally {
             this.reentrantLock.unlock();
             return result;
@@ -179,6 +197,16 @@ public class PCQQueue implements Queue {
         flowBytesSent.put(p.getDiffFlowId3(), bid);
     }
 
+    public void UpdateFlowTotalReceived(FullExtTcpPacket p){
+        String Id = p.getDiffFlowId3();
+        if (flowTotalReceivedBytes.containsKey(Id)){
+            flowTotalReceivedBytes.put(Id, (Long)flowTotalReceivedBytes.get(Id) + p.getSizeBit()/8);
+        }
+        else {
+            flowTotalReceivedBytes.put(Id, p.getSizeBit()/8);
+        }
+    }
+
     @Override
     public boolean contains(Object o) {
         return false;
@@ -247,3 +275,4 @@ public class PCQQueue implements Queue {
         return null;
     }
 }
+

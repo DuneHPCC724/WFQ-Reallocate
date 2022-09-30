@@ -34,7 +34,7 @@ public class EPSWFQQueue implements Queue {
 
     private long totalpackets;
 
-    private long queueLength = 20000;
+    private long queueLength = 15000;
     private ReentrantLock reentrantLock;
     private int ownId;
 
