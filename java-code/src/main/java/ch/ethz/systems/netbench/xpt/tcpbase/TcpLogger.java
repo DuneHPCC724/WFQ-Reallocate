@@ -22,6 +22,10 @@ public class TcpLogger implements LoggerCallback {
     private final BufferedWriter PacketIATWriter;
     private final boolean logPacketIATEnabled;
 
+    private final boolean log_flowset_num_enabled;
+
+    private final BufferedWriter Flowset_Writer;
+
     public TcpLogger(long flowId, boolean isReceiver) {
         this.flowId = flowId;
         this.maxFlowlet = 0;
@@ -31,7 +35,10 @@ public class TcpLogger implements LoggerCallback {
         //WFQ_add_IAT_logger
         this.PacketIATWriter = SimulationLogger.getExternalWriter("flow_IAT.csv.log");
         this.logPacketIATEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_IAT", false);
-        //
+        //WFQ flowID_flowset_num
+        this.log_flowset_num_enabled = Simulator.getConfiguration().getPropertyOrFail("transport_layer").equals("wfq_tcp");
+        this.Flowset_Writer = SimulationLogger.getExternalWriter("flowset_num_flowID.csv.log");
+
         this.logPacketBurstGapEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_burst_gap", false);
         this.logCongestionWindowEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_congestion_window", false);
         this.isReceiver = isReceiver;
@@ -79,7 +86,7 @@ public class TcpLogger implements LoggerCallback {
     }
 
     /**
-     * log the flow IAT
+     * log the flow IAT WFQ
      *
      */
     public void logPacketIAT(long sequenceNumber,long sizeBit,int flowset_num){
@@ -92,6 +99,22 @@ public class TcpLogger implements LoggerCallback {
             }
         }
     }
+
+    //log flowID to flowsetnum
+    public void logFlowID_Setnum(long flowId,int flowset_num,float weight){
+        if(this.log_flowset_num_enabled)
+        {
+            try{
+                this.Flowset_Writer.write(flowId+","+flowset_num+","+weight+"\n");
+            }
+            catch (IOException e){
+                throw new LogFailureException(e);
+            }
+        }
+    }
+
+
+
 
     @Override
     public void callBeforeClose() {

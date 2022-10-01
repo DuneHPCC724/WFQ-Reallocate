@@ -6,6 +6,7 @@ import ch.ethz.systems.netbench.core.network.Packet;
 import ch.ethz.systems.netbench.core.network.Socket;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
 import ch.ethz.systems.netbench.ext.basic.TcpPacket;
+import ch.ethz.systems.netbench.xpt.WFQTCP.WFQTcpSocket;
 import ch.ethz.systems.netbench.xpt.newreno.TcpRetransmissionTimeOutEvent;
 import ch.ethz.systems.netbench.xpt.tcpbase.AckRange;
 import ch.ethz.systems.netbench.xpt.tcpbase.AckRangeSet;
@@ -266,7 +267,10 @@ public class NewRenoTcpSocket extends Socket {
                 true,  // SYN
                 false  // ECE
         ));
-
+        //add by WFQ,recorde the flowset num
+        if(WFQTcpSocket.class.isInstance(this) ) {
+            this.tcpLogger.logFlowID_Setnum(this.flowId, ((WFQTcpSocket)this).getFlowset_num(),((WFQTcpSocket)this).getWeight());
+        }
         // System.out.println("3-WAY HANDSHAKE: 0. Sender sent SYN.");
 
     }
