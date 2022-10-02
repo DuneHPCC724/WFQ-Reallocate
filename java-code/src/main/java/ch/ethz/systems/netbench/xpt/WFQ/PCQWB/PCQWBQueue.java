@@ -95,7 +95,7 @@ public class PCQWBQueue implements Queue {
             }
 
             //float weight = p.getWeight();// <yuxin> flow weight
-            long packetRound = (long) (bid/(this.bytesPerRound*weightedBytesPerRound));
+            long packetRound = (long) (bid/(weightedBytesPerRound));
 
             if((packetRound - this.currentRound) > queueList.size() - 1){
                 result = false; // Packet dropped since computed round is too far away
