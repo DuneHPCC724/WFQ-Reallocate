@@ -101,11 +101,11 @@ public class TcpLogger implements LoggerCallback {
     }
 
     //log flowID to flowsetnum
-    public void logFlowID_Setnum(long flowId,int flowset_num,float weight){
+    public void logFlowID_Setnum(long flowId,int flowset_num,float weight,long flowsiezeByte){
         if(this.log_flowset_num_enabled)
         {
             try{
-                this.Flowset_Writer.write(flowId+","+flowset_num+","+weight+"\n");
+                this.Flowset_Writer.write(flowId+","+flowset_num+","+weight+","+flowsiezeByte+"\n");
             }
             catch (IOException e){
                 throw new LogFailureException(e);

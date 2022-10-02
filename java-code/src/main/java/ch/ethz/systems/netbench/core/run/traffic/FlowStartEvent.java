@@ -4,7 +4,8 @@ import ch.ethz.systems.netbench.core.network.Event;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
 
 public class FlowStartEvent extends Event {
-
+    static float ave_flowsize_byte = 2369492.4f;
+    static float median_flowsize_byte = 77380f;
     private final TransportLayer transportLayer;
     private final int targetId;
     private final long flowSizeByte;
@@ -49,8 +50,10 @@ public class FlowStartEvent extends Event {
     //modified by WFQ
     @Override
     public void trigger() {
-        if(weight != 0)
-            transportLayer.startFlow(this.targetId,this.flowSizeByte,this.weight,this.flowset_num);
+        if(weight != 0){
+//            transportLayer.startFlow(this.targetId,this.flowSizeByte,this.weight,this.flowset_num);
+            transportLayer.startFlow(this.targetId,this.flowSizeByte,this.weight*this.flowSizeByte/median_flowsize_byte,this.flowset_num);
+        }
         else
             transportLayer.startFlow(this.targetId, this.flowSizeByte);
     }

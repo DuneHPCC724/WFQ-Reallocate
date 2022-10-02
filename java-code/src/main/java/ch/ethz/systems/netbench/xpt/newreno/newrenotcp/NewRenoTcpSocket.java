@@ -269,7 +269,7 @@ public class NewRenoTcpSocket extends Socket {
         ));
         //add by WFQ,recorde the flowset num
         if(WFQTcpSocket.class.isInstance(this) ) {
-            this.tcpLogger.logFlowID_Setnum(this.flowId, ((WFQTcpSocket)this).getFlowset_num(),((WFQTcpSocket)this).getWeight());
+            this.tcpLogger.logFlowID_Setnum(this.flowId, ((WFQTcpSocket)this).getFlowset_num(),((WFQTcpSocket)this).getWeight(),this.flowSizeByte);
         }
         // System.out.println("3-WAY HANDSHAKE: 0. Sender sent SYN.");
 

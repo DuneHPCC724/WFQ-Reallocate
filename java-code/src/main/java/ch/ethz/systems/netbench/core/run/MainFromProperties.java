@@ -52,7 +52,6 @@ public class MainFromProperties {
         // Initialization of the three components
         BaseInitializer initializer = generateInfrastructure();
         populateRoutingState(initializer.getIdToNetworkDevice());
-
         //wfq plan diffrent traffic
         if(runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp") ){
             Weight_Distribution wd = new Weight_Distribution(runConfiguration.getPropertyOrFail("weight_distribution"),runConfiguration.getIntegerPropertyOrFail("weight_num"));

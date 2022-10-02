@@ -714,7 +714,9 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
 
             // Register flow
             Pair<Integer, Integer> pair = choosePair();
-            registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),weight,flowset_num);
+            registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),(float)(weight/(lambdaFlowStartsPerSecond*0.061904f)),flowset_num);
+//            registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),weight,flowset_num);
+            //0.189559392 = median_flowsize_byte/1250000
             // Advance time to next arrival
             time += interArrivalTime;
             x++;
