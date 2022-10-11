@@ -1,5 +1,6 @@
 package ch.ethz.systems.netbench.xpt.udpbase;
 
+import ch.ethz.systems.netbench.core.network.Packet;
 import ch.ethz.systems.netbench.core.network.Socket;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
 
@@ -56,6 +57,11 @@ public class UdpSocket extends Socket {
     public void start(){
         //first:generate IATs[]
         //second: insert Events
+    }
+
+    @Override
+    public void handle(Packet genericPacket) {
+
     }
 
 }
