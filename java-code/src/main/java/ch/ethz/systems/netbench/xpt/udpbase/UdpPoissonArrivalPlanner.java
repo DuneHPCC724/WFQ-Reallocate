@@ -17,6 +17,8 @@ public class UdpPoissonArrivalPlanner {
 
     private final double[] StateMachine;
 
+    private double[] IATs;
+
     public UdpPoissonArrivalPlanner(double LambdaBurstPKTPerSecond, double LambdaNoBurstPKTPerSecond,double LambdaTotal, int PKTSize,long FlowStartTime ,int deviceId, int FlowId,double[] StateMachine){
         this.LambdaBurstPKTPerSecond = LambdaBurstPKTPerSecond;
         this.LambdaNoBurstPKTPerSecond = LambdaNoBurstPKTPerSecond;
@@ -28,9 +30,10 @@ public class UdpPoissonArrivalPlanner {
         this.OwnIndependentRng = Simulator.selectIndependentRandom(Integer.toString(FlowId)+Integer.toString(deviceId));   //temp, only use FlowId+deviceId to Generate
         this.StateMachine = StateMachine;
         this.StateMachineRng = Simulator.selectIndependentRandom("State_Machine"+Integer.toString(FlowId)+Integer.toString(deviceId));
+        this.IATs = new double[];
     }
 
-    public void createPKTPlan(long durationNs){
+    public double[] createPKTPlan(long durationNs){
         System.out.println("Create PKT Plan for flow: "+Integer.toString(this.FlowId));
         long time = this.FlowStartTime;
         int x = 0;
@@ -60,6 +63,7 @@ public class UdpPoissonArrivalPlanner {
                 else
                     Burst = true;
             }
+            this.IATs[x] = interArrivalTime;
             sum += interArrivalTime;
             registerPkt(time);
             time += interArrivalTime;
@@ -74,6 +78,7 @@ public class UdpPoissonArrivalPlanner {
         System.out.println("Mean inter-arrival time: " + (sum / x) + " (expectation: "
                 + (1 / ( this.LambdaTotal/ 1e9)) + ")");
 
+        return this.IATs;
     }
     private void registerPkt(long time){
 
