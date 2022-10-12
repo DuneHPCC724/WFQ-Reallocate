@@ -44,8 +44,6 @@ public class UdpSocket extends Socket {
 
     private final long FlowStartTimeNs;
 
-    private UdpPoissonArrivalPlanner PKTPlanner;
-
     public UdpSocket(TransportLayer transportLayer,long flowId,int sourceId, int destinationId, long flowSizeByte,double weight,long FlowStartTimeNs,double burst_strength,double[] state_machine){
         super(transportLayer, flowId, sourceId, destinationId, flowSizeByte);
         this.FlowStartTimeNs = FlowStartTimeNs;
@@ -57,7 +55,6 @@ public class UdpSocket extends Socket {
     //start(): insert packet sent events,to send all packets
     @Override
     public void start(){
-        this.PKTPlanner = new
         //first:generate IATs[]
         //second: insert Events
     }
