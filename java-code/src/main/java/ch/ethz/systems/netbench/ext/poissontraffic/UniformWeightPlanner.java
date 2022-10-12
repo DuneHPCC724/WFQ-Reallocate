@@ -28,13 +28,14 @@ public class UniformWeightPlanner extends TrafficPlanner {
     private final Random ownIndependentRng;
     private final RandomCollection<Pair<Integer, Integer>> randomPairGenerator;
     private final int TotalFlowNumber;
+    private final int WeightNumber;
     private final WeightDistribution wd;
 
-    public UniformWeightPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, FlowSizeDistribution flowSizeDistribution, int FlowNum,PairDistribution pairDistribution,String wdistribution) {
+    public UniformWeightPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, FlowSizeDistribution flowSizeDistribution,int weight_num ,int FlowNum,PairDistribution pairDistribution,String wdistribution) {
         super(idToTransportLayerMap);
         this.flowSizeDistribution = flowSizeDistribution;
         this.TotalFlowNumber = FlowNum;
-
+        this.WeightNumber = weight_num;
         this.ownIndependentRng = Simulator.selectIndependentRandom("uniform_arrival"+Integer.toString(FlowNum));
         this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"+Integer.toString(FlowNum)));
         switch (pairDistribution) {
@@ -43,12 +44,13 @@ public class UniformWeightPlanner extends TrafficPlanner {
                 this.setPairProbabilitiesAllToAll();
                 break;
             case Incast:
-
+                this.setPairIncast();
+                break;
             default:
                 throw new IllegalArgumentException("Invalid pair distribution given: " + pairDistribution + ".");
 
         }
-        this.wd = new WeightDistribution(wdistribution,FlowNum);
+        this.wd = new WeightDistribution(wdistribution,WeightNumber);
         SimulationLogger.logInfo("Flow planner", "Unifrom_Weight_Traffic(flownumber=" + this.TotalFlowNumber + ", pairDistribution=" + pairDistribution + ")");
 
     }
@@ -100,10 +102,9 @@ public class UniformWeightPlanner extends TrafficPlanner {
         this.createPlan_Incast();
     }
     public void createPlan_Incast() {
-        int[] weights = this.wd.get_weights();
-        int total_weight = this.wd.getTotal_weight();
+        double[] weights = this.wd.get_weights_uniformly(this.TotalFlowNumber);
         for(int i=0;i<weights.length;i++){
-            double weight_current = 1.0*weights[i]/(double)total_weight;
+            double weight_current = weights[i];
             Pair<Integer, Integer> pair = choosePair();
             registerFlow(0, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),(float) weight_current,0);
         }
