@@ -16,6 +16,7 @@ import ch.ethz.systems.netbench.core.run.routing.RoutingPopulator;
 import ch.ethz.systems.netbench.core.run.traffic.TrafficPlanner;
 import ch.ethz.systems.netbench.core.utility.UnitConverter;
 import ch.ethz.systems.netbench.xpt.WFQTCP.Weight_Distribution;
+import sun.awt.X11.XSystemTrayPeer;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -53,11 +54,14 @@ public class MainFromProperties {
         BaseInitializer initializer = generateInfrastructure();
         populateRoutingState(initializer.getIdToNetworkDevice());
         //wfq plan diffrent traffic
-        if(runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp") ){
+        if(runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp_multiple") ){
             Weight_Distribution wd = new Weight_Distribution(runConfiguration.getPropertyOrFail("weight_distribution"),runConfiguration.getIntegerPropertyOrFail("weight_num"));
             float[] weights = wd.get_weights();
             int[] multiples = wd.getMultiples();
-            planTraffic(runtimeNs,initializer.getIdToTransportLayer(),weights,multiples);
+            planmultipleTraffic(runtimeNs,initializer.getIdToTransportLayer(),weights,multiples);
+        }
+        else if (runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp_evenly") ){
+            planevenlyTraffic(runtimeNs,initializer.getIdToTransportLayer());
         }
         else
             planTraffic(runtimeNs, initializer.getIdToTransportLayer());
@@ -231,7 +235,7 @@ public class MainFromProperties {
     }
 
     //WFQ plantraffic with weight
-    private static void planTraffic(long runtimeNs, Map<Integer, TransportLayer> idToTransportLayer,float[] weights,int[] multiples) {
+    private static void planmultipleTraffic(long runtimeNs, Map<Integer, TransportLayer> idToTransportLayer,float[] weights,int[] multiples) {
 
         // Start traffic generation
         System.out.println("TRAFFIC\n==================");
@@ -245,6 +249,15 @@ public class MainFromProperties {
         // Finish traffic generation
         System.out.println("Finished generating traffic flow starts.\n");
 
+    }
+
+    //WFQ plan evenly traffic: start at the same time
+    private static void planevenlyTraffic(long runtimeNs,Map<Integer, TransportLayer> idToTransportLayer)
+    {
+        System.out.println("TRAFFIC Evenly\n==================");
+        TrafficPlanner planner = TrafficSelector.selectPlanner(idToTransportLayer);
+        planner.createPlan(runtimeNs);
+        System.out.println("Finished generating traffic flow starts.\n");
     }
 
     /**

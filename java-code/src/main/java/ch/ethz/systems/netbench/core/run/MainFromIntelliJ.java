@@ -6,12 +6,12 @@ public class MainFromIntelliJ {
     public static void main(String args[]) {
 
 
-        MainFromProperties.main(new String[]{"projects/WFQ/run/test/FIFO.properties"});
-        MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});
-            MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQ.properties"});
-            MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQWB.properties"});
-            MainFromProperties.main(new String[]{"projects/WFQ/run/test/EPSWFQ.properties"});
-
+          MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQ.properties"});
+            MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});
+//            MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQWB.properties"});
+//            MainFromProperties.main(new String[]{"projects/WFQ/run/test/EPSWFQ.properties"});
+//
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/FIFO.properties"});
 
 
     //    MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});

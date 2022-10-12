@@ -20,19 +20,21 @@ public class UniformWeightPlanner extends TrafficPlanner {
         PARETO_SKEW_DISTRIBUTION,
         PAIRINGS_FRACTION,
         DUAL_ALL_TO_ALL_FRACTION,
-        DUAL_ALL_TO_ALL_SERVER_FRACTION
+        DUAL_ALL_TO_ALL_SERVER_FRACTION,
+        Incast
     }
+
     private final FlowSizeDistribution flowSizeDistribution;
     private final Random ownIndependentRng;
     private final RandomCollection<Pair<Integer, Integer>> randomPairGenerator;
     private final int TotalFlowNumber;
     private final WeightDistribution wd;
 
-    public UniformWeightPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, FlowSizeDistribution flowSizeDistribution, int FlowNum,PairDistribution pairDistribution) {
+    public UniformWeightPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, FlowSizeDistribution flowSizeDistribution, int FlowNum,PairDistribution pairDistribution,String wdistribution) {
         super(idToTransportLayerMap);
         this.flowSizeDistribution = flowSizeDistribution;
         this.TotalFlowNumber = FlowNum;
-        this.wd = new WeightDistribution("uniform",FlowNum);
+
         this.ownIndependentRng = Simulator.selectIndependentRandom("uniform_arrival"+Integer.toString(FlowNum));
         this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"+Integer.toString(FlowNum)));
         switch (pairDistribution) {
@@ -40,10 +42,13 @@ public class UniformWeightPlanner extends TrafficPlanner {
             case ALL_TO_ALL:
                 this.setPairProbabilitiesAllToAll();
                 break;
+            case Incast:
+
             default:
                 throw new IllegalArgumentException("Invalid pair distribution given: " + pairDistribution + ".");
 
         }
+        this.wd = new WeightDistribution(wdistribution,FlowNum);
         SimulationLogger.logInfo("Flow planner", "Unifrom_Weight_Traffic(flownumber=" + this.TotalFlowNumber + ", pairDistribution=" + pairDistribution + ")");
 
     }
@@ -66,7 +71,28 @@ public class UniformWeightPlanner extends TrafficPlanner {
         }
 
         System.out.println(" done.");
+    }
 
+    private void setPairIncast(){
+        System.out.print("Generating incast pair probabilities between all nodes with a transport layer...");
+        double pdfNumBytes = 1.0 /  (this.idToTransportLayerMap.size() - 1);
+        int numofserver = this.idToTransportLayerMap.keySet().size();
+        int dst = 0;//temp
+        int dst_ind = ownIndependentRng.nextInt(numofserver);
+        int count = 0;
+        for(Integer i:this.idToTransportLayerMap.keySet())
+        {
+            if(count == dst_ind){
+                dst = i;
+                break;
+            }
+            count++;
+        }
+        for(Integer src:this.idToTransportLayerMap.keySet()){
+            if(!src.equals(dst)){
+                this.randomPairGenerator.add(pdfNumBytes,new ImmutablePair<>(src,dst));
+            }
+        }
     }
 
     @Override
@@ -78,7 +104,8 @@ public class UniformWeightPlanner extends TrafficPlanner {
         int total_weight = this.wd.getTotal_weight();
         for(int i=0;i<weights.length;i++){
             double weight_current = 1.0*weights[i]/(double)total_weight;
-            registerFlow(0, 0, 2, flowSizeDistribution.generateFlowSizeByte(),(float) weight_current,0);
+            Pair<Integer, Integer> pair = choosePair();
+            registerFlow(0, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),(float) weight_current,0);
         }
     }
 

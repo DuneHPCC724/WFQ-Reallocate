@@ -6,6 +6,7 @@ import ch.ethz.systems.netbench.core.network.TransportLayer;
 import ch.ethz.systems.netbench.ext.poissontraffic.FromStringArrivalPlanner;
 import ch.ethz.systems.netbench.core.run.traffic.TrafficPlanner;
 import ch.ethz.systems.netbench.ext.poissontraffic.PoissonArrivalPlanner;
+import ch.ethz.systems.netbench.ext.poissontraffic.UniformWeightPlanner;
 import ch.ethz.systems.netbench.ext.trafficpair.TrafficPairPlanner;
 import ch.ethz.systems.netbench.ext.poissontraffic.flowsize.*;
 
@@ -77,6 +78,8 @@ class TrafficSelector {
                         );
                         break;
                     }
+
+
 
                     default: {
                         throw new PropertyValueInvalidException(
@@ -210,6 +213,34 @@ class TrafficSelector {
             case "traffic_arrivals_string":
                 return new FromStringArrivalPlanner(idToTransportLayer, Simulator.getConfiguration().getPropertyOrFail("traffic_arrivals_list"));
 
+                //add by WFQ
+            case "uniformly_weight":{
+                FlowSizeDistribution flowSizeDis;
+                switch (Simulator.getConfiguration().getPropertyOrFail("traffic_flow_size_dist")) {
+                    case "evenly": {
+                        flowSizeDis = new EvenlyFlowSizeDistribution();
+                        break;
+                    }
+                    default:{
+                        throw new PropertyValueInvalidException(
+                                Simulator.getConfiguration(),
+                                "traffic_flow_size_dist");
+                    }
+                }
+
+                String generativePairProbabilities = Simulator.getConfiguration().getPropertyWithDefault("traffic_probabilities_generator", "all_to_all");
+                int flownum = Simulator.getConfiguration().getIntegerPropertyOrFail("weightNum");
+                //int weightnum = Simulator.getConfiguration().getIntegerPropertyOrFail("weightNum");      //now flow==weight num
+                String weightdist = Simulator.getConfiguration().getPropertyOrFail("weight_distribution");
+                switch (generativePairProbabilities){
+                    case "all_to_all":
+                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis, flownum, UniformWeightPlanner.PairDistribution.ALL_TO_ALL,weightdist);
+                    case "incast":
+                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis, flownum, UniformWeightPlanner.PairDistribution.Incast,weightdist);
+                    default:
+                        throw new PropertyValueInvalidException(Simulator.getConfiguration(), "traffic_probabilities_generator");
+                }
+            }
             default:
                 throw new PropertyValueInvalidException(
                         Simulator.getConfiguration(),
@@ -408,7 +439,34 @@ class TrafficSelector {
 
             case "traffic_arrivals_string":
                 return new FromStringArrivalPlanner(idToTransportLayer, Simulator.getConfiguration().getPropertyOrFail("traffic_arrivals_list"));
+            //add by WFQ
+            case "uniformly_weight":{
+                FlowSizeDistribution flowSizeDis;
+                switch (Simulator.getConfiguration().getPropertyOrFail("traffic_flow_size_dist")) {
+                    case "evenly": {
+                        flowSizeDis = new EvenlyFlowSizeDistribution();
+                        break;
+                    }
+                    default:{
+                        throw new PropertyValueInvalidException(
+                                Simulator.getConfiguration(),
+                                "traffic_flow_size_dist");
+                    }
+                }
 
+                String generativePairProbabilities = Simulator.getConfiguration().getPropertyWithDefault("traffic_probabilities_generator", "all_to_all");
+                int flownum = Simulator.getConfiguration().getIntegerPropertyOrFail("weightNum");
+                //int weightnum = Simulator.getConfiguration().getIntegerPropertyOrFail("weightNum");      //now flow==weight num
+                String weightdist = Simulator.getConfiguration().getPropertyOrFail("weight_distribution");
+                switch (generativePairProbabilities){
+                    case "all_to_all":
+                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis, flownum, UniformWeightPlanner.PairDistribution.ALL_TO_ALL,weightdist);
+                    case "incast":
+                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis, flownum, UniformWeightPlanner.PairDistribution.Incast,weightdist);
+                    default:
+                        throw new PropertyValueInvalidException(Simulator.getConfiguration(), "traffic_probabilities_generator");
+                }
+            }
             default:
                 throw new PropertyValueInvalidException(
                         Simulator.getConfiguration(),
