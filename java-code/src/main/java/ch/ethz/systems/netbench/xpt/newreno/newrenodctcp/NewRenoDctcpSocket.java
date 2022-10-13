@@ -25,7 +25,7 @@ public class NewRenoDctcpSocket extends NewRenoTcpSocket {
      * @param destinationId  Target network device identifier
      * @param flowSizeByte   Size of the flow in bytes
      */
-    NewRenoDctcpSocket(TransportLayer transportLayer, long flowId, int sourceId, int destinationId, long flowSizeByte) {
+    public NewRenoDctcpSocket(TransportLayer transportLayer, long flowId, int sourceId, int destinationId, long flowSizeByte) {
         super(transportLayer, flowId, sourceId, destinationId, flowSizeByte);
         this.DCTCP_WEIGHT_NEW_ESTIMATION = Simulator.getConfiguration().getDoublePropertyWithDefault("DCTCP_WEIGHT_NEW_ESTIMATION", 0.0625);
         this.DCTCP_WEIGHT_OLD_ESTIMATION = 1.0 - DCTCP_WEIGHT_NEW_ESTIMATION;
