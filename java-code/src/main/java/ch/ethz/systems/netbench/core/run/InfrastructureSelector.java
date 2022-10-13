@@ -32,6 +32,11 @@ import ch.ethz.systems.netbench.xpt.ports.PIFO_WFQ.WFQPIFOOutputPortGenerator;
 import ch.ethz.systems.netbench.xpt.WFQ.PCQ.PCQOutputPortGenerator;//WFQ+import PCQOutputPortGenerator
 import ch.ethz.systems.netbench.xpt.WFQ.PCQWB.PCQWBOutputPortGenerator;//WFQ+import PCQWBOutputPortGenerator
 import ch.ethz.systems.netbench.xpt.WFQ.EPSWFQ.EPSWFQOutputPortGenerator;//WFQ+import EPSWFQOutputPortGenerator
+import ch.ethz.systems.netbench.xpt.WFQ.EPSSIMPLE.EPSSIMPLEOutputPortGenerator;//WFQ+import EPSSIMPLEOutputPortGenerator
+import ch.ethz.systems.netbench.xpt.WFQ.OEPSSIMPLE.OEPSSIMPLEOutputPortGenerator;//WFQ+import OEPSSIMPLEOutputPortGenerator
+import ch.ethz.systems.netbench.xpt.WFQ.PCQBURST.PCQBURSTOutputPortGenerator;//WFQ+import PCQBURSTOutputPortGenerator
+import ch.ethz.systems.netbench.xpt.WFQ.PIFOOUR.PIFOOUROutputPortGenerator;//WFQ+import PIFOOUROutputPortGenerator
+import ch.ethz.systems.netbench.xpt.WFQ.AIFO.AIFOOutputPortGenerator;//WFQ+import AIFOOUROutputPortGenerator
 import ch.ethz.systems.netbench.xpt.asaf.routing.priority.PriorityFlowletIntermediaryGenerator;
 import ch.ethz.systems.netbench.xpt.newreno.newrenodctcp.NewRenoDctcpTransportLayerGenerator;
 import ch.ethz.systems.netbench.xpt.newreno.newrenotcp.NewRenoTcpTransportLayerGenerator;
@@ -245,7 +250,7 @@ class InfrastructureSelector {
                         Simulator.getConfiguration().getLongPropertyOrFail("output_port_number_queues"),
                         Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
                 );
-            case "epswfq"://WFQ+pcq
+            case "epswfq"://WFQ+epswfq
                 return new EPSWFQOutputPortGenerator(
                         Simulator.getConfiguration().getLongPropertyOrFail("output_port_number_queues"),
                         Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
@@ -253,6 +258,29 @@ class InfrastructureSelector {
             case "pcqwb"://WFQ+pcqwb
                 return new PCQWBOutputPortGenerator(
                         Simulator.getConfiguration().getLongPropertyOrFail("output_port_number_queues"),
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
+                );
+            case "epssimple"://WFQ+epssimple
+                return new EPSSIMPLEOutputPortGenerator(
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_number_queues"),
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
+                );
+            case "oepssimple"://WFQ+epssimple
+                return new OEPSSIMPLEOutputPortGenerator(
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_number_queues"),
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
+                );
+            case "pcqburst"://WFQ+pcqburst
+                return new PCQBURSTOutputPortGenerator(
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_number_queues"),
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
+                );
+            case "pifoour":
+                return new PIFOOUROutputPortGenerator(
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
+                );
+            case "aifo":
+                return new AIFOOutputPortGenerator(
                         Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
                 );
 

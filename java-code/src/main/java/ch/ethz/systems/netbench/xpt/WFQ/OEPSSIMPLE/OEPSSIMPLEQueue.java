@@ -1,4 +1,4 @@
-package ch.ethz.systems.netbench.xpt.WFQ.EPSWFQ;
+package ch.ethz.systems.netbench.xpt.WFQ.OEPSSIMPLE;
 
 import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.network.Packet;
@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class EPSWFQQueue implements Queue {
+public class OEPSSIMPLEQueue implements Queue {
 
     private final ArrayList<ArrayBlockingQueue> queueList;
     private final Map flowBytesSent; //<yuxin> Bi
@@ -23,6 +23,10 @@ public class EPSWFQQueue implements Queue {
     private final Map<String, Long> FlowTimeInterval;
 
     private final Map<String, Long> FlowTimeLastArrive;
+
+    private final Map<String, Long> Rf;
+
+    private final Map<String, Long> Nf;
 
     private long bytesPerRound;// <yuxin> in theory, bytesPerRound = size of a FIFO in Bytes
     private long currentRound;
@@ -46,7 +50,7 @@ public class EPSWFQQueue implements Queue {
 
     private double rho =1.0;
 
-    public EPSWFQQueue(long numQueues, long bytesPerRound, int ownId, int targetId, double BandwidthBitPerNs){
+    public OEPSSIMPLEQueue(long numQueues, long bytesPerRound, int ownId, int targetId, double BandwidthBitPerNs){
         long perQueueCapacity = 320;// <yuxin> physical size of a FIFO in packets
         this.FIFOBytesOccupied = new HashMap();
         this.FIFOBytesSend = new HashMap();
@@ -64,6 +68,8 @@ public class EPSWFQQueue implements Queue {
         this.FlowPacketsArrived = new HashMap();
         this.FlowTimeInterval = new HashMap();
         this.FlowTimeLastArrive = new HashMap();
+        this.Rf = new HashMap();
+        this.Nf = new HashMap();
         this.bytesPerRound = bytesPerRound;
         this.currentRound = 0;
         this.servingQueue = 0;
@@ -123,7 +129,7 @@ public class EPSWFQQueue implements Queue {
                     }
                     else {
                         //System.out.println("fast");
-                        AlphaFactor = Math.pow((speed/prediction), 1.0/AnchorQueue);
+                        AlphaFactor = speed/prediction;
                         AlphaFactor *= rho;
                         if (AlphaFactor < 1){
                             AlphaFactor = 1;
@@ -144,6 +150,11 @@ public class EPSWFQQueue implements Queue {
             }
 
             //<yuxin> phase 3 start
+            if (Rf.containsKey(Id)){//<yuxin> order control
+                if (FinalQueue < Nf.get(Id)-this.currentRound+Rf.get(Id)){
+                    FinalQueue = Nf.get(Id)-this.currentRound+Rf.get(Id);
+                }
+            }
             if (FinalQueue > queueList.size()-1){//<yuxin> Packet dropped since computed round is too far away
                 result = false;
                 rounddrop += 1;
@@ -162,6 +173,8 @@ public class EPSWFQQueue implements Queue {
                             flowBytesSent.put(Id, bid);
                             FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
                             long FIFOBytesSendEstimate = p.getSizeBit()/8 + FIFOBytesSend.get(QueueToSend);
+                            Nf.put(Id, (long)i);
+                            Rf.put(Id, this.currentRound);
                             FIFOBytesSend.put(QueueToSend, FIFOBytesSendEstimate);
                         }
                         break;
@@ -175,7 +188,7 @@ public class EPSWFQQueue implements Queue {
         } catch (Exception e){
             e.printStackTrace();
             System.out.println("Probably the bid size has been exceeded, transmit less packets ");
-            System.out.println("Exception EPSWFQ offer: " + e.getMessage() + e.getLocalizedMessage());
+            System.out.println("Exception OEPSSIMPLE offer: " + e.getMessage() + e.getLocalizedMessage());
         } finally {
             this.reentrantLock.unlock();
             return result;
