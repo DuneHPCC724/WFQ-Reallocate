@@ -1,5 +1,6 @@
 package ch.ethz.systems.netbench.xpt.WFQ.PCQ;
 
+import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.network.Packet;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 import ch.ethz.systems.netbench.core.log.SimulationLogger;
@@ -92,6 +93,7 @@ public class PCQQueue implements Queue {
                 }
                 else{
                     result = queueList.get(QueueToSend).offer(p);
+                    SimulationLogger.logEnqueueEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(), p.getSizeBit()/8);
                     if (!result) {
                         System.out.println("!!!maybe perQueueCapacity should be larger");
                     } else {
@@ -121,6 +123,7 @@ public class PCQQueue implements Queue {
                 if (this.size() != 0) {
                     if (!queueList.get((int) this.servingQueue).isEmpty()) {
                         p = (Packet) queueList.get((int) this.servingQueue).poll();
+                        SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)p).getDiffFlowId3(), currentRound, Simulator.getCurrentTime(), p.getSizeBit()/8, BufferUtil());
                         long FIFOSizeDecreaseEstimate = FIFOBytesOccupied.get((int) this.servingQueue) - p.getSizeBit()/8;
                         FIFOBytesOccupied.put((int) this.servingQueue, FIFOSizeDecreaseEstimate);//<yuxin> decrease when send a packet
                         return p;
@@ -139,6 +142,15 @@ public class PCQQueue implements Queue {
         finally {
             this.reentrantLock.unlock();
         }
+    }
+
+    public double BufferUtil(){
+        long occupy = 0;
+        for(int i=0; i<this.queueList.size(); i++){
+            occupy += FIFOBytesOccupied.get(i);
+        }
+        double util = occupy/(this.queueList.size()*this.queueLength);
+        return util;
     }
 
     @Override
