@@ -33,6 +33,7 @@ public class OEPSSIMPLEOutputPort extends OutputPort {
         if (!getIsSending()) {
             q.UpdateBi((FullExtTcpPacket)packet);
             q.UpdateST((FullExtTcpPacket)packet);
+            q.logEnDeEvent((FullExtTcpPacket)packet);
 
             // Link is now being utilized
             getLogger().logLinkUtilized(true);

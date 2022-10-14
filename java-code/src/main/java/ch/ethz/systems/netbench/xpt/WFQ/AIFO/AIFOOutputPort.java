@@ -29,6 +29,7 @@ public class AIFOOutputPort extends OutputPort {
 
             AIFOQueue q = (AIFOQueue)getQueue();
             q.updatePort(packet);
+            q.logEnDeEvent((FullExtTcpPacket)packet);
             // Link is now being utilized
             getLogger().logLinkUtilized(true);
 

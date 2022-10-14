@@ -83,12 +83,24 @@ public class PCQQueue implements Queue {
 
             if((packetRound - this.currentRound) > queueList.size() - 1){
                 result = false; // Packet dropped since computed round is too far away
+                if (fullDrop(p)){
+                    SimulationLogger.logDropEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(),0);
+                }
+                else {
+                    SimulationLogger.logDropEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(),1);
+                }
                 rounddrop += 1;
             } else {
                 int QueueToSend = (int)packetRound%(queueList.size());
                 long FIFOSizeEstimate = p.getSizeBit()/8 + FIFOBytesOccupied.get(QueueToSend);
                 if (FIFOSizeEstimate > this.queueLength){
                     result = false;//<yuxin> Packet dropped because of tail drop
+                    if (fullDrop(p)){
+                        SimulationLogger.logDropEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(),0);
+                    }
+                    else {
+                        SimulationLogger.logDropEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(),1);
+                    }
                     taildrop += 1;
                 }
                 else{
@@ -144,12 +156,28 @@ public class PCQQueue implements Queue {
         }
     }
 
+    public boolean fullDrop(FullExtTcpPacket p){
+        boolean result = true;
+        for (int i=0; i<this.queueList.size(); i++){
+            if (p.getSizeBit()/8+FIFOBytesOccupied.get(i) <= this.queueLength){
+                result = false;
+                break;
+            }
+        }
+        return result;
+    }
+
+    public void logEnDeEvent(FullExtTcpPacket p){
+        SimulationLogger.logEnqueueEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(), p.getSizeBit()/8);
+        SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)p).getDiffFlowId3(), currentRound, Simulator.getCurrentTime(), p.getSizeBit()/8, (p.getSizeBit()/8)*1.0/(this.queueList.size()*this.queueLength));
+    }
+
     public double BufferUtil(){
         long occupy = 0;
         for(int i=0; i<this.queueList.size(); i++){
             occupy += FIFOBytesOccupied.get(i);
         }
-        double util = occupy/(this.queueList.size()*this.queueLength);
+        double util = occupy*1.0/(this.queueList.size()*this.queueLength);
         return util;
     }
 

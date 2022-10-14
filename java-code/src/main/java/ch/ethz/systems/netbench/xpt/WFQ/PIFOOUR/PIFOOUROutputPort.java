@@ -29,6 +29,7 @@ public class PIFOOUROutputPort extends OutputPort {
 
             PIFOOURQueue q = (PIFOOURQueue)getQueue();
             q.updatePort(packet);
+            q.logEnDeEvent((FullExtTcpPacket)packet);
             // Link is now being utilized
             getLogger().logLinkUtilized(true);
 

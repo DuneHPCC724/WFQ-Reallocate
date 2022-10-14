@@ -51,8 +51,8 @@ public class FlowStartEvent extends Event {
     @Override
     public void trigger() {
         if(weight != 0){
-//            transportLayer.startFlow(this.targetId,this.flowSizeByte,this.weight,this.flowset_num);
-            transportLayer.startFlow(this.targetId,this.flowSizeByte,this.weight*this.flowSizeByte/median_flowsize_byte,this.flowset_num);
+            transportLayer.startFlow(this.targetId,this.flowSizeByte,this.weight,this.flowset_num);
+//            transportLayer.startFlow(this.targetId,this.flowSizeByte,this.weight*this.flowSizeByte/median_flowsize_byte,this.flowset_num);
         }
         else
             transportLayer.startFlow(this.targetId, this.flowSizeByte);

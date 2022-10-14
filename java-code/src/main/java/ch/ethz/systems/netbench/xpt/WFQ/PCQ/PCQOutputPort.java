@@ -32,6 +32,7 @@ public class PCQOutputPort extends OutputPort {
         if (!getIsSending()) {
 
             q.UpdateBi((FullExtTcpPacket)packet);
+            q.logEnDeEvent((FullExtTcpPacket)packet);
             // Link is now being utilized
             getLogger().logLinkUtilized(true);
 

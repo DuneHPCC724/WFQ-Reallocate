@@ -31,15 +31,15 @@ public class SimulationLogger {
 
     private static BufferedWriter writerFIFOSent;
 
-    private static boolean EnqueueEventEnabled = false;
+    private static boolean EnqueueEventEnabled = true;
 
     private static BufferedWriter writerEnqueueEvent;
 
-    private static boolean DequeueEventEnabled = false;
+    private static boolean DequeueEventEnabled = true;
 
     private static BufferedWriter writerDequeueEvent;
 
-    private static boolean DropEventEnabled = false;
+    private static boolean DropEventEnabled = true;
 
     private static BufferedWriter writerDropEvent;
 

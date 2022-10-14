@@ -1,5 +1,6 @@
 package ch.ethz.systems.netbench.xpt.WFQ.AIFO;
 
+import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.network.Packet;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 import ch.ethz.systems.netbench.xpt.tcpbase.PriorityHeader;
@@ -103,15 +104,28 @@ public class AIFOQueue implements Queue{
                     PriorityHeader header = (PriorityHeader) p;
                     header.setPriority(rank);
                     result = aifo.offer(p);
+                    SimulationLogger.logEnqueueEvent(ownId, targetId, round, Simulator.getCurrentTime(), p.getSizeBit()/8);
                     if (!result) {
                         System.out.println("!!!maybe perQueueCapacity should be larger");
                     }
                 }
                 else {
+                    if (fullDrop(p)){
+                        SimulationLogger.logDropEvent(ownId, targetId, round, Simulator.getCurrentTime(),0);
+                    }
+                    else {
+                        SimulationLogger.logDropEvent(ownId, targetId, round, Simulator.getCurrentTime(),1);
+                    }
                     result = false;
                 }
             }
             else {
+                if (fullDrop(p)){
+                    SimulationLogger.logDropEvent(ownId, targetId, round, Simulator.getCurrentTime(),0);
+                }
+                else {
+                    SimulationLogger.logDropEvent(ownId, targetId, round, Simulator.getCurrentTime(),1);
+                }
                 result = false;
             }
         } catch (Exception e){
@@ -128,6 +142,7 @@ public class AIFOQueue implements Queue{
         this.reentrantLock.lock();
         try {
             Packet packet = (Packet) aifo.poll();
+            SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)packet).getDiffFlowId3(), round, Simulator.getCurrentTime(), packet.getSizeBit()/8, BufferUtil());
 
             // Update round number
             this.updateRound(packet);
@@ -140,6 +155,23 @@ public class AIFOQueue implements Queue{
         }
     }
 
+    public boolean fullDrop(FullExtTcpPacket p){
+        boolean result = true;
+            if (p.getSizeBit()/8+QueueOccupied <= this.queuelength){
+                result = false;
+            }
+        return result;
+    }
+
+    public void logEnDeEvent(FullExtTcpPacket p){
+        SimulationLogger.logEnqueueEvent(ownId, targetId, round, Simulator.getCurrentTime(), p.getSizeBit()/8);
+        SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)p).getDiffFlowId3(), round, Simulator.getCurrentTime(), p.getSizeBit()/8, (p.getSizeBit()/8)*1.0/this.queuelength);
+    }
+
+    public double BufferUtil(){
+        double util = QueueOccupied*1.0/this.queuelength;
+        return util;
+    }
 
     public void updateRound(Packet p){
         PriorityHeader header = (PriorityHeader) p;

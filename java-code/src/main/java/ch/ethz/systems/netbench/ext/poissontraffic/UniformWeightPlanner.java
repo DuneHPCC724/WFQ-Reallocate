@@ -79,17 +79,17 @@ public class UniformWeightPlanner extends TrafficPlanner {
         System.out.print("Generating incast pair probabilities between all nodes with a transport layer...");
         double pdfNumBytes = 1.0 /  (this.idToTransportLayerMap.size() - 1);
         int numofserver = this.idToTransportLayerMap.keySet().size();
-        int dst = 0;//temp
-        int dst_ind = ownIndependentRng.nextInt(numofserver);
-        int count = 0;
-        for(Integer i:this.idToTransportLayerMap.keySet())
-        {
-            if(count == dst_ind){
-                dst = i;
-                break;
-            }
-            count++;
-        }
+        int dst = 11;//temp
+//        int dst_ind = ownIndependentRng.nextInt(numofserver);
+//        int count = 0;
+//        for(Integer i:this.idToTransportLayerMap.keySet())
+//        {
+//            if(count == dst_ind){
+//                dst = i;
+//                break;
+//            }
+//            count++;
+//        }
         for(Integer src:this.idToTransportLayerMap.keySet()){
             if(!src.equals(dst)){
                 this.randomPairGenerator.add(pdfNumBytes,new ImmutablePair<>(src,dst));

@@ -329,7 +329,7 @@ public class NewRenoTcpSocket extends Socket {
 
                     // System.out.println("3-WAY HANDSHAKE: 1. Receiver received SYN, sent back ACK+SYN.");
                     //WFQ_log
-                    tcpLogger.logPacketIAT(((FullExtTcpPacket) genericPacket).getSequenceNumber(),genericPacket.getSizeBit(),((FullExtTcpPacket) genericPacket).getFlowset_num());
+                    tcpLogger.logPacketIAT(this.sourceId,((FullExtTcpPacket) genericPacket).getSequenceNumber(),genericPacket.getSizeBit(),((FullExtTcpPacket) genericPacket).getFlowset_num());
 
                 }
 
@@ -419,7 +419,7 @@ public class NewRenoTcpSocket extends Socket {
 
                     // System.out.println("3-WAY HANDSHAKE: 3. Receiver received ACK.");
                     //WFQ_log
-                    tcpLogger.logPacketIAT(((FullExtTcpPacket) genericPacket).getSequenceNumber(),genericPacket.getSizeBit(),((FullExtTcpPacket) genericPacket).getFlowset_num());
+                    tcpLogger.logPacketIAT(this.sourceId,((FullExtTcpPacket) genericPacket).getSequenceNumber(),genericPacket.getSizeBit(),((FullExtTcpPacket) genericPacket).getFlowset_num());
 
                 }
 
@@ -761,7 +761,7 @@ public class NewRenoTcpSocket extends Socket {
             .setEchoDepartureTime(packet.getDepartureTime())
         );
         //WFQ_log
-        tcpLogger.logPacketIAT(seqNumber,packet.getSizeBit(),((FullExtTcpPacket) packet).getFlowset_num());
+        tcpLogger.logPacketIAT(this.sourceId,seqNumber,packet.getSizeBit(),((FullExtTcpPacket) packet).getFlowset_num());
 
     }
 

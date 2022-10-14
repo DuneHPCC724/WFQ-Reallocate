@@ -1,5 +1,7 @@
 package ch.ethz.systems.netbench.xpt.WFQ.PIFOOUR;
 
+import ch.ethz.systems.netbench.core.Simulator;
+import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import ch.ethz.systems.netbench.core.network.Packet;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 import ch.ethz.systems.netbench.xpt.tcpbase.PriorityHeader;
@@ -95,6 +97,7 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         try {
             /* As the original PBQ is has no limited size, the packet is always inserted */
             success = super.offer(packet); /* This method will always return true */
+            SimulationLogger.logEnqueueEvent(ownId, targetId, round, Simulator.getCurrentTime(), packet.getSizeBit()/8);
             QueueOccupied += packet.getSizeBit()/8;
             boolean dropflag = false;
 
@@ -104,6 +107,7 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
                 Object[] contentPIFO = this.toArray();
                 Arrays.sort(contentPIFO);
                 packet = (FullExtTcpPacket) contentPIFO[this.size()-1];
+                SimulationLogger.logDropEvent(ownId, targetId, round, Simulator.getCurrentTime(),0);
                 String Id = packet.getDiffFlowId3();
                 float weight = packet.getWeight();
 //                float weight = 1;
@@ -125,6 +129,7 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         this.reentrantLock.lock();
         try {
             Packet packet = (Packet) super.poll(); // As the super queue is unbounded, this method will always return true
+            SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)packet).getDiffFlowId3(), round, Simulator.getCurrentTime(), packet.getSizeBit()/8, BufferUtil());
 
             // Update round number
             this.updateRound(packet);
@@ -135,6 +140,16 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         } finally {
             this.reentrantLock.unlock();
         }
+    }
+
+    public void logEnDeEvent(FullExtTcpPacket p){
+        SimulationLogger.logEnqueueEvent(ownId, targetId, round, Simulator.getCurrentTime(), p.getSizeBit()/8);
+        SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)p).getDiffFlowId3(), round, Simulator.getCurrentTime(), p.getSizeBit()/8, (p.getSizeBit()/8)*1.0/this.queuelength);
+    }
+
+    public double BufferUtil(){
+        double util = QueueOccupied*1.0/this.queuelength;
+        return util;
     }
 
     @Override
