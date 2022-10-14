@@ -31,6 +31,18 @@ public class SimulationLogger {
 
     private static BufferedWriter writerFIFOSent;
 
+    private static boolean EnqueueEventEnabled = false;
+
+    private static BufferedWriter writerEnqueueEvent;
+
+    private static boolean DequeueEventEnabled = false;
+
+    private static BufferedWriter writerDequeueEvent;
+
+    private static boolean DropEventEnabled = false;
+
+    private static BufferedWriter writerDropEvent;
+
     // SP-PIFO Extension
     private static BufferedWriter writerRanktoQueuesMapping;
     private static boolean rankMappingEnabled;
@@ -178,6 +190,15 @@ public class SimulationLogger {
                 writerDropRates = openWriter("drop_rates.csv.log");
             }
 
+            if (EnqueueEventEnabled){
+                writerEnqueueEvent = openWriter("enqueue_event.csv.log");
+            }
+            if (DequeueEventEnabled){
+                writerDequeueEvent = openWriter("dequeue_event.csv.log");
+            }
+            if (DropEventEnabled){
+                writerDropEvent = openWriter("drop_event.csv.log");
+            }
             writerFIFOSent = openWriter(("FIFOBytesSent.csv.log"));
 
             // SP-PIFO log writers
@@ -292,6 +313,15 @@ public class SimulationLogger {
             if(DropRatesEnabled){
                 writerDropRates.close();
             }
+            if (EnqueueEventEnabled){
+                writerEnqueueEvent.close();
+            }
+            if (DequeueEventEnabled){
+                writerDequeueEvent.close();
+            }
+            if (DropEventEnabled){
+                writerDropEvent.close();
+            }
 
             // SP-PIFO: Close log files
             if (rankMappingEnabled){
@@ -374,6 +404,30 @@ public class SimulationLogger {
     public static void logFIFOsend(int ownId, int targetId, long round,long BytesSent){
         try {
             writerFIFOSent.write(ownId + "," + targetId + "," + round + "," + BytesSent + "\n");
+        } catch (IOException e) {
+            throw new LogFailureException(e);
+        }
+    }
+
+    public static void logEnqueueEvent(int ownId, int targetId, long round, long currentTime, long pktSize){
+        try {
+            writerEnqueueEvent.write(ownId + "," + targetId + "," + round + "," + currentTime + "," + pktSize + "\n");
+        } catch (IOException e) {
+            throw new LogFailureException(e);
+        }
+    }
+
+    public static void logDequeueEvent(int ownId, int targetId, String flowId,long round, long currentTime, long pktSize, double bufferUtilization){
+        try {
+            writerDequeueEvent.write(ownId + "," + targetId + "," + flowId + "," + round + "," + currentTime + "," + pktSize + "," + bufferUtilization +"\n");
+        } catch (IOException e) {
+            throw new LogFailureException(e);
+        }
+    }
+
+    public static void logDropEvent(int ownId, int targetId, long round, long currentTime, int dropType){
+        try {
+            writerDropEvent.write(ownId + "," + targetId + "," + round + "," + currentTime + "," + dropType + "\n");
         } catch (IOException e) {
             throw new LogFailureException(e);
         }

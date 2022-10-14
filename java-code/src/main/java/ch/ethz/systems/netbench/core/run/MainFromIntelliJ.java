@@ -6,15 +6,18 @@ public class MainFromIntelliJ {
     public static void main(String args[]) {
 
 
-//          MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQ.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQWB.properties"});
-            MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});
-//            MainFromProperties.main(new String[]{"projects/WFQ/run/test/EPSWFQ.properties"});
-//
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/test/FIFO.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});
+            MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQ.properties"});
+//            MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQWB.properties"});
+//            MainFromProperties.main(new String[]{"projects/WFQ/run/test/EPSWFQ.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/EPSSIMPLE.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/OEPSSIMPLE.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQBURST.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/PIFOOUR.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/AIFO.properties"});
 
-
-    //    MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});
 //        /* Figure 5: SP-PIFO performance (uniform rank distribution) */
 //
 //            /* Figure 5a: Uniform 8 queues */

@@ -1,4 +1,4 @@
-package ch.ethz.systems.netbench.xpt.WFQ.EPSWFQ;
+package ch.ethz.systems.netbench.xpt.WFQ.EPSSIMPLE;
 
 import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.network.Packet;
@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class EPSWFQQueue implements Queue {
+public class EPSSIMPLEQueue implements Queue {
 
     private final ArrayList<ArrayBlockingQueue> queueList;
     private final Map flowBytesSent; //<yuxin> Bi
@@ -46,7 +46,7 @@ public class EPSWFQQueue implements Queue {
 
     private double rho =1.0;
 
-    public EPSWFQQueue(long numQueues, long bytesPerRound, int ownId, int targetId, double BandwidthBitPerNs){
+    public EPSSIMPLEQueue(long numQueues, long bytesPerRound, int ownId, int targetId, double BandwidthBitPerNs){
         long perQueueCapacity = 320;// <yuxin> physical size of a FIFO in packets
         this.FIFOBytesOccupied = new HashMap();
         this.FIFOBytesSend = new HashMap();
@@ -123,7 +123,7 @@ public class EPSWFQQueue implements Queue {
                     }
                     else {
                         //System.out.println("fast");
-                        AlphaFactor = Math.pow((speed/prediction), 1.0/AnchorQueue);
+                        AlphaFactor = speed/prediction;
                         AlphaFactor *= rho;
                         if (AlphaFactor < 1){
                             AlphaFactor = 1;
@@ -175,7 +175,7 @@ public class EPSWFQQueue implements Queue {
         } catch (Exception e){
             e.printStackTrace();
             System.out.println("Probably the bid size has been exceeded, transmit less packets ");
-            System.out.println("Exception EPSWFQ offer: " + e.getMessage() + e.getLocalizedMessage());
+            System.out.println("Exception EPSSIMPLE offer: " + e.getMessage() + e.getLocalizedMessage());
         } finally {
             this.reentrantLock.unlock();
             return result;
