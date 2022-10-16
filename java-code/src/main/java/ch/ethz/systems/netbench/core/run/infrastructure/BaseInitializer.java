@@ -5,6 +5,7 @@ import ch.ethz.systems.netbench.core.config.GraphDetails;
 import ch.ethz.systems.netbench.core.network.NetworkDevice;
 import ch.ethz.systems.netbench.core.network.OutputPort;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
+import ch.ethz.systems.netbench.xpt.ports.FIFO.FIFOOutputPortGenerator;
 import edu.asu.emit.algorithm.graph.Graph;
 import edu.asu.emit.algorithm.graph.Vertex;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -154,16 +155,30 @@ public class BaseInitializer {
      */
     private void createEdge(int startVertexId, int endVertexId) {
 
+
         // Select network devices
         NetworkDevice devA = idToNetworkDevice.get(startVertexId);
         NetworkDevice devB = idToNetworkDevice.get(endVertexId);
-
+        OutputPort portAtoB;
+        //add by WFQ
+        OutputPortGenerator FIFOgenerator = new FIFOOutputPortGenerator(Integer.MAX_VALUE);
+        GraphDetails details = Simulator.getConfiguration().getGraphDetails();
+        if(details.getServerNodeIds().contains(startVertexId))    //if port start from a server , it's a fifo port
+        {
+            portAtoB  = FIFOgenerator.generate(
+                    devA,
+                    devB,
+                    linkGenerator.generate(devA,devB)
+            );
+        }
         // Add connection
-        OutputPort portAtoB = outputPortGenerator.generate(
-                devA,
-                devB,
-                linkGenerator.generate(devA, devB)
-        );
+         else {
+            portAtoB = outputPortGenerator.generate(
+                    devA,
+                    devB,
+                    linkGenerator.generate(devA, devB)
+            );
+        }
         devA.addConnection(portAtoB);
 
         // Duplicate link
