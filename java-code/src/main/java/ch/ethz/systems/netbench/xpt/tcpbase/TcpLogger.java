@@ -36,8 +36,10 @@ public class TcpLogger implements LoggerCallback {
         this.PacketIATWriter = SimulationLogger.getExternalWriter("flow_IAT.csv.log");
         this.logPacketIATEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_IAT", false);
         //WFQ flowID_flowset_num
-        this.log_flowset_num_enabled = Simulator.getConfiguration().getPropertyOrFail("transport_layer").equals("wfq_tcp");
+//        this.log_flowset_num_enabled = Simulator.getConfiguration().getPropertyOrFail("transport_layer").equals("wfq_tcp");
+        this.log_flowset_num_enabled = true;
         this.Flowset_Writer = SimulationLogger.getExternalWriter("flowset_num_flowID.csv.log");
+
 
         this.logPacketBurstGapEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_burst_gap", false);
         this.logCongestionWindowEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_congestion_window", false);
@@ -90,7 +92,7 @@ public class TcpLogger implements LoggerCallback {
      *
      */
     public void logPacketIAT(int transportID, long sequenceNumber,long sizeBit,int flowset_num){
-        if(logPacketIATEnabled)
+        if(logPacketIATEnabled && isReceiver)
         {
             try{
                 PacketIATWriter.write(transportID+","+flowId+","+sequenceNumber+","+sizeBit/8+","+Simulator.getCurrentTime()+"\n");

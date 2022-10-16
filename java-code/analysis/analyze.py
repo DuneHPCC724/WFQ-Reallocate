@@ -322,10 +322,10 @@ def analyze_IAT():
                 flows[flow_id] = Flow(flow_id,source_id,target_id,sent_bytes,total_size_bytes,start_time,end_time,duration,completed)
             IAT_Reader = csv.reader(IAT_file)
             for row in IAT_Reader:
-                flow_id = int(row[0])
-                seq_num = int(row[1])
-                byte = float(row[2])
-                timeNs = float(row[3])
+                flow_id = int(row[1])
+                seq_num = int(row[2])
+                byte = float(row[3])
+                timeNs = float(row[4])
                 flow = flows[flow_id]
                 #first pkt
                 if(flow.current_pkt_time == 0.0):
