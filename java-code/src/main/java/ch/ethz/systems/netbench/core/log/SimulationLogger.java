@@ -409,25 +409,25 @@ public class SimulationLogger {
         }
     }
 
-    public static void logEnqueueEvent(int ownId, int targetId, long round, long currentTime, long pktSize){
+    public static void logEnqueueEvent(int ownId, int targetId, String flowId, long seqNum, long round, long currentTime, long pktSize){
         try {
-            writerEnqueueEvent.write(ownId + "," + targetId + "," + round + "," + currentTime + "," + pktSize + "\n");
+            writerEnqueueEvent.write(ownId + "," + targetId + "," + flowId + "," + seqNum + "," + round + "," + currentTime + "," + pktSize + "\n");
         } catch (IOException e) {
             throw new LogFailureException(e);
         }
     }
 
-    public static void logDequeueEvent(int ownId, int targetId, String flowId,long round, long currentTime, long pktSize, double bufferUtilization){
+    public static void logDequeueEvent(int ownId, int targetId, String flowId, long seqNum, long round, long currentTime, long pktSize, double bufferUtilization){
         try {
-            writerDequeueEvent.write(ownId + "," + targetId + "," + flowId + "," + round + "," + currentTime + "," + pktSize + "," + bufferUtilization +"\n");
+            writerDequeueEvent.write(ownId + "," + targetId + "," + flowId + "," + seqNum + "," + round + "," + currentTime + "," + pktSize + "," + bufferUtilization +"\n");
         } catch (IOException e) {
             throw new LogFailureException(e);
         }
     }
 
-    public static void logDropEvent(int ownId, int targetId, long round, long currentTime, int dropType){
+    public static void logDropEvent(int ownId, int targetId, String flowId, long seqNum, long round, long currentTime, long pktSize, int dropType){
         try {
-            writerDropEvent.write(ownId + "," + targetId + "," + round + "," + currentTime + "," + dropType + "\n");
+            writerDropEvent.write(ownId + "," + targetId + "," + flowId + "," +seqNum + "," + round + "," + currentTime + "," + pktSize + "," + dropType + "\n");
         } catch (IOException e) {
             throw new LogFailureException(e);
         }

@@ -22,6 +22,8 @@ public class AIFOQueue implements Queue{
 
     private int targetId;
 
+    private boolean islogswitch;
+
     private final Map last_finishTime;
 
     private long round;
@@ -54,6 +56,13 @@ public class AIFOQueue implements Queue{
             window[i] = -1;
         }
         this.windowPointer = 0;
+
+        if (ownId == 10 && targetId == 11){
+            islogswitch = true;
+        }
+        else {
+            islogswitch = false;
+        }
     }
 
     @Override
@@ -104,27 +113,31 @@ public class AIFOQueue implements Queue{
                     PriorityHeader header = (PriorityHeader) p;
                     header.setPriority(rank);
                     result = aifo.offer(p);
-                    SimulationLogger.logEnqueueEvent(ownId, targetId, round, Simulator.getCurrentTime(), p.getSizeBit()/8);
+                    if (islogswitch) {
+                        SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+                    }
                     if (!result) {
                         System.out.println("!!!maybe perQueueCapacity should be larger");
                     }
                 }
                 else {
-                    if (fullDrop(p)){
-                        SimulationLogger.logDropEvent(ownId, targetId, round, Simulator.getCurrentTime(),0);
-                    }
-                    else {
-                        SimulationLogger.logDropEvent(ownId, targetId, round, Simulator.getCurrentTime(),1);
+                    if (islogswitch) {
+                        if (fullDrop(p)) {
+                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+                        } else {
+                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                        }
                     }
                     result = false;
                 }
             }
             else {
-                if (fullDrop(p)){
-                    SimulationLogger.logDropEvent(ownId, targetId, round, Simulator.getCurrentTime(),0);
-                }
-                else {
-                    SimulationLogger.logDropEvent(ownId, targetId, round, Simulator.getCurrentTime(),1);
+                if (islogswitch) {
+                    if (fullDrop(p)) {
+                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+                    } else {
+                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                    }
                 }
                 result = false;
             }
@@ -142,7 +155,9 @@ public class AIFOQueue implements Queue{
         this.reentrantLock.lock();
         try {
             Packet packet = (Packet) aifo.poll();
-            SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)packet).getDiffFlowId3(), round, Simulator.getCurrentTime(), packet.getSizeBit()/8, BufferUtil());
+            if (islogswitch) {
+                SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), ((FullExtTcpPacket) packet).getSequenceNumber(), round, Simulator.getCurrentTime(), packet.getSizeBit() / 8, BufferUtil());
+            }
 
             // Update round number
             this.updateRound(packet);
@@ -164,8 +179,10 @@ public class AIFOQueue implements Queue{
     }
 
     public void logEnDeEvent(FullExtTcpPacket p){
-        SimulationLogger.logEnqueueEvent(ownId, targetId, round, Simulator.getCurrentTime(), p.getSizeBit()/8);
-        SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)p).getDiffFlowId3(), round, Simulator.getCurrentTime(), p.getSizeBit()/8, (p.getSizeBit()/8)*1.0/this.queuelength);
+        if (islogswitch) {
+            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+            SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), ((FullExtTcpPacket) p).getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, (p.getSizeBit()/8)*1.0/this.queuelength);
+        }
     }
 
     public double BufferUtil(){
