@@ -382,16 +382,26 @@ def analyzeThroughput_Unit(flows,UnitNs,NumUnit):
                 throughputs[id].append(current_bytes)
                 current_bytes = 0
             current_bytes+= bytes
+        if len(throughputs[id])<NumUnit:
+            throughputs[id].append(current_bytes)
         while len(throughputs[id])<NumUnit:
             throughputs[id].append(0)
     return throughputs
 
 def analyze_throughput_and_NFM(flows):
-    Units = [1000*1000,500*1000,200*1000,100*1000]
+    Units = [1000*1000*1000,1000*1000,500*1000,200*1000,100*1000]
     total_time = 1000*1000*1000
+    meanNFMs={}
+    medianNFMs={}
+    NFMs99 = {}
+    NFMs9999 = {}
+    NFMs001 = {}
+    NFMs00001 = {}
     NFM = []
     for unit in Units:
+        NFM.clear()
         NumUnit = math.ceil(total_time * 1.0 / unit)
+        totalSpeedUnit = 1.25 * unit
         throuputs = analyzeThroughput_Unit(flows,unit,NumUnit)
         with open(analysis_folder_path + '/throughputs_'+str(unit)+".statics","w") as f:
             for k,v in throuputs.items():
@@ -400,21 +410,38 @@ def analyze_throughput_and_NFM(flows):
                     f.write(str(t)+"\t")
                 f.write("\n")
         with open(analysis_folder_path+"/NFM_"+str(unit)+".statics","w") as f:
-            for i in range(0,NumUnit):
-                Max_Ratio_diff = -1
-                totalSpeedUnit = 1.34217728 * unit  # 10Gb/s, byte per Ns，maybe 1.25
-                for k, v in throuputs.items():
-                    for k2,v2 in throuputs.items():
-                        id1 = k
-                        weight1 = flows[id1].weight
-                        id2=k2
-                        weight2 = flows[id2].weight
-                        Ratio_diff = math.fabs((v[i] * 1.0 / weight1)-(v2[i]*1.0/weight2))
-                        if(Ratio_diff > Max_Ratio_diff):
-                            Max_Ratio_diff = Ratio_diff
-                NFM.append(Max_Ratio_diff*1.0/(totalSpeedUnit*unit))
+            Max_diffs = [-1]*NumUnit
+            ids = throuputs.keys()
+            for i in range(0,len(ids)):
+                for j in range(i+1,len(ids)):
+                    th1 = throuputs[i]
+                    th2 = throuputs[j]
+                    weight1 = flows[i].weight
+                    weight2 = flows[j].weight
+                    for k in range(0,NumUnit):
+                        diffk = math.fabs(th1[k]*1.0/weight1-th2[k]*1.0/weight2)
+                        if diffk > Max_diffs[k]:
+                            Max_diffs[k] = diffk
+            for m in Max_diffs:
+                NFM.append(m*1.0/(totalSpeedUnit*unit))
             for nfm in NFM:
                 f.write(str(nfm)+"\n")
+        meanNFMs[unit] = np.mean(NFM)
+        medianNFMs[unit] = np.median(NFM)
+        NFMs99[unit] = np.percentile(NFM,99)
+        NFMs9999[unit] = np.percentile(NFM, 99.99)
+        NFMs001[unit] = np.percentile(NFM,1)
+        NFMs00001[unit] = np.percentile(NFM,0.01)
+    with open(analysis_folder_path + "/NFM_Summary" + ".statics", "w") as f:
+        for unit in Units:
+            f.write(str(unit/1000)+"us \n")
+            f.write("mean NFM: "+str(meanNFMs[unit])+"\n")
+            f.write("median NFM: " + str(medianNFMs[unit])+"\n")
+            f.write("99th NFM: " + str(NFMs99[unit])+"\n")
+            f.write("99.99th NFM: " + str(NFMs9999[unit])+"\n")
+            f.write("1th NFM: " + str(NFMs001[unit])+"\n")
+            f.write("0.01th NFM: " + str(NFMs00001[unit])+"\n")
+
 
 
 
@@ -425,9 +452,9 @@ def analyze_throughput_and_NFM(flows):
 
                 # Call analysis functions
 flows = {}
-# analyze_flow_completion()
-# analyze_port_utilization()
+analyze_flow_completion()
+analyze_port_utilization()
 Flow_initiate(flows)
-# analyze_IAT(flows)
+analyze_IAT(flows)
 analyze_throughput_and_NFM(flows)
 
