@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import csv
 import sys
@@ -50,6 +52,7 @@ class Flow:
         self.duration = duration
         self.completed = completed
         self.IATs = []
+        self.ArrivalTimes = []
         self.pkt_bytes = []
         self.rates = []
         self.weight = 0
@@ -303,9 +306,7 @@ def analyze_port_utilization():
                 outfile.write(str(key) + "=" + str(value) + "\n")
 
 #analyze IAT and Burst:
-def analyze_IAT():
-    L = 2
-    flows = {}
+def Flow_initiate(flows):
     with open(run_folder_path + '/flow_completion.csv.log') as FCT_file:
         with open (run_folder_path + "/flow_IAT.csv.log") as IAT_file:
             FCT_Reader = csv.reader(FCT_file)
@@ -339,7 +340,16 @@ def analyze_IAT():
                     flow.current_pkt_time = timeNs
                     flow.current_seqnum = seq_num
                 flow.pkt_bytes.append(byte)
+                flow.ArrivalTimes.append(timeNs)
                 flow.sent_bytes += byte
+    with open(run_folder_path + "/flowset_num_flowID.csv.log") as weight_file:
+        weight_reader = csv.reader(weight_file)
+        for row in weight_reader:
+            id = int(row[0])
+            weight = float(row[2])
+            flows[id].weight=weight
+def analyze_IAT(flows):
+    L = 6
     for flow in flows.values():
         if len(flow.IATs) > 1:
             flow.calcu_rate()
@@ -353,11 +363,71 @@ def analyze_IAT():
         for flow in flows.values():
             writer.writerow([flow.flowID,flow.p00,flow.p01,flow.p10,flow.p11,flow.pp,flow.burst_duration/1000.0,flow.burst_bytes,flow.duration/1000.0,flow.sent_bytes,len(flow.IATs)])
 
+#input: unit(Ns), output: a serial of Throughput
+def analyzeThroughput_Unit(flows,UnitNs,NumUnit):
+    throughputs = {}
+    for flowid in flows.keys():
+        throughputs[flowid] = []
+    for id in flows.keys():
+        flow = flows[id]
+        current_down_thresh = 0
+        current_upthresh = UnitNs+current_down_thresh
+        current_bytes = 0
+        for i in range(0,len(flow.ArrivalTimes)):        #should remove syn pkt from serial
+            time = flow.ArrivalTimes[i]
+            bytes = flow.pkt_bytes[i]
+            while(time >= current_upthresh):
+                current_down_thresh = current_upthresh
+                current_upthresh = current_down_thresh+UnitNs
+                throughputs[id].append(current_bytes)
+                current_bytes = 0
+            current_bytes+= bytes
+        while len(throughputs[id])<NumUnit:
+            throughputs[id].append(0)
+    return throughputs
+
+def analyze_throughput_and_NFM(flows):
+    Units = [1000*1000,500*1000,200*1000,100*1000]
+    total_time = 1000*1000*1000
+    NFM = []
+    for unit in Units:
+        NumUnit = math.ceil(total_time * 1.0 / unit)
+        throuputs = analyzeThroughput_Unit(flows,unit,NumUnit)
+        with open(analysis_folder_path + '/throughputs_'+str(unit)+".statics","w") as f:
+            for k,v in throuputs.items():
+                f.write("FlowId: "+str(k)+"\n")
+                for t in v:
+                    f.write(str(t)+"\t")
+                f.write("\n")
+        with open(analysis_folder_path+"/NFM_"+str(unit)+".statics","w") as f:
+            for i in range(0,NumUnit):
+                Max_Ratio_diff = -1
+                totalSpeedUnit = 1.34217728 * unit  # 10Gb/s, byte per Ns，maybe 1.25
+                for k, v in throuputs.items():
+                    for k2,v2 in throuputs.items():
+                        id1 = k
+                        weight1 = flows[id1].weight
+                        id2=k2
+                        weight2 = flows[id2].weight
+                        Ratio_diff = math.fabs((v[i] * 1.0 / weight1)-(v2[i]*1.0/weight2))
+                        if(Ratio_diff > Max_Ratio_diff):
+                            Max_Ratio_diff = Ratio_diff
+                NFM.append(Max_Ratio_diff*1.0/(totalSpeedUnit*unit))
+            for nfm in NFM:
+                f.write(str(nfm)+"\n")
 
 
 
 
-# Call analysis functions
-analyze_flow_completion()
-analyze_port_utilization()
-analyze_IAT()
+
+
+
+
+                # Call analysis functions
+flows = {}
+# analyze_flow_completion()
+# analyze_port_utilization()
+Flow_initiate(flows)
+# analyze_IAT(flows)
+analyze_throughput_and_NFM(flows)
+
