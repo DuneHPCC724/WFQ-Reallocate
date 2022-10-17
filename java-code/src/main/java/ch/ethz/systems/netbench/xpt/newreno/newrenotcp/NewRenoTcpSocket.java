@@ -158,8 +158,10 @@ public class NewRenoTcpSocket extends Socket {
         // Each hop takes: 20ns (delay) + 1200ns = 1220ns
         //
         // So: 2*120000 + 12 * 1220 = 254640ns ~= 300000ns = 300 microseconds
-        this.roundTripTimeout = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_ROUND_TRIP_TIMEOUT_NS", 300000L);
 
+        //modified across our topo
+//        this.roundTripTimeout = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_ROUND_TRIP_TIMEOUT_NS", 300000L);
+        this.roundTripTimeout = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_ROUND_TRIP_TIMEOUT_NS", 62440L);
         // Ethernet: 1500 - 60 (TCP header) - 60 (IP header) = 1380 bytes
         this.MAX_SEGMENT_SIZE = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_MAX_SEGMENT_SIZE", 1380L);
 
@@ -682,6 +684,9 @@ public class NewRenoTcpSocket extends Socket {
 
         // As default, process the acknowledgment
         processAcknowledgment(ack, packet.isECE());
+
+        //WFQ
+        tcpLogger.logInflightBytes(flightSize());
 
         // TRANSMISSION
         // Send out as much as possible

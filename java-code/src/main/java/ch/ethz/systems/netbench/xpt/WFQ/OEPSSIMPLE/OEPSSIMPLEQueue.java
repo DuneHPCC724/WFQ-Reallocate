@@ -48,7 +48,8 @@ public class OEPSSIMPLEQueue implements Queue {
 
     private double BandwidthBitPerNs;
 
-    private double rho =1.0;
+//    private double rho =1.0;
+    private double rho =1;
 
     public OEPSSIMPLEQueue(long numQueues, long bytesPerRound, int ownId, int targetId, double BandwidthBitPerNs){
         long perQueueCapacity = 320;// <yuxin> physical size of a FIFO in packets
@@ -131,7 +132,7 @@ public class OEPSSIMPLEQueue implements Queue {
                         //System.out.println("fast");
                         AlphaFactor = speed/prediction;
                         AlphaFactor *= rho;
-                        if (AlphaFactor < 1){
+                        if (AlphaFactor < 1){       //WFQ
                             AlphaFactor = 1;
                         }
                     }

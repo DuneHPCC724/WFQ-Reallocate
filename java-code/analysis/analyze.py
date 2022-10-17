@@ -349,7 +349,7 @@ def Flow_initiate(flows):
             weight = float(row[2])
             flows[id].weight=weight
 def analyze_IAT(flows):
-    L = 6
+    L = 2
     for flow in flows.values():
         if len(flow.IATs) > 1:
             flow.calcu_rate()
@@ -397,18 +397,34 @@ def analyze_throughput_and_NFM(flows):
     NFMs9999 = {}
     NFMs001 = {}
     NFMs00001 = {}
+
+    meanThrouputs={}
+    medianThrouputs={}
+    Throuputs99 = {}
+    Throuputs9999 = {}
+    Throuputs001 = {}
+    Throuputs00001 = {}
     NFM = []
     for unit in Units:
         NFM.clear()
         NumUnit = math.ceil(total_time * 1.0 / unit)
         totalSpeedUnit = 1.25 * unit
         throuputs = analyzeThroughput_Unit(flows,unit,NumUnit)
+        total_throuputs = [0]*NumUnit
         with open(analysis_folder_path + '/throughputs_'+str(unit)+".statics","w") as f:
             for k,v in throuputs.items():
                 f.write("FlowId: "+str(k)+"\n")
-                for t in v:
+                for i in range(0,len(v)):
+                    t = v[i]
+                    total_throuputs[i] += t
                     f.write(str(t)+"\t")
                 f.write("\n")
+        meanThrouputs[unit] = np.mean(total_throuputs)
+        medianThrouputs[unit] = np.median(total_throuputs)
+        Throuputs99[unit] = np.percentile(total_throuputs,99)
+        Throuputs9999[unit] = np.percentile(total_throuputs,99.99)
+        Throuputs001[unit] = np.percentile(total_throuputs,1)
+        Throuputs00001[unit] = np.percentile(total_throuputs,0.01)
         with open(analysis_folder_path+"/NFM_"+str(unit)+".statics","w") as f:
             Max_diffs = [-1]*NumUnit
             ids = throuputs.keys()
@@ -441,6 +457,32 @@ def analyze_throughput_and_NFM(flows):
             f.write("99.99th NFM: " + str(NFMs9999[unit])+"\n")
             f.write("1th NFM: " + str(NFMs001[unit])+"\n")
             f.write("0.01th NFM: " + str(NFMs00001[unit])+"\n")
+    with open(analysis_folder_path+"/Throuputs_Summary"+".statics","w") as f:
+        for unit in Units:
+            f.write(str(unit/1000)+"us \n")
+            f.write("mean Throuputs: "+str(meanThrouputs[unit])+"\n")
+            f.write("median Throuputs: " + str(medianThrouputs[unit])+"\n")
+            f.write("99th Throuputs: " + str(Throuputs99[unit])+"\n")
+            f.write("99.99th Throuputs: " + str(Throuputs9999[unit])+"\n")
+            f.write("1th Throuputs: " + str(Throuputs001[unit])+"\n")
+            f.write("0.01th Throuputs: " + str(Throuputs00001[unit])+"\n")
+
+def analyze_flow_completion_rate():
+    progresses = []
+    with open(run_folder_path + '/flow_completion.log') as file:
+        lines = file.readlines()
+        for line in lines:
+            datas = line.split()
+            flowid = datas[0]
+            if(flowid == 'FlowId'):
+                continue
+            progress = float(datas[-1][:-1])
+            progresses.append(progress)
+    promean = np.mean(progresses)
+    promedian = np.median(progresses)
+    with open(analysis_folder_path+"/flow_progress_Summary"+".statics","w") as f:
+        f.write(str(promean)+"\n")
+        f.write(str(promedian)+"\n")
 
 
 
@@ -448,13 +490,12 @@ def analyze_throughput_and_NFM(flows):
 
 
 
-
-
-                # Call analysis functions
-flows = {}
-analyze_flow_completion()
-analyze_port_utilization()
-Flow_initiate(flows)
-analyze_IAT(flows)
-analyze_throughput_and_NFM(flows)
+            # Call analysis functions
+# flows = {}
+# analyze_flow_completion()
+# analyze_port_utilization()
+# Flow_initiate(flows)
+# analyze_IAT(flows)
+# analyze_throughput_and_NFM(flows)
+analyze_flow_completion_rate()
 
