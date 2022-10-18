@@ -46,7 +46,7 @@ public class OEPSSIMPLEQueue implements Queue {
 
     private boolean islogswitch;
 
-    private float alpha = 1f;//move average factor
+    private float alpha = 0.2f;//move average factor
 
     private double BandwidthBitPerNs;
 
@@ -145,6 +145,7 @@ public class OEPSSIMPLEQueue implements Queue {
                         if (AlphaFactor < 1){       //WFQ
                             AlphaFactor = 1;
                         }
+
                     }
                     double PromoteWeight = weight*AlphaFactor;
                     if(PromoteWeight > 1){//<yuxin> can't exceed 1
@@ -322,7 +323,7 @@ public class OEPSSIMPLEQueue implements Queue {
 
     public void UpdateST(FullExtTcpPacket p){
         String Id = p.getDiffFlowId3();
-        if (p.isSYN() == true){ //<yuxin> if is SYN, initialize flowtimeinterval as -2, Bytes and Packets as 0
+        if (p.isSYN() == true || p.isACK() == true){ //<yuxin> if is SYN, initialize flowtimeinterval as -2, Bytes and Packets as 0
             FlowTimeInterval.put(Id, (long)(-2));//<yuxin> tell next packet that you are first
             FlowBytesArrived.put(Id, (long)(0));
             FlowPacketsArrived.put(Id, (long)(0));

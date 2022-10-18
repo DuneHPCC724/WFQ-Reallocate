@@ -307,7 +307,7 @@ public class EPSSIMPLEQueue implements Queue {
 
     public void UpdateST(FullExtTcpPacket p){
         String Id = p.getDiffFlowId3();
-        if (p.isSYN() == true){ //<yuxin> if is SYN, initialize flowtimeinterval as -2, Bytes and Packets as 0
+        if (p.isSYN() == true || p.isACK() == true){ //<yuxin> if is SYN, initialize flowtimeinterval as -2, Bytes and Packets as 0
             FlowTimeInterval.put(Id, (long)(-2));//<yuxin> tell next packet that you are first
             FlowBytesArrived.put(Id, (long)(0));
             FlowPacketsArrived.put(Id, (long)(0));
