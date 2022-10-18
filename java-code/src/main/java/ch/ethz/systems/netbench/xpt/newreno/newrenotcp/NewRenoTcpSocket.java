@@ -331,8 +331,7 @@ public class NewRenoTcpSocket extends Socket {
 
                     // System.out.println("3-WAY HANDSHAKE: 1. Receiver received SYN, sent back ACK+SYN.");
                     //WFQ_log
-//                    tcpLogger.logPacketIAT(this.sourceId,((FullExtTcpPacket) genericPacket).getSequenceNumber(),genericPacket.getSizeBit(),((FullExtTcpPacket) genericPacket).getFlowset_num());
-
+//                     tcpLogger.logPacketIAT(this.sourceId,seqNumber,((FullExtTcpPacket)packet).getDataSizeByte(),((FullExtTcpPacket) packet).getFlowset_num());
                 }
 
                 break;
@@ -421,7 +420,7 @@ public class NewRenoTcpSocket extends Socket {
 
                     // System.out.println("3-WAY HANDSHAKE: 3. Receiver received ACK.");
                     //WFQ_log
-//                    tcpLogger.logPacketIAT(this.sourceId,((FullExtTcpPacket) genericPacket).getSequenceNumber(),genericPacket.getSizeBit(),((FullExtTcpPacket) genericPacket).getFlowset_num());
+//                     tcpLogger.logPacketIAT(this.sourceId,seqNumber,((FullExtTcpPacket)packet).getDataSizeByte(),((FullExtTcpPacket) packet).getFlowset_num());
 
                 }
 
@@ -685,8 +684,7 @@ public class NewRenoTcpSocket extends Socket {
         // As default, process the acknowledgment
         processAcknowledgment(ack, packet.isECE());
 
-        //WFQ
-        tcpLogger.logInflightBytes(flightSize());
+
 
         // TRANSMISSION
         // Send out as much as possible
@@ -699,6 +697,8 @@ public class NewRenoTcpSocket extends Socket {
 
         // Log congestion window
         tcpLogger.logCongestionWindow(congestionWindow);
+        //WFQ
+        tcpLogger.logInflightBytes(flightSize());
 
         // FINISH
         // Flow is finished if nothing is sent and everything
@@ -766,7 +766,7 @@ public class NewRenoTcpSocket extends Socket {
             .setEchoDepartureTime(packet.getDepartureTime())
         );
         //WFQ_log
-        tcpLogger.logPacketIAT(this.sourceId,seqNumber,packet.getSizeBit(),((FullExtTcpPacket) packet).getFlowset_num());
+        tcpLogger.logPacketIAT(this.sourceId,seqNumber,((FullExtTcpPacket)packet).getDataSizeByte(),((FullExtTcpPacket) packet).getFlowset_num());
 
     }
 

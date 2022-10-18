@@ -389,7 +389,7 @@ def analyzeThroughput_Unit(flows,UnitNs,NumUnit):
     return throughputs
 
 def analyze_throughput_and_NFM(flows):
-    Units = [1000*1000*1000,1000*1000,500*1000,200*1000,100*1000]
+    Units = [1000*1000*1000,100*1000*1000,1000*1000,500*1000,200*1000,100*1000]
     total_time = 1000*1000*1000
     meanNFMs={}
     medianNFMs={}
@@ -419,6 +419,12 @@ def analyze_throughput_and_NFM(flows):
                     total_throuputs[i] += t
                     f.write(str(t)+"\t")
                 f.write("\n")
+        if NumUnit == 1:
+            with open(analysis_folder_path + '/throughputs_perflow.statics.csv','w',newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['flowid',"throuputs"])
+                for k,v in throuputs.items():
+                    writer.writerow([k,v[0]])
         meanThrouputs[unit] = np.mean(total_throuputs)
         medianThrouputs[unit] = np.median(total_throuputs)
         Throuputs99[unit] = np.percentile(total_throuputs,99)
@@ -435,6 +441,8 @@ def analyze_throughput_and_NFM(flows):
                     weight1 = flows[i].weight
                     weight2 = flows[j].weight
                     for k in range(0,NumUnit):
+                        if(th1[k] == 0 and th2[k] == 0):
+                            continue
                         diffk = math.fabs(th1[k]*1.0/weight1-th2[k]*1.0/weight2)
                         if diffk > Max_diffs[k]:
                             Max_diffs[k] = diffk
@@ -467,8 +475,8 @@ def analyze_throughput_and_NFM(flows):
             f.write("1th Throuputs: " + str(Throuputs001[unit])+"\n")
             f.write("0.01th Throuputs: " + str(Throuputs00001[unit])+"\n")
 
-def analyze_flow_completion_rate():
-    progresses = []
+def analyze_ack_bytes():
+    acked_bytes_dict = {}
     with open(run_folder_path + '/flow_completion.log') as file:
         lines = file.readlines()
         for line in lines:
@@ -476,26 +484,46 @@ def analyze_flow_completion_rate():
             flowid = datas[0]
             if(flowid == 'FlowId'):
                 continue
-            progress = float(datas[-1][:-1])
-            progresses.append(progress)
-    promean = np.mean(progresses)
-    promedian = np.median(progresses)
-    with open(analysis_folder_path+"/flow_progress_Summary"+".statics","w") as f:
-        f.write(str(promean)+"\n")
-        f.write(str(promedian)+"\n")
+            acked_byte = int(datas[3])
+            acked_bytes_dict[flowid] = acked_byte
+    with open(analysis_folder_path+"/flow_acked_bytes"+".statics.csv","w") as f:
+        writer = csv.writer(f)
+        writer.writerow(['flowid','acked_bytes'])
+        for k,v in acked_bytes_dict.items():
+            writer.writerow([k,v])
 
 
-
-
-
+def analyze_Inflight_Perflow(flows):
+    inflight_bytes={}
+    for id in flows.keys():
+        inflight_bytes[id] = []
+    with open(run_folder_path + '/Inflight_Bytes') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            flowid = int(row[0])
+            inflight = int(row[1])
+            inflight_bytes[flowid].append(inflight)
+    mean_inflight_bytes = {}
+    median_inflight_bytes = {}
+    for k,v in inflight_bytes.items():
+        mean_inflight_bytes[k] = np.mean(v)
+        median_inflight_bytes[k] = np.median(v)
+    with open(analysis_folder_path+'/CWND.statics.csv','w',newline='') as CWNDFile:
+        writer = csv.writer(CWNDFile)
+        writer.writerow(['flowid','mean_cwnd','median_cwnd'])
+        for id in flows.keys():
+            mean = mean_inflight_bytes[id]
+            median = median_inflight_bytes[id]
+            writer.writerow([id,mean,median])
 
 
             # Call analysis functions
-# flows = {}
-# analyze_flow_completion()
-# analyze_port_utilization()
-# Flow_initiate(flows)
-# analyze_IAT(flows)
-# analyze_throughput_and_NFM(flows)
-analyze_flow_completion_rate()
+flows = {}
+analyze_flow_completion()
+analyze_port_utilization()
+Flow_initiate(flows)
+analyze_IAT(flows)
+analyze_throughput_and_NFM(flows)
+analyze_ack_bytes()
+analyze_Inflight_Perflow(flows)
 
