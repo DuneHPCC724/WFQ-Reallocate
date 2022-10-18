@@ -28,6 +28,8 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
 
     private long QueueOccupied;
 
+    private boolean islogswitch;
+
     public PIFOOURQueue(long queuelength, int targetId, int ownId){
         this.ownId = ownId;
         this.targetId = targetId;
@@ -39,6 +41,13 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         this.last_finishTime = new HashMap();
         this.round = 0;
         this.QueueOccupied = 0;
+
+        if (ownId == 10 && targetId == 11){
+            islogswitch = true;
+        }
+        else {
+            islogswitch = false;
+        }
     }
 
     /*Rank computation following STFQ as proposed in the PIFO paper*/
@@ -97,7 +106,9 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         try {
             /* As the original PBQ is has no limited size, the packet is always inserted */
             success = super.offer(packet); /* This method will always return true */
-            SimulationLogger.logEnqueueEvent(ownId, targetId, round, Simulator.getCurrentTime(), packet.getSizeBit()/8);
+            if (islogswitch) {
+                SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), packet.getSequenceNumber(), round, Simulator.getCurrentTime(), packet.getSizeBit() / 8);
+            }
             QueueOccupied += packet.getSizeBit()/8;
             boolean dropflag = false;
 
@@ -107,7 +118,7 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
                 Object[] contentPIFO = this.toArray();
                 Arrays.sort(contentPIFO);
                 packet = (FullExtTcpPacket) contentPIFO[this.size()-1];
-                SimulationLogger.logDropEvent(ownId, targetId, round, Simulator.getCurrentTime(),0);
+                SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), packet.getSequenceNumber(), round, Simulator.getCurrentTime(), packet.getSizeBit() / 8, 0);
                 String Id = packet.getDiffFlowId3();
                 float weight = packet.getWeight();
 //                float weight = 1;
@@ -129,7 +140,9 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         this.reentrantLock.lock();
         try {
             Packet packet = (Packet) super.poll(); // As the super queue is unbounded, this method will always return true
-            SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)packet).getDiffFlowId3(), round, Simulator.getCurrentTime(), packet.getSizeBit()/8, BufferUtil());
+            if (islogswitch) {
+                SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), ((FullExtTcpPacket) packet).getSequenceNumber(), round, Simulator.getCurrentTime(), packet.getSizeBit() / 8, BufferUtil());
+            }
 
             // Update round number
             this.updateRound(packet);
@@ -143,8 +156,10 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
     }
 
     public void logEnDeEvent(FullExtTcpPacket p){
-        SimulationLogger.logEnqueueEvent(ownId, targetId, round, Simulator.getCurrentTime(), p.getSizeBit()/8);
-        SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)p).getDiffFlowId3(), round, Simulator.getCurrentTime(), p.getSizeBit()/8, (p.getSizeBit()/8)*1.0/this.queuelength);
+        if (islogswitch) {
+            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+            SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), ((FullExtTcpPacket) p).getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, (p.getSizeBit()/8)*1.0/this.queuelength);
+        }
     }
 
     public double BufferUtil(){

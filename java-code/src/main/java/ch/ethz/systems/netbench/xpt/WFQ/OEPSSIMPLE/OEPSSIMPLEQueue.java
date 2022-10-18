@@ -38,18 +38,20 @@ public class OEPSSIMPLEQueue implements Queue {
 
     private long totalpackets;
 
-    private long queueLength = 15000;
+//    private long queueLength = 15000;
     private ReentrantLock reentrantLock;
     private int ownId;
 
     private int targetId;
 
-    private float alpha = 1f;
+    private boolean islogswitch;
+
+    private float alpha = 1f;//move average factor
 
     private double BandwidthBitPerNs;
 
 //    private double rho =1.0;
-    private double rho =1;
+    private double rho =1;//control factor
 
     public OEPSSIMPLEQueue(long numQueues, long bytesPerRound, int ownId, int targetId, double BandwidthBitPerNs){
         long perQueueCapacity = 320;// <yuxin> physical size of a FIFO in packets
@@ -81,6 +83,12 @@ public class OEPSSIMPLEQueue implements Queue {
         this.ownId = ownId;
         this.targetId = targetId;
         this.BandwidthBitPerNs = BandwidthBitPerNs;
+        if (ownId == 10 && targetId == 11){
+            islogswitch = true;
+        }
+        else {
+            islogswitch = false;
+        }
     }
 
     @Override
@@ -158,11 +166,12 @@ public class OEPSSIMPLEQueue implements Queue {
             }
             if (FinalQueue > queueList.size()-1){//<yuxin> Packet dropped since computed round is too far away
                 result = false;
-                if (fullDrop(p)){
-                    SimulationLogger.logDropEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(),0);
-                }
-                else {
-                    SimulationLogger.logDropEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(),1);
+                if (islogswitch) {
+                    if (fullDrop(p)) {
+                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+                    } else {
+                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                    }
                 }
                 rounddrop += 1;
             }
@@ -171,9 +180,11 @@ public class OEPSSIMPLEQueue implements Queue {
                 for (int i = (int)FinalQueue; i<queueList.size(); i++){
                     int QueueToSend = (int)((i+this.servingQueue)%(queueList.size()));
                     long FIFOSizeEstimate = p.getSizeBit()/8 + FIFOBytesOccupied.get(QueueToSend);
-                    if(FIFOSizeEstimate <= this.queueLength){//<yuxin> find a available FIFO
+                    if(FIFOSizeEstimate <= this.bytesPerRound){//<yuxin> find a available FIFO
                         result = queueList.get(QueueToSend).offer(p);
-                        SimulationLogger.logEnqueueEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(), p.getSizeBit()/8);
+                        if (islogswitch) {
+                            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+                        }
                         TailDropMark = false;
                         if (!result) {
                             System.out.println("!!!maybe value perQueueCapacity should be larger");
@@ -189,11 +200,12 @@ public class OEPSSIMPLEQueue implements Queue {
                     }
                 }
                 if (TailDropMark){
-                    if (fullDrop(p)){
-                        SimulationLogger.logDropEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(),0);
-                    }
-                    else {
-                        SimulationLogger.logDropEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(),1);
+                    if (islogswitch) {
+                        if (fullDrop(p)) {
+                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+                        } else {
+                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                        }
                     }
                     taildrop += 1;
                     result = false;
@@ -218,7 +230,9 @@ public class OEPSSIMPLEQueue implements Queue {
                 if (this.size() != 0) {
                     if (!queueList.get((int) this.servingQueue).isEmpty()) {
                         p = (Packet) queueList.get((int) this.servingQueue).poll();
-                        SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)p).getDiffFlowId3(), currentRound, Simulator.getCurrentTime(), p.getSizeBit()/8, BufferUtil());
+                        if (islogswitch) {
+                            SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), ((FullExtTcpPacket) p).getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, BufferUtil());
+                        }
                         long FIFOSizeDecreaseEstimate = FIFOBytesOccupied.get((int) this.servingQueue) - p.getSizeBit()/8;
                         FIFOBytesOccupied.put((int) this.servingQueue, FIFOSizeDecreaseEstimate);//<yuxin> decrease when send a packet
                         return p;
@@ -242,7 +256,7 @@ public class OEPSSIMPLEQueue implements Queue {
     public boolean fullDrop(FullExtTcpPacket p){
         boolean result = true;
         for (int i=0; i<this.queueList.size(); i++){
-            if (p.getSizeBit()/8+FIFOBytesOccupied.get(i) <= this.queueLength){
+            if (p.getSizeBit()/8+FIFOBytesOccupied.get(i) <= this.bytesPerRound){
                 result = false;
                 break;
             }
@@ -251,8 +265,10 @@ public class OEPSSIMPLEQueue implements Queue {
     }
 
     public void logEnDeEvent(FullExtTcpPacket p){
-        SimulationLogger.logEnqueueEvent(ownId, targetId, currentRound, Simulator.getCurrentTime(), p.getSizeBit()/8);
-        SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket)p).getDiffFlowId3(), currentRound, Simulator.getCurrentTime(), p.getSizeBit()/8, (p.getSizeBit()/8)*1.0/(this.queueList.size()*this.queueLength));
+        if (islogswitch) {
+            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+            SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), ((FullExtTcpPacket) p).getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, (p.getSizeBit() / 8) * 1.0 / (this.queueList.size() * this.bytesPerRound));
+        }
     }
 
     public double BufferUtil(){
@@ -260,7 +276,7 @@ public class OEPSSIMPLEQueue implements Queue {
         for(int i=0; i<this.queueList.size(); i++){
             occupy += FIFOBytesOccupied.get(i);
         }
-        double util = occupy*1.0/(this.queueList.size()*this.queueLength);
+        double util = occupy*1.0/(this.queueList.size()*this.bytesPerRound);
         return util;
     }
 
