@@ -485,9 +485,9 @@ def analyze_flow_completion_rate():
         f.write(str(promedian)+"\n")
 
 
-def analyze_drop_rate(flows):
-    interval = 10000000
-    interval_num = 100
+def analyze_drop_rate(flows, interval):
+    # interval = 10000000
+    interval_num = int(1000000000/interval)
     time = interval
     enqueue = [0]
     full_drop = [0]
@@ -554,10 +554,11 @@ def analyze_drop_rate(flows):
                 for flowid in flows.keys():
                     full_perf[flowid].append(0)
                     schedule_perf[flowid].append(0)
-            with open(analysis_folder_path + "/drop_rate_total","w") as f:
-                # f.write(str(len(enqueue))+": "+",".join('%s' %id for id in enqueue)+"\n")
-                # f.write(str(len(schedule_drop))+": "+",".join('%s' %id for id in schedule_drop)+"\n")
-                # f.write(str(len(full_drop))+": "+",".join('%s' %id for id in full_drop)+"\n")
+            with open(analysis_folder_path + "/drop_rate","w") as f:
+                f.write(str(len(enqueue))+": "+",".join('%s' %id for id in enqueue)+"\n")
+                f.write(str(len(schedule_drop))+": "+",".join('%s' %id for id in schedule_drop)+"\n")
+                f.write(str(len(full_drop))+": "+",".join('%s' %id for id in full_drop)+"\n")
+            with open(analysis_folder_path + "/drop_rate_total.statistics","w") as f: 
                 full_rate = []
                 schedule_rate = []
                 for i in range(interval_num):
@@ -568,22 +569,21 @@ def analyze_drop_rate(flows):
                     else:
                         full_rate.append(-1)
                         schedule_rate.append(-1)
-                f.write("full_drop_total: \t"+"\t".join('%s' %id for id in full_rate)+"\n")
-                new_full_rate = [x for x in full_rate if x != -1]
-                if(len(new_full_rate)!=0):
-                    f.write("average full drop rate is: \t"+str(sum(new_full_rate)/len(new_full_rate))+"\n")
+                f.write("full_drop_total: "+" ".join('%s' %id for id in full_rate)+"\n")
+                receive = sum(enqueue) + sum(full_drop) + sum(schedule_drop)
+                if(receive!=0):
+                    f.write("average_full_drop: "+str(sum(full_drop)/receive)+"\n")
                 else:
-                    f.write("average full drop rate is: \t"+"None_value"+"\n")
-                f.write("schedule_drop_total: \t"+"\t".join('%s' %id for id in schedule_rate)+"\n")
-                new_schedule_rate = [x for x in schedule_rate if x != -1]
-                if(len(new_schedule_rate)!=0):
-                    f.write("average schedule drop rate is: \t"+str(sum(new_schedule_rate)/len(new_schedule_rate))+"\n")
+                    f.write("average_full_drop: "+"None"+"\n")
+                f.write("schedule_drop_total: "+" ".join('%s' %id for id in schedule_rate)+"\n")
+                if(receive!=0):
+                    f.write("average_schedule_drop: "+str(sum(schedule_drop)/receive)+"\n")
                 else:
-                    f.write("average schedule drop rate is: \t"+"None_value"+"\n")
-            with open(analysis_folder_path + "/drop_rate_per_flow","w") as f:
+                    f.write("average_schedule_drop: "+"None"+"\n")
+            with open(analysis_folder_path + "/drop_rate_per_flow.statistics","w") as f:
                 for flowid in flows.keys():
                     # f.write(str(enqueue_perf[flowid][0])+",")
-                    f.write("flow id: "+str(flowid)+"\n")
+                    f.write("flow_id: "+str(flowid)+"\n")
                     full_rate = []
                     schedule_rate = []
                     for i in range(interval_num):
@@ -594,19 +594,152 @@ def analyze_drop_rate(flows):
                         else:
                             full_rate.append(-1)
                             schedule_rate.append(-1)
-                    f.write("full_drop: \t"+"\t".join('%s' %id for id in full_rate)+"\n")
-                    new_full_rate = [x for x in full_rate if x != -1]
-                    if(len(new_full_rate)!=0):
-                        f.write("average full drop rate is: \t"+str(sum(new_full_rate)/len(new_full_rate))+"\n")
+                    f.write("full_drop: "+" ".join('%s' %id for id in full_rate)+"\n")
+                    receive = sum(enqueue_perf[flowid]) + sum(full_perf[flowid]) + sum(schedule_perf[flowid])
+                    if(receive!=0):
+                        f.write("average_full_drop: "+str(sum(full_perf[flowid])/receive)+"\n")
                     else:
-                        f.write("average full drop rate is: \t"+"None_value"+"\n")
-                    f.write("schedule_drop: \t"+"\t".join('%s' %id for id in schedule_rate)+"\n")
-                    new_schedule_rate = [x for x in schedule_rate if x != -1]
-                    if(len(new_schedule_rate)!=0):
-                        f.write("average schedule drop rate is: \t"+str(sum(new_schedule_rate)/len(new_schedule_rate))+"\n")
+                        f.write("average_full_drop: "+"None"+"\n")
+                    f.write("schedule_drop: "+" ".join('%s' %id for id in schedule_rate)+"\n")
+                    if(receive!=0):
+                        f.write("average_schedule_drop: "+str(sum(schedule_perf[flowid])/receive)+"\n")
                     else:
-                        f.write("average schedule drop rate is: \t"+"None_value"+"\n")
+                        f.write("average_schedule_drop: "+"None"+"\n")
                     f.write("\n")
+
+
+def analyze_drop_rate_pifo(flows, interval):
+    # interval = 10000000
+    interval_num = int(1000000000/interval)
+    time = interval
+    enqueue = [0]
+    full_drop = [0]
+    schedule_drop = [0]
+    enqueue_perf = {}
+    full_perf = {}
+    schedule_perf = {}
+    for flowid in flows.keys():
+        enqueue_perf[flowid] = [0]
+        full_perf[flowid] = [0]
+        schedule_perf[flowid] = [0]
+    with open(run_folder_path+"/enqueue_event.csv.log") as ENQUE:
+        with open(run_folder_path+"/drop_event.csv.log") as DROP:
+            Enqueue_Reader = csv.reader(ENQUE)
+            Drop_Reader = csv.reader(DROP)
+            i = 0
+            for row in Enqueue_Reader:
+                if(int(row[5]) <= time):
+                    enqueue[i] += 1
+                    enqueue_perf[int(row[2])][i] += 1
+                else:
+                    while(int(row[5]) > time):
+                        time += interval
+                        i += 1
+                        enqueue.append(0)
+                        for flowid in flows.keys():
+                            enqueue_perf[flowid].append(0)
+                    enqueue[i] += 1
+                    enqueue_perf[int(row[2])][i] += 1
+            time = interval
+            i = 0
+            for row in Drop_Reader:
+                if(int(row[5]) <= time):
+                    if(int(row[7]) == 0):
+                        full_drop[i] += 1
+                        full_perf[int(row[2])][i] += 1
+                    else:
+                        schedule_drop[i] += 1
+                        schedule_perf[int(row[2])][i] += 1
+                else:
+                    while(int(row[5]) > time):
+                        time += interval
+                        i += 1
+                        full_drop.append(0)
+                        schedule_drop.append(0)
+                        for flowid in flows.keys():
+                            full_perf[flowid].append(0)
+                            schedule_perf[flowid].append(0)
+                    if(int(row[7]) == 0):
+                        full_drop[i] += 1
+                        full_perf[int(row[2])][i] += 1
+                    else:
+                        schedule_drop[i] += 1
+                        schedule_perf[int(row[2])][i] += 1
+            enqueue_len = interval_num-len(enqueue)
+            schedule_len = interval_num-len(schedule_drop)
+            for i in range(enqueue_len):
+                enqueue.append(0)
+                for flowid in flows.keys():
+                    enqueue_perf[flowid].append(0)
+            for i in range(schedule_len):
+                full_drop.append(0)
+                schedule_drop.append(0)
+                for flowid in flows.keys():
+                    full_perf[flowid].append(0)
+                    schedule_perf[flowid].append(0)
+            # with open(analysis_folder_path + "/drop_rate","w") as f:
+                # f.write(str(len(enqueue))+": "+",".join('%s' %id for id in enqueue)+"\n")
+            #     f.write(str(len(schedule_drop))+": "+",".join('%s' %id for id in schedule_drop)+"\n")
+            #     f.write(str(len(full_drop))+": "+",".join('%s' %id for id in full_drop)+"\n")
+            with open(analysis_folder_path + "/drop_rate_total.statistics","w") as f: 
+                full_rate = []
+                schedule_rate = []
+                for i in range(interval_num):
+                    receive = enqueue[i]
+                    if(receive != 0):
+                        full_rate.append(full_drop[i]/receive)
+                        schedule_rate.append(schedule_drop[i]/receive)
+                    else:
+                        full_rate.append(-1)
+                        schedule_rate.append(-1)
+                f.write("full_drop_total: "+" ".join('%s' %id for id in full_rate)+"\n")
+                receive = sum(enqueue)
+                if(receive!=0):
+                    f.write("average_full_drop: "+str(sum(full_drop)/receive)+"\n")
+                else:
+                    f.write("average_full_drop: "+"None"+"\n")
+                f.write("schedule_drop_total: "+" ".join('%s' %id for id in schedule_rate)+"\n")
+                if(receive!=0):
+                    f.write("average_schedule_drop: "+str(sum(schedule_drop)/receive)+"\n")
+                else:
+                    f.write("average_schedule_drop: "+"None"+"\n")
+            with open(analysis_folder_path + "/drop_rate_per_flow.statistics","w") as f:
+                for flowid in flows.keys():
+                    # f.write(str(enqueue_perf[flowid][0])+",")
+                    f.write("flow_id: "+str(flowid)+"\n")
+                    full_rate = []
+                    schedule_rate = []
+                    for i in range(interval_num):
+                        receive = enqueue_perf[flowid][i]
+                        if(receive != 0):
+                            full_rate.append(full_perf[flowid][i]/receive)
+                            schedule_rate.append(schedule_perf[flowid][i]/receive)
+                        else:
+                            full_rate.append(-1)
+                            schedule_rate.append(-1)
+                    f.write("full_drop: "+" ".join('%s' %id for id in full_rate)+"\n")
+                    receive = sum(enqueue_perf[flowid])
+                    if(receive!=0):
+                        f.write("average_full_drop: "+str(sum(full_perf[flowid])/receive)+"\n")
+                    else:
+                        f.write("average_full_drop: "+"None"+"\n")
+                    f.write("schedule_drop: "+" ".join('%s' %id for id in schedule_rate)+"\n")
+                    if(receive!=0):
+                        f.write("average_schedule_drop: "+str(sum(schedule_perf[flowid])/receive)+"\n")
+                    else:
+                        f.write("average_schedule_drop: "+"None"+"\n")
+                    f.write("\n")
+
+def analyze_buffer_util(flows):
+    buffer_util = []
+    with open(run_folder_path+"/dequeue_event.csv.log") as DEQUE:
+        Dequeue_Reader = csv.reader(DEQUE)
+        for row in Dequeue_Reader:
+            buffer_util.append(float(row[7]))
+    with open(analysis_folder_path + "/buffer_utilization.statistics","w") as f: 
+        f.write("average_buffer_utilization: " + str(np.mean(buffer_util)) + "\n")
+        f.write("median_buffer_util: " + str(np.median(buffer_util)) + "\n")
+
 
 
 
@@ -619,5 +752,7 @@ Flow_initiate(flows)
 # analyze_IAT(flows)
 # analyze_throughput_and_NFM(flows)
 # analyze_flow_completion_rate()
-analyze_drop_rate(flows)
+analyze_drop_rate(flows, 10000000)
+# analyze_drop_rate_pifo(flows, 10000000)
+analyze_buffer_util(flows)
 
