@@ -5,24 +5,19 @@ public class MainFromIntelliJ {
 
     public static void main(String args[]) {
 
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/AIFO.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/PIFOOUR.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/EPSWFQ.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/EPSSIMPLE.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/OEPSSIMPLE.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/PCQ.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/PCQBURST.properties"});
 
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/FIFO.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});
-
-        MainFromProperties.main(new String[]{"projects/WFQ/run/test/test.properties"});
-//            MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQ.properties"});
-//            MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQWB.properties"});
-//            MainFromProperties.main(new String[]{"projects/WFQ/run/test/EPSWFQ.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/EPSSIMPLE.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/OEPSSIMPLE.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/PCQBURST.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/PIFOOUR.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/test/AIFO.properties"});
 
 //        /* Figure 5: SP-PIFO performance (uniform rank distribution) */
 //
 //            /* Figure 5a: Uniform 8 queues */
-//            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/uniform_rank_distribution/uniform_8_queues/FIFO.properties"});
+//            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/uniform_rank_distribution/uniform_8_queues/DCTCP.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/uniform_rank_distribution/uniform_8_queues/SPPIFO.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/uniform_rank_distribution/uniform_8_queues/Fixed_queue_bounds.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/uniform_rank_distribution/uniform_8_queues/Greedy.properties"});
@@ -71,22 +66,22 @@ public class MainFromIntelliJ {
 //        /* Figure 6: SP-PIFO performance (alternative distributions) */
 //
 //            /* Figure 6a: Exponential */
-//            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/exponential/FIFO.properties"});
+//            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/exponential/DCTCP.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/exponential/SPPIFO.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/exponential/Greedy.properties"});
 //
 //            /* Figure 6b: Inverse exponential */
-//            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/inverse_exponential/FIFO.properties"});
+//            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/inverse_exponential/DCTCP.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/inverse_exponential/SPPIFO.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/inverse_exponential/Greedy.properties"});
 //
 //            /* Figure 6c: Poisson */
-//            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/poisson/FIFO.properties"});
+//            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/poisson/DCTCP.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/poisson/SPPIFO.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/poisson/Greedy.properties"});
 //
 //            /* Figure 6d: Convex */
-//            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/convex/FIFO.properties"});
+//            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/convex/DCTCP.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/convex/SPPIFO.properties"});
 //            MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/alternative_distributions/convex/Greedy.properties"});
 //

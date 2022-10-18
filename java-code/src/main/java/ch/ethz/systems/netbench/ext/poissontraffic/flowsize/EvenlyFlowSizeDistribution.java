@@ -12,7 +12,7 @@ public class EvenlyFlowSizeDistribution extends FlowSizeDistribution {
 
     @Override
     public long generateFlowSizeByte() {
-        return 1460*66666;
+        return 1460*6666666;
 //        return 1460*10;
     }
 }

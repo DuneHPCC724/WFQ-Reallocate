@@ -39,7 +39,7 @@ public class AIFOQueue implements Queue{
     private int windowPointer;
 
     public AIFOQueue(long queuelength, int targetId, int ownId){
-        long perQueueCapacity = 320;
+        long perQueueCapacity = 8192;
         this.ownId = ownId;
         this.targetId = targetId;
 

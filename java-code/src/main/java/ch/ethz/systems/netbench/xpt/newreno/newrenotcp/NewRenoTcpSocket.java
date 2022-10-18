@@ -159,9 +159,11 @@ public class NewRenoTcpSocket extends Socket {
         //
         // So: 2*120000 + 12 * 1220 = 254640ns ~= 300000ns = 300 microseconds
 
+        //ours:Incast 10packets per queue:  40*1500/10+1220*2 = 8440
+        //ours:Incast 100packets per queue:  400*1500/10+1220*2 = 62440
         //modified across our topo
 //        this.roundTripTimeout = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_ROUND_TRIP_TIMEOUT_NS", 300000L);
-        this.roundTripTimeout = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_ROUND_TRIP_TIMEOUT_NS", 62440L);
+        this.roundTripTimeout = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_ROUND_TRIP_TIMEOUT_NS", 124880L);
         // Ethernet: 1500 - 60 (TCP header) - 60 (IP header) = 1380 bytes
         this.MAX_SEGMENT_SIZE = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_MAX_SEGMENT_SIZE", 1380L);
 

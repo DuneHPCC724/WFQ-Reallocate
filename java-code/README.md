@@ -94,7 +94,7 @@ Let's now go for an example, wanting to reproduce the experiments required to re
 2. Execute those simulations by pointing out their configuration files. They can be called individually or directly from a script or the `MainFromIntelliJ.java` file:
 ```javascript
     /* Figure 5a: Uniform 8 queues */
-    MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/uniform_rank_distribution/uniform_8_queues/FIFO.properties"});
+    MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/uniform_rank_distribution/uniform_8_queues/DCTCP.properties"});
     MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/uniform_rank_distribution/uniform_8_queues/SPPIFO.properties"});
     MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/uniform_rank_distribution/uniform_8_queues/Fixed_queue_bounds.properties"});
     MainFromProperties.main(new String[]{"projects/sppifo/runs/sppifo_analysis/uniform_rank_distribution/uniform_8_queues/Greedy.properties"});

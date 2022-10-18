@@ -425,6 +425,12 @@ def analyze_throughput_and_NFM(flows):
                 writer.writerow(['flowid',"throuputs"])
                 for k,v in throuputs.items():
                     writer.writerow([k,v[0]])
+                ths = []
+                for v in throuputs.values():
+                    ths.append(v)
+                thmean = np.mean(ths)
+                writer.writerow(['mean',thmean])
+                writer.writerow(['median',np.median(ths)])
         meanThrouputs[unit] = np.mean(total_throuputs)
         medianThrouputs[unit] = np.median(total_throuputs)
         Throuputs99[unit] = np.percentile(total_throuputs,99)
@@ -491,13 +497,19 @@ def analyze_ack_bytes():
         writer.writerow(['flowid','acked_bytes'])
         for k,v in acked_bytes_dict.items():
             writer.writerow([k,v])
+        ackedbytes = []
+        for v in acked_bytes_dict.values():
+            ackedbytes.append(v)
+        mean = np.mean(ackedbytes)
+        writer.writerow(['mean',mean])
+        writer.writerow(['median',np.median(ackedbytes)])
 
 
 def analyze_Inflight_Perflow(flows):
     inflight_bytes={}
     for id in flows.keys():
         inflight_bytes[id] = []
-    with open(run_folder_path + '/Inflight_Bytes') as file:
+    with open(run_folder_path + '/Inflight_Bytes.csv.log') as file:
         reader = csv.reader(file)
         for row in reader:
             flowid = int(row[0])

@@ -36,7 +36,7 @@ public class PCQWBQueue implements Queue {
     private int targetId;
 
     public PCQWBQueue(long numQueues, long bytesPerRound, int ownId, int targetId){
-        long perQueueCapacity = 320;// <yuxin> physical size of a FIFO in packets
+        long perQueueCapacity = 8192;// <yuxin> physical size of a FIFO in packets
         this.FIFOBytesOccupied = new HashMap();
         this.FIFOBytesSend = new HashMap();
         this.queueList = new ArrayList((int)numQueues);
