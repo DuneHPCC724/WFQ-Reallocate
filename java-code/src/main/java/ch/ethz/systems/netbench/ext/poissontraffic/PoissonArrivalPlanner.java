@@ -22,7 +22,8 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
         PARETO_SKEW_DISTRIBUTION,
         PAIRINGS_FRACTION,
         DUAL_ALL_TO_ALL_FRACTION,
-        DUAL_ALL_TO_ALL_SERVER_FRACTION
+        DUAL_ALL_TO_ALL_SERVER_FRACTION,
+        Incast      //add by WFQ
     }
 
     private final double lambdaFlowStartsPerSecond;
@@ -100,6 +101,10 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
                 this.setPairProbabilitiesDualAllToAllServerFraction();
                 break;
 
+            case Incast:
+                this.setPairIncast();
+                break;
+
             default:
                 throw new IllegalArgumentException("Invalid pair distribution given: " + pairDistribution + ".");
 
@@ -142,12 +147,39 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
                 this.setPairProbabilitiesDualAllToAllServerFraction();
                 break;
 
+            case Incast:
+                this.setPairIncast();
+                break;
+
             default:
                 throw new IllegalArgumentException("Invalid pair distribution given: " + pairDistribution + ".");
         }
         SimulationLogger.logInfo("Flow planner", "POISSON_ARRIVAL(lambda=" + lambdaFlowStartsPerSecond + ", pairDistribution=" + pairDistribution + ")");
     }
 
+
+    //add by WFQ
+    private void setPairIncast(){
+        System.out.print("Generating incast pair probabilities between all nodes with a transport layer...");
+        double pdfNumBytes = 1.0 /  (this.idToTransportLayerMap.size() - 1);
+        int numofserver = this.idToTransportLayerMap.keySet().size();
+        int dst = 11;//temp
+//        int dst_ind = ownIndependentRng.nextInt(numofserver);
+//        int count = 0;
+//        for(Integer i:this.idToTransportLayerMap.keySet())
+//        {
+//            if(count == dst_ind){
+//                dst = i;
+//                break;
+//            }
+//            count++;
+//        }
+        for(Integer src:this.idToTransportLayerMap.keySet()){
+            if(!src.equals(dst)){
+                this.randomPairGenerator.add(pdfNumBytes,new ImmutablePair<>(src,dst));
+            }
+        }
+    }
     
     /**
      * Set the communication pair probabilities to be all-to-all uniform.
@@ -714,8 +746,8 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
 
             // Register flow
             Pair<Integer, Integer> pair = choosePair();
-            registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),(float)(weight/(lambdaFlowStartsPerSecond*0.061904f)),flowset_num);
-//            registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),weight,flowset_num);
+//            registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),(float)(weight/(lambdaFlowStartsPerSecond*0.061904f)),flowset_num);
+            registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),weight,flowset_num);
             //0.189559392 = median_flowsize_byte/1250000
             // Advance time to next arrival
             time += interArrivalTime;

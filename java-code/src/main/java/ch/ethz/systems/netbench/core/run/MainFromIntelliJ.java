@@ -9,7 +9,8 @@ public class MainFromIntelliJ {
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/PIFOOUR.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/EPSWFQ.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/EPSSIMPLE.properties"});
-        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/OEPSSIMPLE.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Flowset_NFM/PCQ.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Flowset_NFM/OEPSSIMPLE.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/PCQ.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/PCQBURST.properties"});
 

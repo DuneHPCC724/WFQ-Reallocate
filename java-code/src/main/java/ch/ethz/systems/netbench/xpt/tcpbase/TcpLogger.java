@@ -93,11 +93,11 @@ public class TcpLogger implements LoggerCallback {
      * log the flow IAT WFQ
      *
      */
-    public void logPacketIAT(int transportID, long sequenceNumber,long DataSizeByte,int flowset_num){
+    public void logPacketIAT(int transportID, long sequenceNumber,long DataSizeByte,int flowset_num,double weight){
         if(logPacketIATEnabled && isReceiver)
         {
             try{
-                PacketIATWriter.write(transportID+","+flowId+","+sequenceNumber+","+DataSizeByte+","+Simulator.getCurrentTime()+"\n");
+                PacketIATWriter.write(transportID+","+flowId+","+sequenceNumber+","+DataSizeByte+","+Simulator.getCurrentTime()+","+flowset_num+","+weight+"\n");
             } catch (IOException e){
                 throw new LogFailureException(e);
             }

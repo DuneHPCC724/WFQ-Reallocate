@@ -350,7 +350,9 @@ class TrafficSelector {
                                     idToTransportLayer,
                                     Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
                                     flowSizeDistribution,
-                                    PoissonArrivalPlanner.PairDistribution.ALL_TO_ALL_FRACTION
+                                    PoissonArrivalPlanner.PairDistribution.ALL_TO_ALL_FRACTION,
+                                    flowset_num,
+                                    multiple
                             );
 
                         case "all_to_all_server_fraction":
@@ -358,7 +360,9 @@ class TrafficSelector {
                                     idToTransportLayer,
                                     Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
                                     flowSizeDistribution,
-                                    PoissonArrivalPlanner.PairDistribution.ALL_TO_ALL_SERVER_FRACTION
+                                    PoissonArrivalPlanner.PairDistribution.ALL_TO_ALL_SERVER_FRACTION,
+                                    flowset_num,
+                                    multiple
                             );
 
                         case "pairings_fraction":
@@ -366,7 +370,9 @@ class TrafficSelector {
                                     idToTransportLayer,
                                     Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
                                     flowSizeDistribution,
-                                    PoissonArrivalPlanner.PairDistribution.PAIRINGS_FRACTION
+                                    PoissonArrivalPlanner.PairDistribution.PAIRINGS_FRACTION,
+                                    flowset_num,
+                                    multiple
                             );
 
                         case "skew_pareto_distribution":
@@ -374,7 +380,9 @@ class TrafficSelector {
                                     idToTransportLayer,
                                     Simulator.getConfiguration().getDoublePropertyOrFail("traffic_lambda_flow_starts_per_s"),
                                     flowSizeDistribution,
-                                    PoissonArrivalPlanner.PairDistribution.PARETO_SKEW_DISTRIBUTION
+                                    PoissonArrivalPlanner.PairDistribution.PARETO_SKEW_DISTRIBUTION,
+                                    flowset_num,
+                                    multiple
                             );
 
                         case "dual_all_to_all_fraction":
@@ -382,7 +390,9 @@ class TrafficSelector {
                                     idToTransportLayer,
                                     Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
                                     flowSizeDistribution,
-                                    PoissonArrivalPlanner.PairDistribution.DUAL_ALL_TO_ALL_FRACTION
+                                    PoissonArrivalPlanner.PairDistribution.DUAL_ALL_TO_ALL_FRACTION,
+                                    flowset_num,
+                                    multiple
                             );
 
                         case "dual_all_to_all_server_fraction":
@@ -390,9 +400,20 @@ class TrafficSelector {
                                     idToTransportLayer,
                                     Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
                                     flowSizeDistribution,
-                                    PoissonArrivalPlanner.PairDistribution.DUAL_ALL_TO_ALL_SERVER_FRACTION
+                                    PoissonArrivalPlanner.PairDistribution.DUAL_ALL_TO_ALL_SERVER_FRACTION,
+                                    flowset_num,
+                                    multiple
                             );
 
+                        case "incast":
+                            return new PoissonArrivalPlanner(
+                                    idToTransportLayer,
+                                    Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
+                                    flowSizeDistribution,
+                                    PoissonArrivalPlanner.PairDistribution.Incast,
+                                    flowset_num,
+                                    multiple
+                            );
                         default:
                             throw new PropertyValueInvalidException(Simulator.getConfiguration(), "traffic_probabilities_generator");
 

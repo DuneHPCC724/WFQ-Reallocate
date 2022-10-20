@@ -767,7 +767,7 @@ public class NewRenoTcpSocket extends Socket {
             .setEchoDepartureTime(packet.getDepartureTime())
         );
         //WFQ_log
-        tcpLogger.logPacketIAT(this.sourceId,seqNumber,((FullExtTcpPacket)packet).getDataSizeByte(),((FullExtTcpPacket) packet).getFlowset_num());
+        tcpLogger.logPacketIAT(this.sourceId,seqNumber,((FullExtTcpPacket)packet).getDataSizeByte(),((FullExtTcpPacket) packet).getFlowset_num(),((FullExtTcpPacket) packet).getWeight());
 
     }
 
