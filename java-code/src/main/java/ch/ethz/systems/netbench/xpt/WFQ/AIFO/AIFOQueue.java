@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class AIFOQueue implements Queue{
 
-    private final ArrayBlockingQueue aifo;
+    public final ArrayBlockingQueue aifo;
 
     private long queuelength;
 
@@ -112,12 +112,10 @@ public class AIFOQueue implements Queue{
 
                     PriorityHeader header = (PriorityHeader) p;
                     header.setPriority(rank);
-                    result = aifo.offer(p);
+//                    result = aifo.offer(p);
+                    result = true;
                     if (islogswitch) {
                         SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8);
-                    }
-                    if (!result) {
-                        System.out.println("!!!maybe perQueueCapacity should be larger");
                     }
                 }
                 else {

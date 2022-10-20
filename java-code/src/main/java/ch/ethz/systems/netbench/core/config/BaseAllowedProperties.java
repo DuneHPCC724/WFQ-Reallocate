@@ -107,6 +107,8 @@ public class BaseAllowedProperties {
             "weight_distribution",
             "flow_num",     //for evenly start flows, WFQ
             "esprho",
+            "alpha_factor",
+            "headqueue_bpr_limit",
 
             // TCP
             "TCP_ROUND_TRIP_TIMEOUT_NS",

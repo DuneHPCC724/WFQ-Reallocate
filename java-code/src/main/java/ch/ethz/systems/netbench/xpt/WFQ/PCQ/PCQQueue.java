@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class PCQQueue implements Queue {
 
-    private final ArrayList<ArrayBlockingQueue> queueList;
+    public final ArrayList<ArrayBlockingQueue> queueList;
     private final Map flowBytesSent;
 
     private final Map <Integer, Long> FIFOBytesSend;
@@ -33,6 +33,8 @@ public class PCQQueue implements Queue {
     private int targetId;
 
     private boolean islogswitch;
+
+    private boolean head_bpr_limit;
 
     public PCQQueue(long numQueues, long bytesPerRound, int ownId, int targetId){
         long perQueueCapacity = 8192;// <yuxin> physical size of a FIFO in packets
@@ -63,14 +65,14 @@ public class PCQQueue implements Queue {
         else {
             islogswitch = false;
         }
+        this.head_bpr_limit = Simulator.getConfiguration().getBooleanPropertyWithDefault("headqueue_bpr_limit", false);
     }
 
-    @Override
-    public boolean offer(Object o){
+    public int offerPacket(Object o){
 
         this.reentrantLock.lock();
         FullExtTcpPacket p = (FullExtTcpPacket) o;
-        boolean result = true;
+        int result = -1;
 
         try {
 
@@ -90,7 +92,7 @@ public class PCQQueue implements Queue {
             long packetRound = (long) (bid/(this.bytesPerRound*weight));
 
             if((packetRound - this.currentRound) > queueList.size() - 1){
-                result = false; // Packet dropped since computed round is too far away
+                result = -1; // Packet dropped since computed round is too far away
                 if (islogswitch) {
                     if (fullDrop(p)) {
                         SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
@@ -103,7 +105,7 @@ public class PCQQueue implements Queue {
                 int QueueToSend = (int)packetRound%(queueList.size());
                 long FIFOSizeEstimate = p.getSizeBit()/8 + FIFOBytesOccupied.get(QueueToSend);
                 if (FIFOSizeEstimate > this.bytesPerRound){
-                    result = false;//<yuxin> Packet dropped because of tail drop
+                    result = -1;//<yuxin> Packet dropped because of tail drop
                     if (islogswitch) {
                         if (fullDrop(p)) {
                             SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
@@ -114,19 +116,15 @@ public class PCQQueue implements Queue {
                     taildrop += 1;
                 }
                 else{
-                    result = queueList.get(QueueToSend).offer(p);
+                    result = QueueToSend;
                     if (islogswitch) {
                         SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
 //                        SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), 0);
                     }
-                    if (!result) {
-                        System.out.println("!!!maybe perQueueCapacity should be larger");
-                    } else {
-                        flowBytesSent.put(p.getDiffFlowId3(), bid);
-                        FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
-                        long FIFOBytesSendEstimate = p.getSizeBit()/8 + FIFOBytesSend.get(QueueToSend);
-                        FIFOBytesSend.put(QueueToSend, FIFOBytesSendEstimate);
-                    }
+                    flowBytesSent.put(p.getDiffFlowId3(), bid);
+                    FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
+                    long FIFOBytesSendEstimate = p.getSizeBit()/8 + FIFOBytesSend.get(QueueToSend);
+                    FIFOBytesSend.put(QueueToSend, FIFOBytesSendEstimate);
                 }
             }
         } catch (Exception e){
@@ -140,6 +138,85 @@ public class PCQQueue implements Queue {
     }
 
     @Override
+    public boolean offer(Object o){
+        return  false;
+    }
+
+//    @Override
+//    public boolean offer(Object o){
+//
+//        this.reentrantLock.lock();
+//        FullExtTcpPacket p = (FullExtTcpPacket) o;
+//        boolean result = true;
+//
+//        try {
+//
+//            // Compute the packet bid (when will the last byte be transmitted) as the max. between the current round (in bytes) and the last bid of the flow
+//            float weight = p.getWeight();// <yuxin> flow weight
+////            float weight = 1;
+//            long bid = (long)(this.currentRound * this.bytesPerRound * weight);
+//
+//            if(flowBytesSent.containsKey(p.getDiffFlowId3())){
+//                if(bid < (Long)flowBytesSent.get(p.getDiffFlowId3())){
+//                    bid = (Long)flowBytesSent.get(p.getDiffFlowId3());
+//                }
+//            }
+//            bid = bid + (p.getSizeBit()/8);
+//
+//            //float weight = p.getWeight();// <yuxin> flow weight
+//            long packetRound = (long) (bid/(this.bytesPerRound*weight));
+//
+//            if((packetRound - this.currentRound) > queueList.size() - 1){
+//                result = false; // Packet dropped since computed round is too far away
+//                if (islogswitch) {
+//                    if (fullDrop(p)) {
+//                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+//                    } else {
+//                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+//                    }
+//                }
+//                rounddrop += 1;
+//            } else {
+//                int QueueToSend = (int)packetRound%(queueList.size());
+//                long FIFOSizeEstimate = p.getSizeBit()/8 + FIFOBytesOccupied.get(QueueToSend);
+//                if (FIFOSizeEstimate > this.bytesPerRound){
+//                    result = false;//<yuxin> Packet dropped because of tail drop
+//                    if (islogswitch) {
+//                        if (fullDrop(p)) {
+//                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+//                        } else {
+//                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+//                        }
+//                    }
+//                    taildrop += 1;
+//                }
+//                else{
+//                    result = queueList.get(QueueToSend).offer(p);
+//                    if (islogswitch) {
+//                        SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+////                        SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), 0);
+//                    }
+//                    if (!result) {
+//                        System.out.println("!!!maybe perQueueCapacity should be larger");
+//                    } else {
+//                        flowBytesSent.put(p.getDiffFlowId3(), bid);
+//                        FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
+//                        long FIFOBytesSendEstimate = p.getSizeBit()/8 + FIFOBytesSend.get(QueueToSend);
+//                        FIFOBytesSend.put(QueueToSend, FIFOBytesSendEstimate);
+//                    }
+//                }
+//            }
+//        } catch (Exception e){
+//            e.printStackTrace();
+//            System.out.println("Probably the bid size has been exceeded, transmit less packets ");
+//            System.out.println("Exception PCQ offer: " + e.getMessage() + e.getLocalizedMessage());
+//        } finally {
+//            this.reentrantLock.unlock();
+//            return result;
+//        }
+//    }
+
+    @Override
     public Packet poll(){
         this.reentrantLock.lock();
         try {
@@ -151,12 +228,16 @@ public class PCQQueue implements Queue {
                         if (islogswitch) {
                             SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), ((FullExtTcpPacket) p).getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, BufferUtil());
                         }
-                        long FIFOSizeDecreaseEstimate = FIFOBytesOccupied.get((int) this.servingQueue) - p.getSizeBit()/8;
-                        FIFOBytesOccupied.put((int) this.servingQueue, FIFOSizeDecreaseEstimate);//<yuxin> decrease when send a packet
+                        if(!head_bpr_limit) {
+                            long FIFOSizeDecreaseEstimate = FIFOBytesOccupied.get((int) this.servingQueue) - p.getSizeBit() / 8;
+                            FIFOBytesOccupied.put((int) this.servingQueue, FIFOSizeDecreaseEstimate);//<yuxin> decrease when send a packet
+                        }
                         return p;
                     } else {
                         SimulationLogger.logDropRate(ownId, targetId, currentRound, taildrop * 1.0 / totalpackets, rounddrop * 1.0 / totalpackets, (taildrop + rounddrop) * 1.0 / totalpackets);
-                        //FIFOBytesOccupied.put((int)this.servingQueue, (long)0);
+                        if(head_bpr_limit) {
+                            FIFOBytesOccupied.put((int) this.servingQueue, (long) 0);
+                        }
                         SimulationLogger.logFIFOsend(ownId, targetId, currentRound, this.FIFOBytesSend.get((int)servingQueue));
                         FIFOBytesSend.put((int)servingQueue, (long)0);
                         this.servingQueue = (this.servingQueue + 1) % this.queueList.size();

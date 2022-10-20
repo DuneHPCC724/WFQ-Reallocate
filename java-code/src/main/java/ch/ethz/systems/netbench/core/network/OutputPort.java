@@ -120,6 +120,44 @@ public abstract class OutputPort {
         }
     }
 
+    //add by WFQ
+    void dispatch()
+    {
+        // Check if there are more in the queue to send
+        if (!queue.isEmpty()) {
+
+            // Pop from queue
+            Packet packetFromQueue = queue.poll();
+
+            decreaseBufferOccupiedBits(packetFromQueue.getSizeBit());
+            logger.logQueueState(queue.size(), bufferOccupiedBits);
+
+            if (!link.doesNextTransmissionFail(packetFromQueue.getSizeBit())) {
+                Simulator.registerEvent(
+                        new PacketArrivalEvent(
+                                link.getDelayNs()+(long)((double)packetFromQueue.getSizeBit() / link.getBandwidthBitPerNs()),
+                                packetFromQueue,
+                                targetNetworkDevice
+                        )
+                );
+            }
+
+            // Register when the packet is actually dispatched
+            Simulator.registerEvent(new PacketDispatchedEvent(
+                    (long)((double)packetFromQueue.getSizeBit() / link.getBandwidthBitPerNs()),
+                    this
+            ));
+            // It is sending again
+            isSending = true;
+
+        } else {
+
+            // If the queue is empty, nothing will be sent for now
+            logger.logLinkUtilized(false);
+            isSending = false;
+        }
+    }
+
 
     /**
      * Return the network identifier of its own device (to which this output port is attached to).

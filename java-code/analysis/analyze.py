@@ -597,10 +597,10 @@ def analyze_drop_rate(flows, interval):
                 for flowid in flows.keys():
                     full_perf[flowid].append(0)
                     schedule_perf[flowid].append(0)
-            with open(analysis_folder_path + "/drop_rate","w") as f:
-                f.write(str(len(enqueue))+": "+",".join('%s' %id for id in enqueue)+"\n")
-                f.write(str(len(schedule_drop))+": "+",".join('%s' %id for id in schedule_drop)+"\n")
-                f.write(str(len(full_drop))+": "+",".join('%s' %id for id in full_drop)+"\n")
+            with open(analysis_folder_path + "/enqueue_per_slice","w") as f:
+                f.write("enqueue: "+",".join('%s' %id for id in enqueue)+"\n")
+                f.write("schedule_drop: "+",".join('%s' %id for id in schedule_drop)+"\n")
+                f.write("full_drop: "+",".join('%s' %id for id in full_drop)+"\n")
             with open(analysis_folder_path + "/drop_rate_total.statistics","w") as f:
                 full_rate = []
                 schedule_rate = []
@@ -720,10 +720,10 @@ def analyze_drop_rate_pifo(flows, interval):
                 for flowid in flows.keys():
                     full_perf[flowid].append(0)
                     schedule_perf[flowid].append(0)
-            # with open(analysis_folder_path + "/drop_rate","w") as f:
-                # f.write(str(len(enqueue))+": "+",".join('%s' %id for id in enqueue)+"\n")
-            #     f.write(str(len(schedule_drop))+": "+",".join('%s' %id for id in schedule_drop)+"\n")
-            #     f.write(str(len(full_drop))+": "+",".join('%s' %id for id in full_drop)+"\n")
+            with open(analysis_folder_path + "/enqueue_per_slice","w") as f:
+                            f.write("enqueue: "+",".join('%s' %id for id in enqueue)+"\n")
+                            f.write("schedule_drop: "+",".join('%s' %id for id in schedule_drop)+"\n")
+                            f.write("full_drop: "+",".join('%s' %id for id in full_drop)+"\n")
             with open(analysis_folder_path + "/drop_rate_total.statistics","w") as f:
                 full_rate = []
                 schedule_rate = []
@@ -797,5 +797,6 @@ analyze_throughput_and_NFM(flows)
 analyze_ack_bytes()
 analyze_Inflight_Perflow(flows)
 analyze_drop_rate(flows, 10000000)
+# analyze_drop_rate_pifo(flows, 10000000)
 analyze_buffer_util(flows)
 

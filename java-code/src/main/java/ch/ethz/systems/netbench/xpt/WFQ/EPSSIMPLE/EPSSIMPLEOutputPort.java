@@ -23,50 +23,74 @@ public class EPSSIMPLEOutputPort extends OutputPort {
      *
      * @param packet    Packet instance
      */
+
     @Override
     public void enqueue(Packet packet) {
 
         EPSSIMPLEQueue q = (EPSSIMPLEQueue)getQueue();
         q.increaseTotalPackets();
-        // If it is not sending, then the queue is empty at the moment,
-        // so this packet can be immediately send
-        if (!getIsSending()) {
-            q.UpdateBi((FullExtTcpPacket)packet);
-            q.UpdateST((FullExtTcpPacket)packet);
-            q.logEnDeEvent((FullExtTcpPacket)packet);
-
-            // Link is now being utilized
-            getLogger().logLinkUtilized(true);
-
-            // Add event when sending is finished
-            Simulator.registerEvent(new PacketDispatchedEvent(
-                    (long)((double)packet.getSizeBit() / getLink().getBandwidthBitPerNs()),
-                    packet,
-                    this
-            ));
-
-            // It is now sending again
-            setIsSending();
-
-        } else { // If it is still sending, the packet is added to the queue, making it non-empty
-
-            boolean enqueued = false;
-            enqueued = getQueue().offer(packet);
-
-
-            if (enqueued){
-                increaseBufferOccupiedBits(packet.getSizeBit());
-                getLogger().logQueueState(getQueue().size(), getBufferOccupiedBits());
-            } else {
-                SimulationLogger.increaseStatisticCounter("PACKETS_DROPPED");
-
-                // Convert to IP packet
-                IpHeader ipHeader = (IpHeader) packet;
-                if (ipHeader.getSourceId() == this.getOwnId()) {
-                    SimulationLogger.increaseStatisticCounter("PACKETS_DROPPED_AT_SOURCE");
-                }
+        int QueuetoSend = q.offerPacket(packet);
+        if (QueuetoSend != -1){
+            if (!getIsSending()) {
+                getLogger().logLinkUtilized(true);
+                q.queueList.get(QueuetoSend).offer(packet);
+//                q.logEnDeEvent((FullExtTcpPacket)packet);
+                Simulator.registerEvent(new PacketDispatchedEvent(
+                        0,
+                        this
+                ));
+                setIsSending();
+            }
+            else {
+                q.queueList.get(QueuetoSend).offer(packet);
             }
         }
-
     }
+    
+//    @Override
+//    public void enqueue(Packet packet) {
+//
+//        EPSSIMPLEQueue q = (EPSSIMPLEQueue)getQueue();
+//        q.increaseTotalPackets();
+//        // If it is not sending, then the queue is empty at the moment,
+//        // so this packet can be immediately send
+//        if (!getIsSending()) {
+//            q.UpdateBi((FullExtTcpPacket)packet);
+//            q.UpdateST((FullExtTcpPacket)packet);
+//            q.logEnDeEvent((FullExtTcpPacket)packet);
+//
+//            // Link is now being utilized
+//            getLogger().logLinkUtilized(true);
+//
+//            // Add event when sending is finished
+//            Simulator.registerEvent(new PacketDispatchedEvent(
+//                    (long)((double)packet.getSizeBit() / getLink().getBandwidthBitPerNs()),
+//                    packet,
+//                    this
+//            ));
+//
+//            // It is now sending again
+//            setIsSending();
+//
+//        } else { // If it is still sending, the packet is added to the queue, making it non-empty
+//
+//            boolean enqueued = false;
+//            enqueued = getQueue().offer(packet);
+//
+//
+//            if (enqueued){
+//                increaseBufferOccupiedBits(packet.getSizeBit());
+//                getLogger().logQueueState(getQueue().size(), getBufferOccupiedBits());
+//            } else {
+//                SimulationLogger.increaseStatisticCounter("PACKETS_DROPPED");
+//
+//                // Convert to IP packet
+//                IpHeader ipHeader = (IpHeader) packet;
+//                if (ipHeader.getSourceId() == this.getOwnId()) {
+//                    SimulationLogger.increaseStatisticCounter("PACKETS_DROPPED_AT_SOURCE");
+//                }
+//            }
+//        }
+//
+//    }
 }

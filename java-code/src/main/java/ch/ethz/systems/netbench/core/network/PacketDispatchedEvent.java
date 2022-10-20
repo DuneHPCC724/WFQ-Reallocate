@@ -26,11 +26,21 @@ public class PacketDispatchedEvent extends Event {
 
     }
 
+
+    //add by WFQ
+    public PacketDispatchedEvent(long timeFromNowNs, OutputPort dispatchPort) {
+        super(timeFromNowNs);
+        this.packet = null;
+        this.dispatchPort = dispatchPort;
+
+    }
+
     @Override
     public void trigger() {
-
-        dispatchPort.dispatch(packet);
-
+        if(packet != null)
+            dispatchPort.dispatch(packet);
+        else
+            dispatchPort.dispatch();
         // Log rank of packet enqueued and queue selected if enabled
         //if(SimulationLogger.hasRankMappingEnabled()){
         //    FullExtTcpPacket p = (FullExtTcpPacket) packet;

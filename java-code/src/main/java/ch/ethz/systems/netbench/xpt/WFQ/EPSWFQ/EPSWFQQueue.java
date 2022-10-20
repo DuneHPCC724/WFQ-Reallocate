@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class EPSWFQQueue implements Queue {
 
-    private final ArrayList<ArrayBlockingQueue> queueList;
+    public final ArrayList<ArrayBlockingQueue> queueList;
     private final Map flowBytesSent; //<yuxin> Bi
 
     private final Map<Integer, Long> FIFOBytesOccupied;//<yuxin> Occupancy of the queue in Bytes
@@ -42,12 +42,14 @@ public class EPSWFQQueue implements Queue {
 
     private boolean islogswitch;
 
-    private float alpha = 1f;//move average factor
+    private double alpha;//move average factor
 
     private double BandwidthBitPerNs;
 
-//    private double rho =1.0;//control factor
-    private double rho =0.1;
+    private double rho;//control factor
+
+    private boolean head_bpr_limit;
+
     public EPSWFQQueue(long numQueues, long bytesPerRound, int ownId, int targetId, double BandwidthBitPerNs){
         long perQueueCapacity = 8192;// <yuxin> physical size of a FIFO in packets
         this.FIFOBytesOccupied = new HashMap();
@@ -83,14 +85,15 @@ public class EPSWFQQueue implements Queue {
             islogswitch = false;
         }
         this.rho = Simulator.getConfiguration().getDoublePropertyWithDefault("esprho",0.1);
+        this.alpha = Simulator.getConfiguration().getDoublePropertyWithDefault("alpha_factor", 0.2);
+        this.head_bpr_limit = Simulator.getConfiguration().getBooleanPropertyWithDefault("headqueue_bpr_limit", false);
     }
 
-    @Override
-    public boolean offer(Object o){
+    public int offerPacket(Object o){
 
         this.reentrantLock.lock();
         FullExtTcpPacket p = (FullExtTcpPacket) o;
-        boolean result = true;
+        int result = -1;
 
         try {
 
@@ -98,7 +101,8 @@ public class EPSWFQQueue implements Queue {
             long FinalQueue;
             String Id = p.getDiffFlowId3();
             long bid;
-            if(p.isSYN() || FlowTimeInterval.get(Id) == (long)(-1)){//<yuxin>if SYN or first data packet ,enqueue the head queue
+//            if(p.isSYN() || FlowTimeInterval.get(Id) == (long)(-1) || p.isACK()){//<yuxin>if SYN or first data packet ,enqueue the head queue
+            if(p.isSYN() || p.isACK()){//<yuxin>if SYN or first data packet ,enqueue the head queue
                 FinalQueue = 0;
                 bid = 0;
             }
@@ -155,7 +159,7 @@ public class EPSWFQQueue implements Queue {
 
             //<yuxin> phase 3 start
             if (FinalQueue > queueList.size()-1){//<yuxin> Packet dropped since computed round is too far away
-                result = false;
+                result = -1;
                 if (islogswitch) {
                     if (fullDrop(p)) {
                         SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
@@ -171,21 +175,17 @@ public class EPSWFQQueue implements Queue {
                     int QueueToSend = (int)((i+this.servingQueue)%(queueList.size()));
                     long FIFOSizeEstimate = p.getSizeBit()/8 + FIFOBytesOccupied.get(QueueToSend);
                     if(FIFOSizeEstimate <= this.bytesPerRound){//<yuxin> find a available FIFO
-                        result = queueList.get(QueueToSend).offer(p);
+                        result = QueueToSend;
                         if (islogswitch) {
                             SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
 //                            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), 0);
 
                         }
                         TailDropMark = false;
-                        if (!result) {
-                            System.out.println("!!!maybe value perQueueCapacity should be larger");
-                        } else {
-                            flowBytesSent.put(Id, bid);
-                            FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
-                            long FIFOBytesSendEstimate = p.getSizeBit()/8 + FIFOBytesSend.get(QueueToSend);
-                            FIFOBytesSend.put(QueueToSend, FIFOBytesSendEstimate);
-                        }
+                        flowBytesSent.put(Id, bid);
+                        FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
+                        long FIFOBytesSendEstimate = p.getSizeBit()/8 + FIFOBytesSend.get(QueueToSend);
+                        FIFOBytesSend.put(QueueToSend, FIFOBytesSendEstimate);
                         break;
                     }
                 }
@@ -198,7 +198,7 @@ public class EPSWFQQueue implements Queue {
                         }
                     }
                     taildrop += 1;
-                    result = false;
+                    result = -1;
                 }
             }
         } catch (Exception e){
@@ -212,6 +212,135 @@ public class EPSWFQQueue implements Queue {
     }
 
     @Override
+    public boolean offer(Object o){return false;}
+
+//    @Override
+//    public boolean offer(Object o){
+//
+//        this.reentrantLock.lock();
+//        FullExtTcpPacket p = (FullExtTcpPacket) o;
+//        boolean result = true;
+//
+//        try {
+//
+//            UpdateST(p);//<yuxin> update s and t
+//            long FinalQueue;
+//            String Id = p.getDiffFlowId3();
+//            long bid;
+//            if(p.isSYN() || p.isACK()){//<yuxin>if SYN or first data packet ,enqueue the head queue
+//                FinalQueue = 0;
+//                bid = 0;
+//            }
+//
+//            //<yuxin> phase 1 start
+//            else{
+//                float weight = p.getWeight();// <yuxin> flow weight
+//                // Compute the packet bid (when will the last byte be transmitted) as the max. between the current round (in bytes) and the last bid of the flow
+//                bid = (long)(this.currentRound * this.bytesPerRound * weight);
+//
+//                if(flowBytesSent.containsKey(Id)){
+//                    if(bid < (Long)flowBytesSent.get(Id)){
+//                        bid = (Long)flowBytesSent.get(Id);
+//                    }
+//                }
+//                bid = bid + (p.getSizeBit()/8);
+//
+//                long packetRound = (long) (bid/(this.bytesPerRound*weight));
+//                long AnchorQueue = (packetRound - this.currentRound);
+//
+//                //<yuxin> phase 2 start
+//                if(AnchorQueue > (long)0){//<yuxin> not head queue
+//                    double s = FlowBytesArrived.get(Id)*1.0/FlowPacketsArrived.get(Id);//<yuxin>average packet size
+//                    double t = FlowTimeInterval.get(Id)*(BandwidthBitPerNs/8)/bytesPerRound;//<yuxin>average interval per round
+//                    double speed = s/t;
+//                    double prediction = bytesPerRound*weight;
+//                    double AlphaFactor;
+//                    if(speed < prediction){
+//                        //System.out.println("slow");
+//                        AlphaFactor = 1;
+//                    }
+//                    else {
+//                        //System.out.println("fast");
+//                        AlphaFactor = Math.pow((speed/prediction), 1.0/AnchorQueue);
+//                        AlphaFactor *= rho;
+//                        if (AlphaFactor < 1){
+//                            AlphaFactor = 1;
+//                        }
+//
+//                    }
+//                    double PromoteWeight = weight*AlphaFactor;
+//                    if(PromoteWeight > 1){//<yuxin> can't exceed 1
+//                        PromoteWeight = 1;
+//                    }
+//                    FinalQueue = (long) (bid/(this.bytesPerRound*PromoteWeight) - this.currentRound);
+//                    if(FinalQueue < 0){
+//                        FinalQueue = 0;
+//                    }
+//                }
+//                else {//<yuxin> head queue
+//                    FinalQueue = 0;
+//                }
+//            }
+//
+//            //<yuxin> phase 3 start
+//            if (FinalQueue > queueList.size()-1){//<yuxin> Packet dropped since computed round is too far away
+//                result = false;
+//                if (islogswitch) {
+//                    if (fullDrop(p)) {
+//                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+//                    } else {
+//                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+//                    }
+//                }
+//                rounddrop += 1;
+//            }
+//            else {
+//                boolean TailDropMark = true;
+//                for (int i = (int)FinalQueue; i<queueList.size(); i++){
+//                    int QueueToSend = (int)((i+this.servingQueue)%(queueList.size()));
+//                    long FIFOSizeEstimate = p.getSizeBit()/8 + FIFOBytesOccupied.get(QueueToSend);
+//                    if(FIFOSizeEstimate <= this.bytesPerRound){//<yuxin> find a available FIFO
+//                        result = queueList.get(QueueToSend).offer(p);
+//                        if (islogswitch) {
+//                            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+////                            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), 0);
+//
+//                        }
+//                        TailDropMark = false;
+//                        if (!result) {
+//                            System.out.println("!!!maybe value perQueueCapacity should be larger");
+//                        } else {
+//                            flowBytesSent.put(Id, bid);
+//                            FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
+//                            long FIFOBytesSendEstimate = p.getSizeBit()/8 + FIFOBytesSend.get(QueueToSend);
+//                            FIFOBytesSend.put(QueueToSend, FIFOBytesSendEstimate);
+//                        }
+//                        break;
+//                    }
+//                }
+//                if (TailDropMark){
+//                    if (islogswitch) {
+//                        if (fullDrop(p)) {
+//                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+//                        } else {
+//                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+//                        }
+//                    }
+//                    taildrop += 1;
+//                    result = false;
+//                }
+//            }
+//        } catch (Exception e){
+//            e.printStackTrace();
+//            System.out.println("Probably the bid size has been exceeded, transmit less packets ");
+//            System.out.println("Exception EPSWFQ offer: " + e.getMessage() + e.getLocalizedMessage());
+//        } finally {
+//            this.reentrantLock.unlock();
+//            return result;
+//        }
+//    }
+
+    @Override
     public Packet poll(){
         this.reentrantLock.lock();
         try {
@@ -223,12 +352,16 @@ public class EPSWFQQueue implements Queue {
                         if (islogswitch) {
                             SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), ((FullExtTcpPacket) p).getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, BufferUtil());
                         }
-                        long FIFOSizeDecreaseEstimate = FIFOBytesOccupied.get((int) this.servingQueue) - p.getSizeBit()/8;
-                        FIFOBytesOccupied.put((int) this.servingQueue, FIFOSizeDecreaseEstimate);//<yuxin> decrease when send a packet
+                        if(!head_bpr_limit) {
+                            long FIFOSizeDecreaseEstimate = FIFOBytesOccupied.get((int) this.servingQueue) - p.getSizeBit() / 8;
+                            FIFOBytesOccupied.put((int) this.servingQueue, FIFOSizeDecreaseEstimate);//<yuxin> decrease when send a packet
+                        }
                         return p;
                     } else {
                         SimulationLogger.logDropRate(ownId, targetId, currentRound, taildrop * 1.0 / totalpackets, rounddrop * 1.0 / totalpackets, (taildrop + rounddrop) * 1.0 / totalpackets);
-//                        FIFOBytesOccupied.put((int)this.servingQueue, (long)0);
+                        if(head_bpr_limit) {
+                            FIFOBytesOccupied.put((int) this.servingQueue, (long) 0);
+                        }
                         SimulationLogger.logFIFOsend(ownId, targetId, currentRound, this.FIFOBytesSend.get((int)servingQueue));
                         FIFOBytesSend.put((int)servingQueue, (long)0);
                         this.servingQueue = (this.servingQueue + 1) % this.queueList.size();
@@ -311,21 +444,21 @@ public class EPSWFQQueue implements Queue {
 
     public void UpdateST(FullExtTcpPacket p){
         String Id = p.getDiffFlowId3();
-        if (p.isSYN() == true || p.isACK() == true){ //<yuxin> if is SYN, initialize flowtimeinterval as -2, Bytes and Packets as 0
+        if (p.isSYN() == true){ //<yuxin> if is SYN, initialize flowtimeinterval as -2, Bytes and Packets as 0
             FlowTimeInterval.put(Id, (long)(-2));//<yuxin> tell next packet that you are first
             FlowBytesArrived.put(Id, (long)(0));
             FlowPacketsArrived.put(Id, (long)(0));
-        }
-        else{//<yuxin> data packets
+        } else if (p.isACK()) {
+            FlowTimeInterval.put(Id, (long)(-1));
+            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
+            FlowBytesArrived.put(Id, (long)(0));
+            FlowPacketsArrived.put(Id, (long)(0));
+        } else{//<yuxin> data packets
             long Bytes = FlowBytesArrived.get(Id) + p.getSizeBit()/8;
             FlowBytesArrived.put(Id, Bytes);
             long Packets = FlowPacketsArrived.get(Id) + 1;
             FlowPacketsArrived.put(Id, Packets);
-            if(FlowTimeInterval.get(Id) == (long)(-2)){//<yuxin> if is the first data packet, put current time in
-                FlowTimeInterval.put(Id, (long)(-1));//<yuxin> tell next packet that you are second
-                FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
-            }
-            else if(FlowTimeInterval.get(Id) == (long)(-1)){//<yuxin> second date packet, compute interval at first time
+            if(FlowTimeInterval.get(Id) == (long)(-1)){//<yuxin> second date packet, compute interval at first time
                 long time =Simulator.getCurrentTime();
                 long Interval = time - FlowTimeLastArrive.get(Id);
                 FlowTimeInterval.put(Id, Interval);
