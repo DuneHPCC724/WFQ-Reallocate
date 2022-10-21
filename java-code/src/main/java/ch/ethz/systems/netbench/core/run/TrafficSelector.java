@@ -272,7 +272,7 @@ class TrafficSelector {
                     }
 
                     case "pfabric_web_search_lower_bound": {
-                        flowSizeDistribution = new PFabricWebSearchLowerBoundFSD();
+                        flowSizeDistribution = new PFabricWebSearchLowerBoundFSD(flowset_num);
                         break;
                     }
 

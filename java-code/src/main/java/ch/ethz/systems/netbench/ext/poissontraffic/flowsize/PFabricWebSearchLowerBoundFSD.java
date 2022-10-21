@@ -37,6 +37,11 @@ public class PFabricWebSearchLowerBoundFSD extends FlowSizeDistribution {
         SimulationLogger.logInfo("Flow planner flow size dist.", "pFabric web search lower bound discrete");
     }
 
+    public PFabricWebSearchLowerBoundFSD(int flowset_num){
+        super(flowset_num);
+        SimulationLogger.logInfo("Flow planner flow size dist.", "pFabric web search lower bound discrete");
+    }
+
     @Override
     public long generateFlowSizeByte() {
 
