@@ -45,6 +45,9 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         if (ownId == 10 && targetId == 11){
             islogswitch = true;
         }
+        else if (ownId == 16 && targetId == 17){
+            islogswitch = true;
+        }
         else {
             islogswitch = false;
         }

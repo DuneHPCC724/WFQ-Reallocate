@@ -352,6 +352,10 @@ class InfrastructureSelector {
                 return new WFQTcpTransportLayerGenerator();
             case "wfq_dctcp":
                 return new WFQDCTcpTransportLayerGenerator();
+            case "wfq_dctcp_evenly":
+                return new WFQDCTcpTransportLayerGenerator();
+            case "wfq_dctcp_multiple":
+                return new WFQDCTcpTransportLayerGenerator();
             default:
                 throw new PropertyValueInvalidException(
                         Simulator.getConfiguration(),

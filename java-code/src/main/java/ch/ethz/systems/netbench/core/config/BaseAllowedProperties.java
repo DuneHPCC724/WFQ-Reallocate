@@ -69,6 +69,7 @@ public class BaseAllowedProperties {
             "traffic_pair_type",
             "traffic_pair_flow_size_byte",
             "traffic_pairs",
+            "traffic_pair_stride",
             "traffic_arrivals_list",
             "traffic_flow_size_dist_uniform_mean_bytes",
             "traffic_flow_size_dist_pareto_shape",

@@ -197,6 +197,16 @@ class TrafficSelector {
                                 Simulator.getConfiguration().getLongPropertyOrFail("traffic_pair_flow_size_byte")
                         );
 
+                    case "stride_server":
+                        return new TrafficPairPlanner(
+                                idToTransportLayer,
+                                TrafficPairPlanner.generateStride(
+                                        Simulator.getConfiguration().getGraphDetails().getNumServers(),
+                                        Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_pair_stride")
+                                ),
+                                Simulator.getConfiguration().getLongPropertyOrFail("traffic_pair_flow_size_byte")
+                        );
+
                     case "custom":
                         List<Integer> list = Simulator.getConfiguration().getDirectedPairsListPropertyOrFail("traffic_pairs");
                         List<TrafficPairPlanner.TrafficPair> pairs = new ArrayList<>();
@@ -237,7 +247,9 @@ class TrafficSelector {
                         return new UniformWeightPlanner(idToTransportLayer, flowSizeDis,weightnum, flownum, UniformWeightPlanner.PairDistribution.ALL_TO_ALL,weightdist);
                     case "incast":
                         return new UniformWeightPlanner(idToTransportLayer, flowSizeDis, weightnum ,flownum, UniformWeightPlanner.PairDistribution.Incast,weightdist);
-                    default:
+                    case "side_to_side":
+                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis, weightnum ,flownum, UniformWeightPlanner.PairDistribution.Side_To_Side,weightdist);
+                        default:
                         throw new PropertyValueInvalidException(Simulator.getConfiguration(), "traffic_probabilities_generator");
                 }
             }

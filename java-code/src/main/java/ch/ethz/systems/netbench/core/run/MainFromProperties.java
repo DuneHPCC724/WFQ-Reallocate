@@ -60,7 +60,7 @@ public class MainFromProperties {
             int[] multiples = wd.getMultiples();
             planmultipleTraffic(runtimeNs,initializer.getIdToTransportLayer(),weights,multiples);
         }
-        else if (runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp_evenly") ){
+        else if (runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp_evenly") || runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_dctcp_evenly") ){
             planevenlyTraffic(runtimeNs,initializer.getIdToTransportLayer());
         }
         else

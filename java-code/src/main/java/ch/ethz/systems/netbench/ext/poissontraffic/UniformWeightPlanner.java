@@ -21,15 +21,18 @@ public class UniformWeightPlanner extends TrafficPlanner {
         PAIRINGS_FRACTION,
         DUAL_ALL_TO_ALL_FRACTION,
         DUAL_ALL_TO_ALL_SERVER_FRACTION,
-        Incast
+        Incast,
+        Side_To_Side
     }
 
     private final FlowSizeDistribution flowSizeDistribution;
     private final Random ownIndependentRng;
     private final RandomCollection<Pair<Integer, Integer>> randomPairGenerator;
+    private final RandomCollection<Pair<Integer, Integer>> randomPairGenerator2;
     private final int TotalFlowNumber;
     private final int WeightNumber;
     private final WeightDistribution wd;
+    private final PairDistribution pairDistribution;
 
     public UniformWeightPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, FlowSizeDistribution flowSizeDistribution,int weight_num ,int FlowNum,PairDistribution pairDistribution,String wdistribution) {
         super(idToTransportLayerMap);
@@ -38,6 +41,8 @@ public class UniformWeightPlanner extends TrafficPlanner {
         this.WeightNumber = weight_num;
         this.ownIndependentRng = Simulator.selectIndependentRandom("uniform_arrival"+Integer.toString(FlowNum));
         this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"+Integer.toString(FlowNum)));
+        this.randomPairGenerator2 = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw2"+Integer.toString(FlowNum)));
+        this.pairDistribution = pairDistribution;
         switch (pairDistribution) {
 
             case ALL_TO_ALL:
@@ -45,6 +50,9 @@ public class UniformWeightPlanner extends TrafficPlanner {
                 break;
             case Incast:
                 this.setPairIncast();
+                break;
+            case Side_To_Side:
+                this.setPairSide();
                 break;
             default:
                 throw new IllegalArgumentException("Invalid pair distribution given: " + pairDistribution + ".");
@@ -97,9 +105,46 @@ public class UniformWeightPlanner extends TrafficPlanner {
         }
     }
 
+    private void setPairSide(){
+        System.out.print("Generating incast pair probabilities between all nodes with a transport layer...");
+        double pdfNumBytes = 1.0 /  ((this.idToTransportLayerMap.size()/2)*(this.idToTransportLayerMap.size()/2));
+        int side_server_num = this.idToTransportLayerMap.size()/2;
+        for(Integer src:this.idToTransportLayerMap.keySet()){
+            if(src < side_server_num)
+            {
+                for(Integer dst:this.idToTransportLayerMap.keySet()){
+                    if(dst < side_server_num)
+                        continue;
+                    else{
+                        this.randomPairGenerator.add(pdfNumBytes,new ImmutablePair<>(src,dst));
+                    }
+                }
+            }
+            else {
+                for(Integer dst:this.idToTransportLayerMap.keySet()){
+                    if(dst >= side_server_num)
+                        continue;
+                    else{
+                        this.randomPairGenerator2.add(pdfNumBytes,new ImmutablePair<>(src,dst));
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void createPlan(long durationNs) {
-        this.createPlan_Incast();
+        switch(this.pairDistribution){
+            case Incast:
+                this.createPlan_Incast();
+                break;
+            case Side_To_Side:
+                this.createPlan_Side();
+                break;
+            default:
+                System.out.println("do not support all to all now");
+        }
+
     }
     public void createPlan_Incast() {
         double[] weights = this.wd.get_weights_uniformly(this.TotalFlowNumber);
@@ -110,9 +155,27 @@ public class UniformWeightPlanner extends TrafficPlanner {
         }
     }
 
+    public void createPlan_Side(){
+//        for side 1
+        double[] weights = this.wd.get_weights_uniformly(this.TotalFlowNumber/2);
+        for(int i=0;i<weights.length;i++){
+            double weight_current = weights[i];
+            Pair<Integer, Integer> pair = choosePair();
+            registerFlow(0, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),(float) weight_current,0);
+        }
+        for(int i=0;i<weights.length;i++){
+            double weight_current = weights[i];
+            Pair<Integer, Integer> pair = choosePair2();
+            registerFlow(0, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),(float) weight_current,0);
+        }
+    }
+
     //copy from poisson planner
     private Pair<Integer, Integer> choosePair() {
         return this.randomPairGenerator.next();
+    }
+    private Pair<Integer, Integer> choosePair2() {
+        return this.randomPairGenerator2.next();
     }
 
 

@@ -163,7 +163,7 @@ public class NewRenoTcpSocket extends Socket {
         //ours:Incast 100packets per queue:  400*1500/10+1220*2 = 62440
         //modified across our topo
 //        this.roundTripTimeout = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_ROUND_TRIP_TIMEOUT_NS", 300000L);
-        this.roundTripTimeout = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_ROUND_TRIP_TIMEOUT_NS", 62440L);
+        this.roundTripTimeout = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_ROUND_TRIP_TIMEOUT_NS", 300000L);
         // Ethernet: 1500 - 60 (TCP header) - 60 (IP header) = 1380 bytes
         this.MAX_SEGMENT_SIZE = Simulator.getConfiguration().getLongPropertyWithDefault("TCP_MAX_SEGMENT_SIZE", 1380L);
 
@@ -767,6 +767,13 @@ public class NewRenoTcpSocket extends Socket {
             .setEchoDepartureTime(packet.getDepartureTime())
         );
         //WFQ_log
+        if(Simulator.getConfiguration().getPropertyOrFail("traffic_probabilities_generator").equals("side_to_side"))
+        {
+            int numserver = Simulator.getConfiguration().getGraphDetails().getNumServers();
+            if(this.sourceId<numserver/2) {
+                return;
+            }
+        }
         tcpLogger.logPacketIAT(this.sourceId,seqNumber,((FullExtTcpPacket)packet).getDataSizeByte(),((FullExtTcpPacket) packet).getFlowset_num(),((FullExtTcpPacket) packet).getWeight());
 
     }
