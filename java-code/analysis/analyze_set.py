@@ -112,160 +112,6 @@ class Flow:
             self.pp = -1
 
 
-class Flow_set:
-    def __init__(self,flowset_id,weight) -> None:
-        self.flowset_id = flowset_id
-        self.weight = weight
-        self.flows = []
-        self.ArrivalTimes = []
-        self.PktBytes = []
-
-
-def Flow_set_initiate(Flowsets):
-    with open(run_folder_path+'/flowset_num_flowID.csv.log') as setfile:
-        reader  = csv.reader(setfile)
-        for row in reader:
-            flowid = int(row[0])
-            flowsetid = int(row[1])
-            weight = float(row[2])
-            if flowsetid not in Flowsets.keys():
-                Flowsets[flowsetid] = Flow_set(flowsetid,weight)
-            Flowsets[flowsetid].flows.append(flowid)
-    with open (run_folder_path + "/flow_IAT.csv.log") as IAT_file:
-        IAT_Reader = csv.reader(IAT_file)
-        for row in IAT_Reader:
-            #read file
-            flowsetid = int(row[-2])
-            flow_id = int(row[1])
-            seq_num = int(row[2])
-            byte = float(row[3])
-            timeNs = float(row[4])
-            weight = float(row[-1])
-
-            flowset = Flowsets[flowsetid]
-            flowset.ArrivalTimes.append(timeNs)
-            flowset.PktBytes.append(byte)
-
-
-
-
-
-def analyze_Set_Throughput_Unit(Flowsets,UnitNs,NumUnit):
-    throughputs = {}
-    for flowsetid in Flowsets.keys():
-        throughputs[flowsetid] = []
-    for id  in Flowsets.keys():
-        flowset = Flowsets[id]
-        current_down_thresh = 0
-        current_upthresh = UnitNs+current_down_thresh
-        current_bytes = 0
-        for i in range(0,len(flowset.ArrivalTimes)):
-            time = flowset.ArrivalTimes[i]
-            bytes = flowset.PktBytes[i]
-            while(time >= current_upthresh):
-                current_down_thresh = current_upthresh
-                current_upthresh = current_down_thresh+UnitNs
-                throughputs[id].append(current_bytes)
-                current_bytes = 0
-            current_bytes+= bytes
-        if len(throughputs[id])<NumUnit:
-            throughputs[id].append(current_bytes)
-        while len(throughputs[id])<NumUnit:
-            throughputs[id].append(0)
-    return throughputs
-
-def analyze_Set_throuput_and_NFM(Flowsets):
-    Units = [1000*1000*1000,100*1000*1000,1000*1000,500*1000,200*1000,100*1000]
-    total_time = 1000*1000*1000
-    meanNFMs={}
-    medianNFMs={}
-    NFMs99 = {}
-    NFMs9999 = {}
-    NFMs001 = {}
-    NFMs00001 = {}
-
-    meanThrouputs={}
-    medianThrouputs={}
-    Throuputs99 = {}
-    Throuputs9999 = {}
-    Throuputs001 = {}
-    Throuputs00001 = {}
-    NFM = []
-    for unit in Units:
-        NFM.clear()
-        NumUnit = math.ceil(total_time * 1.0 / unit)
-        totalSpeedUnit = 1.25 * unit
-        throuputs = analyze_Set_Throughput_Unit(Flowsets,unit,NumUnit)
-        total_throuputs = [0]*NumUnit
-        with open(analysis_folder_path + '/Set_throughputs_'+str(unit)+".statics","w") as f:
-            for k,v in throuputs.items():
-                f.write("Flowsetid: "+str(k)+"\n")
-                for i in range(0,len(v)):
-                    t = v[i]
-                    total_throuputs[i] += t
-                    f.write(str(t)+"\t")
-                f.write("\n")
-        if NumUnit == 1:
-            with open(analysis_folder_path + '/Set_throughputs_perflow.statics.csv','w',newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(['flowsetnum',"throuputs"])
-                for k,v in throuputs.items():
-                    writer.writerow([k,v[0]])
-                ths = []
-                for v in throuputs.values():
-                    ths.append(v)
-                thmean = np.mean(ths)
-                writer.writerow(['mean',thmean])
-                writer.writerow(['median',np.median(ths)])
-        meanThrouputs[unit] = np.mean(total_throuputs)
-        medianThrouputs[unit] = np.median(total_throuputs)
-        Throuputs99[unit] = np.percentile(total_throuputs,99)
-        Throuputs9999[unit] = np.percentile(total_throuputs,99.99)
-        Throuputs001[unit] = np.percentile(total_throuputs,1)
-        Throuputs00001[unit] = np.percentile(total_throuputs,0.01)
-        with open(analysis_folder_path+"/Set_NFM_"+str(unit)+".statics","w") as f:
-            Max_diffs = [-1]*NumUnit
-            ids = throuputs.keys()
-            for i in range(0,len(ids)):
-                for j in range(i+1,len(ids)):
-                    th1 = throuputs[i]
-                    th2 = throuputs[j]
-                    weight1 = Flowsets[i].weight
-                    weight2 = Flowsets[j].weight
-                    for k in range(0,NumUnit):
-                        if(th1[k] == 0 and th2[k] == 0):
-                            continue
-                        diffk = math.fabs(th1[k]*1.0/weight1-th2[k]*1.0/weight2)
-                        if diffk > Max_diffs[k]:
-                            Max_diffs[k] = diffk
-            for m in Max_diffs:
-                NFM.append(m*1.0/(totalSpeedUnit*unit))
-            for nfm in NFM:
-                f.write(str(nfm)+"\n")
-        meanNFMs[unit] = np.mean(NFM)
-        medianNFMs[unit] = np.median(NFM)
-        NFMs99[unit] = np.percentile(NFM,99)
-        NFMs9999[unit] = np.percentile(NFM, 99.99)
-        NFMs001[unit] = np.percentile(NFM,1)
-        NFMs00001[unit] = np.percentile(NFM,0.01)
-    with open(analysis_folder_path + "/Set_NFM_Summary" + ".statics", "w") as f:
-        for unit in Units:
-            f.write(str(unit/1000)+"us \n")
-            f.write("mean NFM: "+str(meanNFMs[unit])+"\n")
-            f.write("median NFM: " + str(medianNFMs[unit])+"\n")
-            f.write("99th NFM: " + str(NFMs99[unit])+"\n")
-            f.write("99.99th NFM: " + str(NFMs9999[unit])+"\n")
-            f.write("1th NFM: " + str(NFMs001[unit])+"\n")
-            f.write("0.01th NFM: " + str(NFMs00001[unit])+"\n")
-    with open(analysis_folder_path+"/Set_Throuputs_Summary"+".statics","w") as f:
-        for unit in Units:
-            f.write(str(unit/1000)+"us \n")
-            f.write("mean Throuputs: "+str(meanThrouputs[unit])+"\n")
-            f.write("median Throuputs: " + str(medianThrouputs[unit])+"\n")
-            f.write("99th Throuputs: " + str(Throuputs99[unit])+"\n")
-            f.write("99.99th Throuputs: " + str(Throuputs9999[unit])+"\n")
-            f.write("1th Throuputs: " + str(Throuputs001[unit])+"\n")
-            f.write("0.01th Throuputs: " + str(Throuputs00001[unit])+"\n")
 
 
 
@@ -603,11 +449,12 @@ def analyze_throughput_and_NFM(flows):
                     for k in range(0,NumUnit):
                         if(th1[k] == 0 and th2[k] == 0):
                             continue
-                        diffk = math.fabs(th1[k]*1.0/weight1-th2[k]*1.0/weight2)
+                        diffk = math.fabs(th1[k]*1.0/(totalSpeedUnit*weight1)-th2[k]*1.0/(totalSpeedUnit*weight2))
                         if diffk > Max_diffs[k]:
                             Max_diffs[k] = diffk
             for m in Max_diffs:
-                NFM.append(m*1.0/(totalSpeedUnit*unit))
+                #                 NFM.append(m*1.0/(totalSpeedUnit*unit))
+                NFM.append(m)
             for nfm in NFM:
                 f.write(str(nfm)+"\n")
         meanNFMs[unit] = np.mean(NFM)
@@ -634,6 +481,7 @@ def analyze_throughput_and_NFM(flows):
             f.write("99.99th Throuputs: " + str(Throuputs9999[unit])+"\n")
             f.write("1th Throuputs: " + str(Throuputs001[unit])+"\n")
             f.write("0.01th Throuputs: " + str(Throuputs00001[unit])+"\n")
+    return meanNFMs
 
 def analyze_ack_bytes():
     acked_bytes_dict = {}
@@ -682,20 +530,13 @@ def analyze_Inflight_Perflow(flows):
             median = median_inflight_bytes[id]
             writer.writerow([id,mean,median])
 
-def analyze_drop_rate(flows, interval):
+def analyze_total_drop_rate(flows, interval):
     # interval = 10000000
     interval_num = int(1000000000/interval)
     time = interval
     enqueue = [0]
     full_drop = [0]
     schedule_drop = [0]
-    enqueue_perf = {}
-    full_perf = {}
-    schedule_perf = {}
-    for flowid in flows.keys():
-        enqueue_perf[flowid] = [0]
-        full_perf[flowid] = [0]
-        schedule_perf[flowid] = [0]
     with open(run_folder_path+"/enqueue_event.csv.log") as ENQUE:
         with open(run_folder_path+"/drop_event.csv.log") as DROP:
             Enqueue_Reader = csv.reader(ENQUE)
@@ -704,57 +545,41 @@ def analyze_drop_rate(flows, interval):
             for row in Enqueue_Reader:
                 if(int(row[5]) <= time):
                     enqueue[i] += 1
-                    enqueue_perf[int(row[2])][i] += 1
                 else:
                     while(int(row[5]) > time):
                         time += interval
                         i += 1
                         enqueue.append(0)
-                        for flowid in flows.keys():
-                            enqueue_perf[flowid].append(0)
                     enqueue[i] += 1
-                    enqueue_perf[int(row[2])][i] += 1
             time = interval
             i = 0
             for row in Drop_Reader:
                 if(int(row[5]) <= time):
                     if(int(row[7]) == 0):
                         full_drop[i] += 1
-                        full_perf[int(row[2])][i] += 1
                     else:
                         schedule_drop[i] += 1
-                        schedule_perf[int(row[2])][i] += 1
                 else:
                     while(int(row[5]) > time):
                         time += interval
                         i += 1
                         full_drop.append(0)
                         schedule_drop.append(0)
-                        for flowid in flows.keys():
-                            full_perf[flowid].append(0)
-                            schedule_perf[flowid].append(0)
                     if(int(row[7]) == 0):
                         full_drop[i] += 1
-                        full_perf[int(row[2])][i] += 1
                     else:
                         schedule_drop[i] += 1
-                        schedule_perf[int(row[2])][i] += 1
             enqueue_len = interval_num-len(enqueue)
             schedule_len = interval_num-len(schedule_drop)
             for i in range(enqueue_len):
                 enqueue.append(0)
-                for flowid in flows.keys():
-                    enqueue_perf[flowid].append(0)
             for i in range(schedule_len):
                 full_drop.append(0)
                 schedule_drop.append(0)
-                for flowid in flows.keys():
-                    full_perf[flowid].append(0)
-                    schedule_perf[flowid].append(0)
-            with open(analysis_folder_path + "/drop_rate","w") as f:
-                f.write(str(len(enqueue))+": "+",".join('%s' %id for id in enqueue)+"\n")
-                f.write(str(len(schedule_drop))+": "+",".join('%s' %id for id in schedule_drop)+"\n")
-                f.write(str(len(full_drop))+": "+",".join('%s' %id for id in full_drop)+"\n")
+            #             with open(analysis_folder_path + "/enqueue_per_slice","w") as f:
+            #                 f.write("enqueue: "+",".join('%s' %id for id in enqueue)+"\n")
+            #                 f.write("schedule_drop: "+",".join('%s' %id for id in schedule_drop)+"\n")
+            #                 f.write("full_drop: "+",".join('%s' %id for id in full_drop)+"\n")
             with open(analysis_folder_path + "/drop_rate_total.statistics","w") as f:
                 full_rate = []
                 schedule_rate = []
@@ -777,6 +602,65 @@ def analyze_drop_rate(flows, interval):
                     f.write("average_schedule_drop: "+str(sum(schedule_drop)/receive)+"\n")
                 else:
                     f.write("average_schedule_drop: "+"None"+"\n")
+                f.write("average_final_drop: "+str((sum(schedule_drop)+sum(full_drop))/receive)+"\n")
+                return (sum(schedule_drop)+sum(full_drop))/receive
+
+
+
+def analyze_perflow_drop_rate(flows, interval):
+    # interval = 10000000
+    interval_num = int(1000000000/interval)
+    time = interval
+    enqueue_perf = {}
+    full_perf = {}
+    schedule_perf = {}
+    for flowid in flows.keys():
+        enqueue_perf[flowid] = [0]
+        full_perf[flowid] = [0]
+        schedule_perf[flowid] = [0]
+    with open(run_folder_path+"/enqueue_event.csv.log") as ENQUE:
+        with open(run_folder_path+"/drop_event.csv.log") as DROP:
+            Enqueue_Reader = csv.reader(ENQUE)
+            Drop_Reader = csv.reader(DROP)
+            i = 0
+            for row in Enqueue_Reader:
+                if(int(row[5]) <= time):
+                    enqueue_perf[int(row[2])][i] += 1
+                else:
+                    while(int(row[5]) > time):
+                        time += interval
+                        i += 1
+                        for flowid in flows.keys():
+                            enqueue_perf[flowid].append(0)
+                    enqueue_perf[int(row[2])][i] += 1
+            time = interval
+            i = 0
+            for row in Drop_Reader:
+                if(int(row[5]) <= time):
+                    if(int(row[7]) == 0):
+                        full_perf[int(row[2])][i] += 1
+                    else:
+                        schedule_perf[int(row[2])][i] += 1
+                else:
+                    while(int(row[5]) > time):
+                        time += interval
+                        i += 1
+                        for flowid in flows.keys():
+                            full_perf[flowid].append(0)
+                            schedule_perf[flowid].append(0)
+                    if(int(row[7]) == 0):
+                        full_perf[int(row[2])][i] += 1
+                    else:
+                        schedule_perf[int(row[2])][i] += 1
+            enqueue_len = interval_num-len(enqueue_perf[0])
+            schedule_len = interval_num-len(schedule_perf[0])
+            for i in range(enqueue_len):
+                for flowid in flows.keys():
+                    enqueue_perf[flowid].append(0)
+            for i in range(schedule_len):
+                for flowid in flows.keys():
+                    full_perf[flowid].append(0)
+                    schedule_perf[flowid].append(0)
             with open(analysis_folder_path + "/drop_rate_per_flow.statistics","w") as f:
                 for flowid in flows.keys():
                     # f.write(str(enqueue_perf[flowid][0])+",")
@@ -804,21 +688,13 @@ def analyze_drop_rate(flows, interval):
                         f.write("average_schedule_drop: "+"None"+"\n")
                     f.write("\n")
 
-
-def analyze_drop_rate_pifo(flows, interval):
+def analyze_pifo_total_drop_rate(flows, interval):
     # interval = 10000000
     interval_num = int(1000000000/interval)
     time = interval
     enqueue = [0]
     full_drop = [0]
     schedule_drop = [0]
-    enqueue_perf = {}
-    full_perf = {}
-    schedule_perf = {}
-    for flowid in flows.keys():
-        enqueue_perf[flowid] = [0]
-        full_perf[flowid] = [0]
-        schedule_perf[flowid] = [0]
     with open(run_folder_path+"/enqueue_event.csv.log") as ENQUE:
         with open(run_folder_path+"/drop_event.csv.log") as DROP:
             Enqueue_Reader = csv.reader(ENQUE)
@@ -827,58 +703,42 @@ def analyze_drop_rate_pifo(flows, interval):
             for row in Enqueue_Reader:
                 if(int(row[5]) <= time):
                     enqueue[i] += 1
-                    enqueue_perf[int(row[2])][i] += 1
                 else:
                     while(int(row[5]) > time):
                         time += interval
                         i += 1
                         enqueue.append(0)
-                        for flowid in flows.keys():
-                            enqueue_perf[flowid].append(0)
                     enqueue[i] += 1
-                    enqueue_perf[int(row[2])][i] += 1
             time = interval
             i = 0
             for row in Drop_Reader:
                 if(int(row[5]) <= time):
                     if(int(row[7]) == 0):
                         full_drop[i] += 1
-                        full_perf[int(row[2])][i] += 1
                     else:
                         schedule_drop[i] += 1
-                        schedule_perf[int(row[2])][i] += 1
                 else:
                     while(int(row[5]) > time):
                         time += interval
                         i += 1
                         full_drop.append(0)
                         schedule_drop.append(0)
-                        for flowid in flows.keys():
-                            full_perf[flowid].append(0)
-                            schedule_perf[flowid].append(0)
                     if(int(row[7]) == 0):
                         full_drop[i] += 1
-                        full_perf[int(row[2])][i] += 1
                     else:
                         schedule_drop[i] += 1
-                        schedule_perf[int(row[2])][i] += 1
             enqueue_len = interval_num-len(enqueue)
             schedule_len = interval_num-len(schedule_drop)
             for i in range(enqueue_len):
                 enqueue.append(0)
-                for flowid in flows.keys():
-                    enqueue_perf[flowid].append(0)
             for i in range(schedule_len):
                 full_drop.append(0)
                 schedule_drop.append(0)
-                for flowid in flows.keys():
-                    full_perf[flowid].append(0)
-                    schedule_perf[flowid].append(0)
-            # with open(analysis_folder_path + "/drop_rate","w") as f:
-                # f.write(str(len(enqueue))+": "+",".join('%s' %id for id in enqueue)+"\n")
-            #     f.write(str(len(schedule_drop))+": "+",".join('%s' %id for id in schedule_drop)+"\n")
-            #     f.write(str(len(full_drop))+": "+",".join('%s' %id for id in full_drop)+"\n")
-            with open(analysis_folder_path + "/drop_rate_total.statistics","w") as f:
+            #             with open(analysis_folder_path + "/enqueue_per_slice","w") as f:
+            #                 f.write("enqueue: "+",".join('%s' %id for id in enqueue)+"\n")
+            #                 f.write("schedule_drop: "+",".join('%s' %id for id in schedule_drop)+"\n")
+            #                 f.write("full_drop: "+",".join('%s' %id for id in full_drop)+"\n")
+            with open(analysis_folder_path + "/drop_rate_total_pifo.statistics","w") as f:
                 full_rate = []
                 schedule_rate = []
                 for i in range(interval_num):
@@ -900,7 +760,65 @@ def analyze_drop_rate_pifo(flows, interval):
                     f.write("average_schedule_drop: "+str(sum(schedule_drop)/receive)+"\n")
                 else:
                     f.write("average_schedule_drop: "+"None"+"\n")
-            with open(analysis_folder_path + "/drop_rate_per_flow.statistics","w") as f:
+                f.write("average_final_drop: "+str((sum(schedule_drop)+sum(full_drop))/receive)+"\n")
+                return (sum(schedule_drop)+sum(full_drop))/receive
+
+
+def analyze_pifo_perflow_drop_rate(flows, interval):
+    # interval = 10000000
+    interval_num = int(1000000000/interval)
+    time = interval
+    enqueue_perf = {}
+    full_perf = {}
+    schedule_perf = {}
+    for flowid in flows.keys():
+        enqueue_perf[flowid] = [0]
+        full_perf[flowid] = [0]
+        schedule_perf[flowid] = [0]
+    with open(run_folder_path+"/enqueue_event.csv.log") as ENQUE:
+        with open(run_folder_path+"/drop_event.csv.log") as DROP:
+            Enqueue_Reader = csv.reader(ENQUE)
+            Drop_Reader = csv.reader(DROP)
+            i = 0
+            for row in Enqueue_Reader:
+                if(int(row[5]) <= time):
+                    enqueue_perf[int(row[2])][i] += 1
+                else:
+                    while(int(row[5]) > time):
+                        time += interval
+                        i += 1
+                        for flowid in flows.keys():
+                            enqueue_perf[flowid].append(0)
+                    enqueue_perf[int(row[2])][i] += 1
+            time = interval
+            i = 0
+            for row in Drop_Reader:
+                if(int(row[5]) <= time):
+                    if(int(row[7]) == 0):
+                        full_perf[int(row[2])][i] += 1
+                    else:
+                        schedule_perf[int(row[2])][i] += 1
+                else:
+                    while(int(row[5]) > time):
+                        time += interval
+                        i += 1
+                        for flowid in flows.keys():
+                            full_perf[flowid].append(0)
+                            schedule_perf[flowid].append(0)
+                    if(int(row[7]) == 0):
+                        full_perf[int(row[2])][i] += 1
+                    else:
+                        schedule_perf[int(row[2])][i] += 1
+            enqueue_len = interval_num-len(enqueue_perf[0])
+            schedule_len = interval_num-len(schedule_perf[0])
+            for i in range(enqueue_len):
+                for flowid in flows.keys():
+                    enqueue_perf[flowid].append(0)
+            for i in range(schedule_len):
+                for flowid in flows.keys():
+                    full_perf[flowid].append(0)
+                    schedule_perf[flowid].append(0)
+            with open(analysis_folder_path + "/drop_rate_per_flow_pifo.statistics","w") as f:
                 for flowid in flows.keys():
                     # f.write(str(enqueue_perf[flowid][0])+",")
                     f.write("flow_id: "+str(flowid)+"\n")
@@ -927,6 +845,10 @@ def analyze_drop_rate_pifo(flows, interval):
                         f.write("average_schedule_drop: "+"None"+"\n")
                     f.write("\n")
 
+
+
+
+
 def analyze_buffer_util(flows):
     buffer_util = []
     with open(run_folder_path+"/dequeue_event.csv.log") as DEQUE:
@@ -936,23 +858,196 @@ def analyze_buffer_util(flows):
     with open(analysis_folder_path + "/buffer_utilization.statistics","w") as f:
         f.write("average_buffer_utilization: " + str(np.mean(buffer_util)) + "\n")
         f.write("median_buffer_util: " + str(np.median(buffer_util)) + "\n")
+        return np.mean(buffer_util)
+
+
+class Flow_set:
+    def __init__(self,flowset_id,weight) -> None:
+        self.flowset_id = flowset_id
+        self.weight = weight
+        self.flows = []
+        self.ArrivalTimes = []
+        self.PktBytes = []
+
+
+def Flow_set_initiate(Flowsets):
+    with open(run_folder_path+'/flowset_num_flowID.csv.log') as setfile:
+        reader  = csv.reader(setfile)
+        for row in reader:
+            flowid = int(row[0])
+            flowsetid = int(row[1])
+            weight = float(row[2])
+            if flowsetid not in Flowsets.keys():
+                Flowsets[flowsetid] = Flow_set(flowsetid,weight)
+            Flowsets[flowsetid].flows.append(flowid)
+    with open (run_folder_path + "/flow_IAT.csv.log") as IAT_file:
+        IAT_Reader = csv.reader(IAT_file)
+        for row in IAT_Reader:
+            #read file
+            flowsetid = int(row[-2])
+            flow_id = int(row[1])
+            seq_num = int(row[2])
+            byte = float(row[3])
+            timeNs = float(row[4])
+            weight = float(row[-1])
+
+            flowset = Flowsets[flowsetid]
+            flowset.ArrivalTimes.append(timeNs)
+            flowset.PktBytes.append(byte)
 
 
 
 
 
-            # Call analysis functions
+def analyze_Set_Throughput_Unit(Flowsets,UnitNs,NumUnit):
+    throughputs = {}
+    for flowsetid in Flowsets.keys():
+        throughputs[flowsetid] = []
+    for id  in Flowsets.keys():
+        flowset = Flowsets[id]
+        current_down_thresh = 0
+        current_upthresh = UnitNs+current_down_thresh
+        current_bytes = 0
+        for i in range(0,len(flowset.ArrivalTimes)):
+            time = flowset.ArrivalTimes[i]
+            bytes = flowset.PktBytes[i]
+            while(time >= current_upthresh):
+                current_down_thresh = current_upthresh
+                current_upthresh = current_down_thresh+UnitNs
+                throughputs[id].append(current_bytes)
+                current_bytes = 0
+            current_bytes+= bytes
+        if len(throughputs[id])<NumUnit:
+            throughputs[id].append(current_bytes)
+        while len(throughputs[id])<NumUnit:
+            throughputs[id].append(0)
+    return throughputs
+
+def analyze_Set_throuput_and_NFM(Flowsets):
+    Units = [1000*1000*1000,100*1000*1000,1000*1000,500*1000,200*1000,100*1000]
+    total_time = 1000*1000*1000
+    meanNFMs={}
+    medianNFMs={}
+    NFMs99 = {}
+    NFMs9999 = {}
+    NFMs001 = {}
+    NFMs00001 = {}
+
+    meanThrouputs={}
+    medianThrouputs={}
+    Throuputs99 = {}
+    Throuputs9999 = {}
+    Throuputs001 = {}
+    Throuputs00001 = {}
+    NFM = []
+    for unit in Units:
+        NFM.clear()
+        NumUnit = math.ceil(total_time * 1.0 / unit)
+        totalSpeedUnit = 1.25 * unit
+        throuputs = analyze_Set_Throughput_Unit(Flowsets,unit,NumUnit)
+        total_throuputs = [0]*NumUnit
+        with open(analysis_folder_path + '/Set_throughputs_'+str(unit)+".statics","w") as f:
+            for k,v in throuputs.items():
+                f.write("Flowsetid: "+str(k)+"\n")
+                for i in range(0,len(v)):
+                    t = v[i]
+                    total_throuputs[i] += t
+                    f.write(str(t)+"\t")
+                f.write("\n")
+        if NumUnit == 1:
+            with open(analysis_folder_path + '/Set_throughputs_perflow.statics.csv','w',newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['flowsetnum',"throuputs"])
+                for k,v in throuputs.items():
+                    writer.writerow([k,v[0]])
+                ths = []
+                for v in throuputs.values():
+                    ths.append(v)
+                thmean = np.mean(ths)
+                writer.writerow(['mean',thmean])
+                writer.writerow(['median',np.median(ths)])
+        meanThrouputs[unit] = np.mean(total_throuputs)
+        medianThrouputs[unit] = np.median(total_throuputs)
+        Throuputs99[unit] = np.percentile(total_throuputs,99)
+        Throuputs9999[unit] = np.percentile(total_throuputs,99.99)
+        Throuputs001[unit] = np.percentile(total_throuputs,1)
+        Throuputs00001[unit] = np.percentile(total_throuputs,0.01)
+        with open(analysis_folder_path+"/Set_NFM_"+str(unit)+".statics","w") as f:
+            Max_diffs = [-1]*NumUnit
+            ids = throuputs.keys()
+            for i in range(0,len(ids)):
+                for j in range(i+1,len(ids)):
+                    th1 = throuputs[i]
+                    th2 = throuputs[j]
+                    weight1 = Flowsets[i].weight
+                    weight2 = Flowsets[j].weight
+                    for k in range(0,NumUnit):
+                        if(th1[k] == 0 and th2[k] == 0):
+                            continue
+                        diffk = math.fabs(th1[k]*1.0/weight1-th2[k]*1.0/weight2)
+                        if diffk > Max_diffs[k]:
+                            Max_diffs[k] = diffk
+            for m in Max_diffs:
+                NFM.append(m*1.0/(totalSpeedUnit))
+            for nfm in NFM:
+                f.write(str(nfm)+"\n")
+        meanNFMs[unit] = np.mean(NFM)
+        medianNFMs[unit] = np.median(NFM)
+        NFMs99[unit] = np.percentile(NFM,99)
+        NFMs9999[unit] = np.percentile(NFM, 99.99)
+        NFMs001[unit] = np.percentile(NFM,1)
+        NFMs00001[unit] = np.percentile(NFM,0.01)
+    with open(analysis_folder_path + "/Set_NFM_Summary" + ".statics", "w") as f:
+        for unit in Units:
+            f.write(str(unit/1000)+"us \n")
+            f.write("mean NFM: "+str(meanNFMs[unit])+"\n")
+            f.write("median NFM: " + str(medianNFMs[unit])+"\n")
+            f.write("99th NFM: " + str(NFMs99[unit])+"\n")
+            f.write("99.99th NFM: " + str(NFMs9999[unit])+"\n")
+            f.write("1th NFM: " + str(NFMs001[unit])+"\n")
+            f.write("0.01th NFM: " + str(NFMs00001[unit])+"\n")
+    with open(analysis_folder_path+"/Set_Throuputs_Summary"+".statics","w") as f:
+        for unit in Units:
+            f.write(str(unit/1000)+"us \n")
+            f.write("mean Throuputs: "+str(meanThrouputs[unit])+"\n")
+            f.write("median Throuputs: " + str(medianThrouputs[unit])+"\n")
+            f.write("99th Throuputs: " + str(Throuputs99[unit])+"\n")
+            f.write("99.99th Throuputs: " + str(Throuputs9999[unit])+"\n")
+            f.write("1th Throuputs: " + str(Throuputs001[unit])+"\n")
+            f.write("0.01th Throuputs: " + str(Throuputs00001[unit])+"\n")
+    return meanNFMs
+
+
+
+
+
+        # Call analysis functions
 flows = {}
 analyze_flow_completion()
 analyze_port_utilization()
 Flow_initiate(flows)
 # analyze_IAT(flows)
-# analyze_throughput_and_NFM(flows)
-# analyze_ack_bytes()
-# analyze_Inflight_Perflow(flows)
-analyze_drop_rate(flows, 10000000)
-analyze_buffer_util(flows)
+# nfms = analyze_throughput_and_NFM(flows)
 flowset = {}
 Flow_set_initiate(flowset)
-analyze_Set_throuput_and_NFM(flowset)
+nfms = analyze_Set_throuput_and_NFM(flowset)
+analyze_ack_bytes()
+analyze_Inflight_Perflow(flows)
+droprate = analyze_total_drop_rate(flows, 10000000)
+# analyze_perflow_drop_rate(flows, 10000000)
 
+util = analyze_buffer_util(flows)
+
+with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
+    Writer = csv.writer(sumfile)
+    temp1 = []
+    temp2 = []
+    temp1.append(" ")
+    temp2.append(run_folder_path)
+    for k,v in nfms.items():
+        temp1.append(k)
+        temp2.append(v)
+    temp2.append(droprate)
+    temp2.append(util)
+    #     Writer.writerow(temp1)
+    Writer.writerow(temp2)
