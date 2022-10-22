@@ -453,7 +453,7 @@ def analyze_throughput_and_NFM(flows):
                         if diffk > Max_diffs[k]:
                             Max_diffs[k] = diffk
             for m in Max_diffs:
-                # NFM.append(m*1.0/totalSpeedUnit)
+#                 NFM.append(m*1.0/(totalSpeedUnit*unit))
                 NFM.append(m)
             for nfm in NFM:
                 f.write(str(nfm)+"\n")
@@ -481,6 +481,7 @@ def analyze_throughput_and_NFM(flows):
             f.write("99.99th Throuputs: " + str(Throuputs9999[unit])+"\n")
             f.write("1th Throuputs: " + str(Throuputs001[unit])+"\n")
             f.write("0.01th Throuputs: " + str(Throuputs00001[unit])+"\n")
+    return meanNFMs
 
 def analyze_ack_bytes():
     acked_bytes_dict = {}
@@ -601,6 +602,9 @@ def analyze_total_drop_rate(flows, interval):
                     f.write("average_schedule_drop: "+str(sum(schedule_drop)/receive)+"\n")
                 else:
                     f.write("average_schedule_drop: "+"None"+"\n")
+                f.write("average_final_drop: "+str((sum(schedule_drop)+sum(full_drop))/receive)+"\n")
+                return (sum(schedule_drop)+sum(full_drop))/receive
+
 
 
 def analyze_perflow_drop_rate(flows, interval):
@@ -734,7 +738,7 @@ def analyze_pifo_total_drop_rate(flows, interval):
 #                 f.write("enqueue: "+",".join('%s' %id for id in enqueue)+"\n")
 #                 f.write("schedule_drop: "+",".join('%s' %id for id in schedule_drop)+"\n")
 #                 f.write("full_drop: "+",".join('%s' %id for id in full_drop)+"\n")
-            with open(analysis_folder_path + "/drop_rate_total.statistics","w") as f:
+            with open(analysis_folder_path + "/drop_rate_total_pifo.statistics","w") as f:
                 full_rate = []
                 schedule_rate = []
                 for i in range(interval_num):
@@ -756,6 +760,8 @@ def analyze_pifo_total_drop_rate(flows, interval):
                     f.write("average_schedule_drop: "+str(sum(schedule_drop)/receive)+"\n")
                 else:
                     f.write("average_schedule_drop: "+"None"+"\n")
+                f.write("average_final_drop: "+str((sum(schedule_drop)+sum(full_drop))/receive)+"\n")
+                return (sum(schedule_drop)+sum(full_drop))/receive
 
 
 def analyze_pifo_perflow_drop_rate(flows, interval):
@@ -812,7 +818,7 @@ def analyze_pifo_perflow_drop_rate(flows, interval):
                 for flowid in flows.keys():
                     full_perf[flowid].append(0)
                     schedule_perf[flowid].append(0)
-            with open(analysis_folder_path + "/drop_rate_per_flow.statistics","w") as f:
+            with open(analysis_folder_path + "/drop_rate_per_flow_pifo.statistics","w") as f:
                 for flowid in flows.keys():
                     # f.write(str(enqueue_perf[flowid][0])+",")
                     f.write("flow_id: "+str(flowid)+"\n")
@@ -852,6 +858,7 @@ def analyze_buffer_util(flows):
     with open(analysis_folder_path + "/buffer_utilization.statistics","w") as f:
         f.write("average_buffer_utilization: " + str(np.mean(buffer_util)) + "\n")
         f.write("median_buffer_util: " + str(np.median(buffer_util)) + "\n")
+        return np.mean(buffer_util)
 
 
 
@@ -863,12 +870,24 @@ analyze_flow_completion()
 analyze_port_utilization()
 Flow_initiate(flows)
 # analyze_IAT(flows)
-analyze_throughput_and_NFM(flows)
+nfms = analyze_throughput_and_NFM(flows)
 analyze_ack_bytes()
 analyze_Inflight_Perflow(flows)
-analyze_total_drop_rate(flows, 10000000)
+droprate = analyze_total_drop_rate(flows, 10000000)
 analyze_perflow_drop_rate(flows, 10000000)
-# analyze_pifo_total_drop_rate(flows, 10000000)
-# analyze_pifo_perflow_drop_rate(flows, 10000000)
-analyze_buffer_util(flows)
 
+util = analyze_buffer_util(flows)
+
+with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
+    Writer = csv.writer(sumfile)
+    temp1 = []
+    temp2 = []
+    temp1.append(" ")
+    temp2.append(run_folder_path)
+    for k,v in nfms.items():
+        temp1.append(k)
+        temp2.append(v)
+    temp2.append(droprate)
+    temp2.append(util)
+#     Writer.writerow(temp1)
+    Writer.writerow(temp2)
