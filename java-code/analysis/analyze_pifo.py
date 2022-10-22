@@ -481,7 +481,6 @@ def analyze_throughput_and_NFM(flows):
             f.write("99.99th Throuputs: " + str(Throuputs9999[unit])+"\n")
             f.write("1th Throuputs: " + str(Throuputs001[unit])+"\n")
             f.write("0.01th Throuputs: " + str(Throuputs00001[unit])+"\n")
-    return meanNFMs
 
 def analyze_ack_bytes():
     acked_bytes_dict = {}
@@ -603,8 +602,6 @@ def analyze_total_drop_rate(flows, interval):
                 else:
                     f.write("average_schedule_drop: "+"None"+"\n")
                 f.write("average_final_drop: "+str((sum(schedule_drop)+sum(full_drop))/receive)+"\n")
-                return (sum(schedule_drop)+sum(full_drop))/receive
-
 
 
 def analyze_perflow_drop_rate(flows, interval):
@@ -761,7 +758,6 @@ def analyze_pifo_total_drop_rate(flows, interval):
                 else:
                     f.write("average_schedule_drop: "+"None"+"\n")
                 f.write("average_final_drop: "+str((sum(schedule_drop)+sum(full_drop))/receive)+"\n")
-                return (sum(schedule_drop)+sum(full_drop))/receive
 
 
 def analyze_pifo_perflow_drop_rate(flows, interval):
@@ -858,7 +854,6 @@ def analyze_buffer_util(flows):
     with open(analysis_folder_path + "/buffer_utilization.statistics","w") as f:
         f.write("average_buffer_utilization: " + str(np.mean(buffer_util)) + "\n")
         f.write("median_buffer_util: " + str(np.median(buffer_util)) + "\n")
-        return np.mean(buffer_util)
 
 
 
@@ -870,24 +865,11 @@ analyze_flow_completion()
 analyze_port_utilization()
 Flow_initiate(flows)
 # analyze_IAT(flows)
-nfms = analyze_throughput_and_NFM(flows)
+analyze_throughput_and_NFM(flows)
 analyze_ack_bytes()
 analyze_Inflight_Perflow(flows)
-droprate = analyze_total_drop_rate(flows, 10000000)
-analyze_perflow_drop_rate(flows, 10000000)
 
-util = analyze_buffer_util(flows)
+analyze_pifo_total_drop_rate(flows, 10000000)
+analyze_pifo_perflow_drop_rate(flows, 10000000)
+analyze_buffer_util(flows)
 
-with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
-    Writer = csv.writer(sumfile)
-    temp1 = []
-    temp2 = []
-    temp1.append(" ")
-    temp2.append(run_folder_path)
-    for k,v in nfms.items():
-        temp1.append(k)
-        temp2.append(v)
-    temp2.append(droprate)
-    temp2.append(util)
-#     Writer.writerow(temp1)
-    Writer.writerow(temp2)

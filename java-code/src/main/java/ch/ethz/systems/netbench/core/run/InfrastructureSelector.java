@@ -38,6 +38,7 @@ import ch.ethz.systems.netbench.xpt.WFQ.OEPSSIMPLE.OEPSSIMPLEOutputPortGenerator
 import ch.ethz.systems.netbench.xpt.WFQ.PCQBURST.PCQBURSTOutputPortGenerator;//WFQ+import PCQBURSTOutputPortGenerator
 import ch.ethz.systems.netbench.xpt.WFQ.PIFOOUR.PIFOOUROutputPortGenerator;//WFQ+import PIFOOUROutputPortGenerator
 import ch.ethz.systems.netbench.xpt.WFQ.AIFO.AIFOOutputPortGenerator;//WFQ+import AIFOOUROutputPortGenerator
+import ch.ethz.systems.netbench.xpt.WFQ.DCTCP.DCTCPOutputPortGenerator;//WFQ+import DCRCPOUROutputPortGenerator
 import ch.ethz.systems.netbench.xpt.asaf.routing.priority.PriorityFlowletIntermediaryGenerator;
 import ch.ethz.systems.netbench.xpt.newreno.newrenodctcp.NewRenoDctcpTransportLayerGenerator;
 import ch.ethz.systems.netbench.xpt.newreno.newrenotcp.NewRenoTcpTransportLayerGenerator;
@@ -282,6 +283,10 @@ class InfrastructureSelector {
                 );
             case "aifo":
                 return new AIFOOutputPortGenerator(
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
+                );
+            case "dctcp":
+                return new DCTCPOutputPortGenerator(
                         Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
                 );
 

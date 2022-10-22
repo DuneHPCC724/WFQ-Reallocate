@@ -63,4 +63,19 @@ public class WeightDistribution {
         }
         return weights_real;
     }
+
+    public double[] get_weights_linearly(int flownum){
+        int[] weights_int =  new int[flownum];
+        int weight_total = 0;
+        for(int i=0;i<flownum;i++){
+            int weight = i+1;
+            weight_total += weight;
+            weights_int[i] = weight;
+        }
+        double[] weights_real = new double[flownum];
+        for(int i=0;i<flownum;i++){
+            weights_real[i] = weights_int[i]*0.8/weight_total;
+        }
+        return weights_real;
+    }
 }
