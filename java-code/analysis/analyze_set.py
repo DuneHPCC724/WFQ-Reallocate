@@ -1051,3 +1051,10 @@ with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as 
     temp2.append(util)
     #     Writer.writerow(temp1)
     Writer.writerow(temp2)
+
+os.system("rm -f " +run_folder_path + "/dequeue_event.csv.log")
+os.system("rm -f " +run_folder_path + "/enqueue_event.csv.log")
+os.system("rm -f " +run_folder_path + "/drop_event.csv.log")
+os.system("rm -f " +run_folder_path + "/flow_IAT.csv.log")
+os.system("rm -f " +run_folder_path + "/Inflight_Bytes.csv.log")
+os.system("rm -f " +run_folder_path + "/congestion_window.csv.log")

@@ -147,7 +147,7 @@ public class UniformWeightPlanner extends TrafficPlanner {
 
     }
     public void createPlan_Incast() {
-        double[] weights = this.wd.get_weights_uniformly(this.TotalFlowNumber);
+        double[] weights = this.wd.get_weights_linearly(this.TotalFlowNumber);
         for(int i=0;i<weights.length;i++){
             double weight_current = weights[i];
             Pair<Integer, Integer> pair = choosePair();
