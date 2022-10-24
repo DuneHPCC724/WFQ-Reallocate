@@ -54,7 +54,7 @@ public class MainFromProperties {
         BaseInitializer initializer = generateInfrastructure();
         populateRoutingState(initializer.getIdToNetworkDevice());
         //wfq plan diffrent traffic
-        if(runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp_multiple") ){
+        if(runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp_multiple") || runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_dctcp_multiple")){
             Weight_Distribution wd = new Weight_Distribution(runConfiguration.getPropertyOrFail("weight_distribution"),runConfiguration.getIntegerPropertyOrFail("weight_num"));
             float[] weights = wd.get_weights();
             int[] multiples = wd.getMultiples();

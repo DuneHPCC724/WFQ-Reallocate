@@ -42,6 +42,7 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
     private PoissonArrivalPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, double lambdaFlowStartsPerSecond, FlowSizeDistribution flowSizeDistribution,int flowset_num,int multiple) {
         super(idToTransportLayerMap);
         this.lambdaFlowStartsPerSecond = lambdaFlowStartsPerSecond*multiple;        //modified by WFQ
+//        this.lambdaFlowStartsPerSecond = lambdaFlowStartsPerSecond;
         this.flowSizeDistribution = flowSizeDistribution;
         this.ownIndependentRng = Simulator.selectIndependentRandom("poisson_inter_arrival"+Integer.toString(flowset_num));
         this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"+Integer.toString(flowset_num)));
