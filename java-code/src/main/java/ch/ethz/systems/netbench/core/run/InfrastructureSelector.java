@@ -37,8 +37,10 @@ import ch.ethz.systems.netbench.xpt.WFQ.EPSSIMPLE.EPSSIMPLEOutputPortGenerator;/
 import ch.ethz.systems.netbench.xpt.WFQ.OEPSSIMPLE.OEPSSIMPLEOutputPortGenerator;//WFQ+import OEPSSIMPLEOutputPortGenerator
 import ch.ethz.systems.netbench.xpt.WFQ.PCQBURST.PCQBURSTOutputPortGenerator;//WFQ+import PCQBURSTOutputPortGenerator
 import ch.ethz.systems.netbench.xpt.WFQ.PIFOOUR.PIFOOUROutputPortGenerator;//WFQ+import PIFOOUROutputPortGenerator
-import ch.ethz.systems.netbench.xpt.WFQ.AIFO.AIFOOutputPortGenerator;//WFQ+import AIFOOUROutputPortGenerator
-import ch.ethz.systems.netbench.xpt.WFQ.DCTCP.DCTCPOutputPortGenerator;//WFQ+import DCRCPOUROutputPortGenerator
+import ch.ethz.systems.netbench.xpt.WFQ.AIFO.AIFOOutputPortGenerator;//WFQ+import AIFOOutputPortGenerator
+import ch.ethz.systems.netbench.xpt.WFQ.DCTCP.DCTCPOutputPortGenerator;//WFQ+import DCTCPOutputPortGenerator
+import ch.ethz.systems.netbench.xpt.WFQ.SQWFQ.SQWFQOutputPortGenerator;//WFQ+import SQWFQOutputPortGenerator
+import ch.ethz.systems.netbench.xpt.WFQ.SQSWFQ.SQSWFQOutputPortGenerator;//WFQ+import SQWFQOutputPortGenerator
 import ch.ethz.systems.netbench.xpt.asaf.routing.priority.PriorityFlowletIntermediaryGenerator;
 import ch.ethz.systems.netbench.xpt.newreno.newrenodctcp.NewRenoDctcpTransportLayerGenerator;
 import ch.ethz.systems.netbench.xpt.newreno.newrenotcp.NewRenoTcpTransportLayerGenerator;
@@ -287,6 +289,14 @@ class InfrastructureSelector {
                 );
             case "dctcp":
                 return new DCTCPOutputPortGenerator(
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
+                );
+            case "sqwfq":
+                return new SQWFQOutputPortGenerator(
+                        Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
+                );
+            case "sqswfq":
+                return new SQSWFQOutputPortGenerator(
                         Simulator.getConfiguration().getLongPropertyOrFail("output_port_bytes_per_round")
                 );
 
