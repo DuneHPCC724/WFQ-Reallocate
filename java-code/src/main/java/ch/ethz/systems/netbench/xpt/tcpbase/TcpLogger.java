@@ -28,6 +28,8 @@ public class TcpLogger implements LoggerCallback {
 
     private final BufferedWriter InflightWriter;
 
+    private final BufferedWriter TimeoutWriter;
+
     public TcpLogger(long flowId, boolean isReceiver) {
         this.flowId = flowId;
         this.maxFlowlet = 0;
@@ -42,6 +44,7 @@ public class TcpLogger implements LoggerCallback {
         this.log_flowset_num_enabled = true;
         this.Flowset_Writer = SimulationLogger.getExternalWriter("flowset_num_flowID.csv.log");
         this.InflightWriter = SimulationLogger.getExternalWriter("Inflight_Bytes.csv.log");
+        this.TimeoutWriter = SimulationLogger.getExternalWriter("Timeout_Events.csv.log");
 
         this.logPacketBurstGapEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_burst_gap", false);
         this.logCongestionWindowEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_congestion_window", false);
@@ -101,6 +104,14 @@ public class TcpLogger implements LoggerCallback {
             } catch (IOException e){
                 throw new LogFailureException(e);
             }
+        }
+    }
+
+    public void logTimeOutEvent(int transportID,long sequenceNumber,long newtimeouttime){
+        try {
+            TimeoutWriter.write(flowId+","+transportID+","+sequenceNumber+newtimeouttime+","+","+Simulator.getCurrentTime()+"\n");
+        }catch (IOException e){
+            throw new LogFailureException(e);
         }
     }
 
