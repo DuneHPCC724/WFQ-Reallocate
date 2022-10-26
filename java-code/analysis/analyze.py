@@ -872,7 +872,7 @@ def analyze_timeout_rate(flows):
             if(len(flows[id].pkt_bytes) != 0):
                 rate = timeoutcount[id]*1.0/len(flows[id].pkt_bytes)
             else:
-                rate = 0
+                rate = -1
             writer.writerow([id,flows[id].weight,rate,timeoutcount[id],len(flows[id].pkt_bytes)])
         
 
