@@ -59,7 +59,7 @@ public class WeightDistribution {
         }
         double[] weights_real = new double[flownum];
         for(int i=0;i<flownum;i++){
-            weights_real[i] = weights_int[i]*0.8/weight_total;
+            weights_real[i] = weights_int[i]*1.0*weight_total;
         }
         return weights_real;
     }
@@ -74,7 +74,7 @@ public class WeightDistribution {
         }
         double[] weights_real = new double[flownum];
         for(int i=0;i<flownum;i++){
-            weights_real[i] = weights_int[i]*0.8/weight_total;
+            weights_real[i] = weights_int[i]*1.0/weight_total;
         }
         return weights_real;
     }

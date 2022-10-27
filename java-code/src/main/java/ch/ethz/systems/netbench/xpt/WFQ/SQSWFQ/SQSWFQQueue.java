@@ -136,7 +136,14 @@ public class SQSWFQQueue implements Queue{
                     PromoteWeight = 1;
                 }
                 long packetRound = (long) (bid / (this.R * PromoteWeight));
-                if ((packetRound - this.currentRound) > this.queuelength / this.R) {
+                long finishTime = packetRound - this.currentRound;
+                if(finishTime<0){
+                    finishTime = 0;
+                }
+//                long finishTime = (long)((bid-this.currentRound*weight*this.R)/(this.R*PromoteWeight));
+//                PriorityHeader header = (PriorityHeader) p;
+//                header.setPriority(finishTime+this.currentRound);
+                if (finishTime > this.queuelength / this.R) {
                     result = false; // Packet dropped since computed round is too far away
                     if (islogswitch) {
                         if (fullDrop(p)) {
@@ -287,6 +294,10 @@ public class SQSWFQQueue implements Queue{
             if (islogswitch) {
                 SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), ((FullExtTcpPacket) packet).getSequenceNumber(), currentRound, Simulator.getCurrentTime(), packet.getSizeBit() / 8, BufferUtil());
             }
+            FullExtTcpPacket p = (FullExtTcpPacket) packet;
+            if (!p.isSYN() && !p.isACK()){
+                updateRound(packet);
+            }
             QueueOccupied -= packet.getSizeBit()/8;
             return packet;
         } catch (Exception e){
@@ -294,6 +305,18 @@ public class SQSWFQQueue implements Queue{
         } finally {
             this.reentrantLock.unlock();
         }
+    }
+
+//    public void updateRound(Packet p){
+//        PriorityHeader header = (PriorityHeader) p;
+//        long rank = header.getPriority();
+//        if(rank>this.currentRound) {
+//            this.currentRound = rank;
+//        }
+//    }
+
+    public void updateRound(Packet p){
+        this.currentRound += (p.getSizeBit()/8*this.queuelength/this.QueueOccupied)/R;
     }
 
     public void logEnDeEvent(FullExtTcpPacket p){

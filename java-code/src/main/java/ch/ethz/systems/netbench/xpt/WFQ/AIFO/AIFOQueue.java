@@ -30,7 +30,7 @@ public class AIFOQueue implements Queue{
 
     private long QueueOccupied;
 
-    private double k = 0.1;
+    private double k = 0.2;
 
     private int windowSize = 40;
 
@@ -194,7 +194,9 @@ public class AIFOQueue implements Queue{
     public void updateRound(Packet p){
         PriorityHeader header = (PriorityHeader) p;
         long rank = header.getPriority();
+//        if(rank>round) {
         this.round = rank;
+//        }
     }
 
     public long updatePort(Packet o){
