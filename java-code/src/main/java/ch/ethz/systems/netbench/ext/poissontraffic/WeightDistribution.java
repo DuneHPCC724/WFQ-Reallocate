@@ -12,7 +12,6 @@ public class WeightDistribution {
     private int weight_num;
 
     private Random ownRng;
-    private int total_weight;
     public WeightDistribution(String distribution, int weight_num){
         this.ownRng = Simulator.selectIndependentRandom("weight_distribute"+distribution);
         switch (distribution) {
@@ -44,7 +43,6 @@ public class WeightDistribution {
     public int[] get_weights(){
         return this.weights;
     }
-    public int getTotal_weight(){return this.total_weight;}
     public int get_random_weight_uniform(){
         int random = this.ownRng.nextInt(weight_num);
         return this.weights[random];
@@ -71,6 +69,29 @@ public class WeightDistribution {
             int weight = i+1;
             weight_total += weight;
             weights_int[i] = weight;
+        }
+        double[] weights_real = new double[flownum];
+        for(int i=0;i<flownum;i++){
+            weights_real[i] = weights_int[i]*1.0/weight_total;
+        }
+        return weights_real;
+    }
+
+    public double[] get_weights_uniformlyset(int flownum){
+        if(flownum%this.weight_num != 0){
+            System.err.println("weight num is not acoordinate to flownum\n");
+        }
+        int weight_total = 0;
+        int setsize = flownum/weight_num;
+        int[] weights_int = new int[flownum];
+        int j = 0;
+        for(int i=0;i<weight_num;i++){
+            for( int count = 0;count<setsize;count++)
+            {
+                weights_int[j] = this.weights[i];
+                weight_total += weights_int[j];
+                j++;
+            }
         }
         double[] weights_real = new double[flownum];
         for(int i=0;i<flownum;i++){

@@ -1,4 +1,5 @@
 import math
+from time import time
 
 import numpy as np
 import csv
@@ -856,8 +857,24 @@ def analyze_buffer_util(flows):
         f.write("median_buffer_util: " + str(np.median(buffer_util)) + "\n")
         return np.mean(buffer_util)
 
-
-
+def analyze_timeout_rate(flows):
+    timeoutcount = {}
+    for id in flows.keys():
+        timeoutcount[id] = 0
+    with open(run_folder_path+"/Timeout_Events.csv.log","r") as timeout_event:
+        reader = csv.reader(timeout_event)
+        for row in reader:
+            id = int(row[0]) 
+            timeoutcount[id] += 1
+    with open(analysis_folder_path + "/Timeout_Rates.csv","w") as timeout_file:
+        writer = csv.writer(timeout_file)
+        for id in timeoutcount.keys():
+            if(len(flows[id].pkt_bytes) != 0):
+                rate = timeoutcount[id]*1.0/len(flows[id].pkt_bytes)
+            else:
+                rate = -1
+            writer.writerow([id,flows[id].weight,rate,timeoutcount[id],len(flows[id].pkt_bytes)])
+        
 
 
             # Call analysis functions
@@ -872,7 +889,7 @@ analyze_Inflight_Perflow(flows)
 droprate = analyze_total_drop_rate(flows, 10000000)
 # analyze_perflow_drop_rate(flows, 10000000)
 util = analyze_buffer_util(flows)
-
+analyze_timeout_rate(flows)
 with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
     Writer = csv.writer(sumfile)
     temp1 = []
