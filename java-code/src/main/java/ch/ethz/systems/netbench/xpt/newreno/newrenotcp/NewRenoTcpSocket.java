@@ -613,7 +613,7 @@ public class NewRenoTcpSocket extends Socket {
      *
      * @param packet    TCP packet instance
      */
-    private void handleAcknowledgment(FullExtTcpPacket packet) {
+    protected void handleAcknowledgment(FullExtTcpPacket packet) {
 
         // Invariant: receiver can *only* receive a duplicate third handshake acknowledgment
         long ack = packet.getAcknowledgementNumber();
@@ -694,6 +694,7 @@ public class NewRenoTcpSocket extends Socket {
         // Reset retransmission time-out if there is a new acknowledgment
         if (newAck && !inFastRecovery) {
             this.resetRetransmissionTimeOutTimer();
+            this.tcpLogger.logAckedEvent(this.sourceId,ack);
         }
 
         // Log congestion window
@@ -985,7 +986,7 @@ public class NewRenoTcpSocket extends Socket {
             fillWindow();
 
         }
-
+        this.tcpLogger.logTimeOutEvent(this.sourceId,sendUnackNumber,roundTripTimeout);
     }
 
     /**

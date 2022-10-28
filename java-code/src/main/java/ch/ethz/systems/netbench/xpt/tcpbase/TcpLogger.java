@@ -29,6 +29,7 @@ public class TcpLogger implements LoggerCallback {
     private final BufferedWriter InflightWriter;
 
     private final BufferedWriter TimeoutWriter;
+    private final BufferedWriter AckedWriter;
 
     public TcpLogger(long flowId, boolean isReceiver) {
         this.flowId = flowId;
@@ -38,16 +39,17 @@ public class TcpLogger implements LoggerCallback {
         this.maxFlowletWriter = SimulationLogger.getExternalWriter("max_flowlet.csv.log");
         //WFQ_add_IAT_logger
         this.PacketIATWriter = SimulationLogger.getExternalWriter("flow_IAT.csv.log");
-        this.logPacketIATEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_IAT", false);
+        this.logPacketIATEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_IAT", true);
         //WFQ flowID_flowset_num
 //        this.log_flowset_num_enabled = Simulator.getConfiguration().getPropertyOrFail("transport_layer").equals("wfq_tcp");
         this.log_flowset_num_enabled = true;
         this.Flowset_Writer = SimulationLogger.getExternalWriter("flowset_num_flowID.csv.log");
         this.InflightWriter = SimulationLogger.getExternalWriter("Inflight_Bytes.csv.log");
         this.TimeoutWriter = SimulationLogger.getExternalWriter("Timeout_Events.csv.log");
+        this.AckedWriter = SimulationLogger.getExternalWriter("Acked_Events.csv.log");
 
-        this.logPacketBurstGapEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_burst_gap", false);
-        this.logCongestionWindowEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_congestion_window", false);
+        this.logPacketBurstGapEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_packet_burst_gap", true);
+        this.logCongestionWindowEnabled = Simulator.getConfiguration().getBooleanPropertyWithDefault("enable_log_congestion_window", true);
         this.isReceiver = isReceiver;
         SimulationLogger.registerCallbackBeforeClose(this);
     }
@@ -107,10 +109,18 @@ public class TcpLogger implements LoggerCallback {
         }
     }
 
-    public void logTimeOutEvent(int transportID,long sequenceNumber,long newtimeouttime){
+    public void logTimeOutEvent(int transportID,long sequenceNumber,long newRTT){
         try {
-            TimeoutWriter.write(flowId+","+transportID+","+sequenceNumber+newtimeouttime+","+","+Simulator.getCurrentTime()+"\n");
+            TimeoutWriter.write(flowId+","+transportID+","+sequenceNumber+newRTT+","+","+Simulator.getCurrentTime()+"\n");
         }catch (IOException e){
+            throw new LogFailureException(e);
+        }
+    }
+
+    public void logAckedEvent(int transportID,long sequenceNumber){
+        try{
+            AckedWriter.write(flowId+","+sequenceNumber+","+transportID+","+Simulator.getCurrentTime()+"\n");
+        } catch (IOException e) {
             throw new LogFailureException(e);
         }
     }
