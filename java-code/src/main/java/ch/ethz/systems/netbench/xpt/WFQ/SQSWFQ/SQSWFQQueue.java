@@ -55,6 +55,7 @@ public class SQSWFQQueue implements Queue{
         this.FlowPacketsArrived = new HashMap();
         this.FlowTimeInterval = new HashMap();
         this.FlowTimeLastArrive = new HashMap();
+        this.currentRound = 0;
 
         this.queuelength = queuelength;
         this.fifo = new ArrayBlockingQueue((int)perQueueCapacity);
@@ -105,7 +106,6 @@ public class SQSWFQQueue implements Queue{
             }
             else {
                 String Id = p.getDiffFlowId3();
-                this.currentRound = Simulator.getCurrentTime();
                 float weight = p.getWeight();
                 long bid = (long) (this.currentRound * this.R * weight);
                 if (flowBytesSent.containsKey(Id)) {
@@ -135,12 +135,7 @@ public class SQSWFQQueue implements Queue{
                 if(PromoteWeight > 1){//<yuxin> can't exceed 1
                     PromoteWeight = 1;
                 }
-                long packetRound = (long) (bid / (this.R * PromoteWeight));
-                long finishTime = packetRound - this.currentRound;
-                if(finishTime<0){
-                    finishTime = 0;
-                }
-//                long finishTime = (long)((bid-this.currentRound*weight*this.R)/(this.R*PromoteWeight));
+                long finishTime = (long)((bid-this.currentRound*weight*this.R)/(this.R*PromoteWeight));
 //                PriorityHeader header = (PriorityHeader) p;
 //                header.setPriority(finishTime+this.currentRound);
                 if (finishTime > this.queuelength / this.R) {
