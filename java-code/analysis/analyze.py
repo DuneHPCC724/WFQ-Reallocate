@@ -1,5 +1,3 @@
-from ast import Num
-from distutils.ccompiler import gen_preprocess_options
 import math
 from time import time
 
@@ -954,7 +952,7 @@ def analyze_timeout_rate(flows):
     with open(run_folder_path+"/Timeout_Events.csv.log","r") as timeout_event:
         reader = csv.reader(timeout_event)
         for row in reader:
-            id = int(row[0])
+            id = int(row[0]) 
             timeoutcount[id] += 1
     with open(analysis_folder_path + "/Timeout_Rates.csv","w") as timeout_file:
         writer = csv.writer(timeout_file)
@@ -964,22 +962,35 @@ def analyze_timeout_rate(flows):
             else:
                 rate = 0
             writer.writerow([id,flows[id].weight,rate,timeoutcount[id],len(flows[id].pkt_bytes)])
-
+        
 
 
             # Call analysis functions
 flows = {}
-# analyze_flow_completion()
-# analyze_port_utilization()
+analyze_flow_completion()
+analyze_port_utilization()
 Flow_initiate(flows)
-# # analyze_IAT(flows)
-# nfms = analyze_throughput_and_NFM(flows)
-# analyze_ack_bytes()
-# analyze_Inflight_Perflow(flows)
-# droprate = analyze_total_drop_rate(flows, 10000000)
-# # analyze_perflow_drop_rate(flows, 10000000)
-# util = analyze_buffer_util(flows)
-# analyze_timeout_rate(flows)
+# analyze_IAT(flows)
+nfms = analyze_throughput_and_NFM(flows)
+analyze_ack_bytes()
+analyze_Inflight_Perflow(flows)
+droprate = analyze_total_drop_rate(flows, 10000000)
+# analyze_perflow_drop_rate(flows, 10000000)
+util = analyze_buffer_util(flows)
+analyze_timeout_rate(flows)
+with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
+    Writer = csv.writer(sumfile)
+    temp1 = []
+    temp2 = []
+    temp1.append(" ")
+    temp2.append(run_folder_path)
+    for k,v in nfms.items():
+        temp1.append(k)
+        temp2.append(v)
+    temp2.append(droprate)
+    temp2.append(util)
+    #     Writer.writerow(temp1)
+    Writer.writerow(temp2)
 
 analyze_Acked_Pearson(flows)
 # with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
@@ -1002,3 +1013,9 @@ analyze_Acked_Pearson(flows)
 # os.system("rm -f " +run_folder_path + "/flow_IAT.csv.log")
 # os.system("rm -f " +run_folder_path + "/Inflight_Bytes.csv.log")
 # os.system("rm -f " +run_folder_path + "/congestion_window.csv.log")
+os.system("rm -f " +run_folder_path + "/dequeue_event.csv.log")
+os.system("rm -f " +run_folder_path + "/enqueue_event.csv.log")
+os.system("rm -f " +run_folder_path + "/drop_event.csv.log")
+os.system("rm -f " +run_folder_path + "/flow_IAT.csv.log")
+os.system("rm -f " +run_folder_path + "/Inflight_Bytes.csv.log")
+os.system("rm -f " +run_folder_path + "/congestion_window.csv.log")

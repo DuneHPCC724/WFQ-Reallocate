@@ -38,6 +38,8 @@ public class SQWFQQueue implements Queue{
         this.ownId = ownId;
         this.targetId = targetId;
 
+        this.currentRound = 0;
+
         this.flowBytesSent = new HashMap();
 
         this.queuelength = queuelength;
@@ -65,7 +67,6 @@ public class SQWFQQueue implements Queue{
 
         try {
             String Id = p.getDiffFlowId3();
-            this.currentRound = Simulator.getCurrentTime();
             float weight = p.getWeight();
             long bid = (long)(this.currentRound * this.R * weight);
             if(flowBytesSent.containsKey(Id)){
@@ -76,6 +77,8 @@ public class SQWFQQueue implements Queue{
             bid = bid + (p.getSizeBit()/8);
 
             long packetRound = (long) (bid/(this.R*weight));
+//            PriorityHeader header = (PriorityHeader) p;
+//            header.setPriority(packetRound);
             if((packetRound - this.currentRound) > this.queuelength/this.R){
                 result = false; // Packet dropped since computed round is too far away
                 if (islogswitch) {
@@ -182,6 +185,7 @@ public class SQWFQQueue implements Queue{
             if (islogswitch) {
                 SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), ((FullExtTcpPacket) packet).getSequenceNumber(), currentRound, Simulator.getCurrentTime(), packet.getSizeBit() / 8, BufferUtil());
             }
+            updateRound(packet);
             QueueOccupied -= packet.getSizeBit()/8;
             return packet;
         } catch (Exception e){
@@ -189,6 +193,18 @@ public class SQWFQQueue implements Queue{
         } finally {
             this.reentrantLock.unlock();
         }
+    }
+
+//    public void updateRound(Packet p){
+//        PriorityHeader header = (PriorityHeader) p;
+//        long rank = header.getPriority();
+//        if(rank>this.currentRound) {
+//            this.currentRound = rank;
+//        }
+//    }
+
+    public void updateRound(Packet p){
+        this.currentRound += (p.getSizeBit()/8*this.queuelength/this.QueueOccupied)/R;
     }
 
     public void logEnDeEvent(FullExtTcpPacket p){

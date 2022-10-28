@@ -150,7 +150,8 @@ public class EPSWFQQueue implements Queue {
                     if(PromoteWeight > 1){//<yuxin> can't exceed 1
                         PromoteWeight = 1;
                     }
-                    FinalQueue = (long) (bid/(this.bytesPerRound*PromoteWeight) - this.currentRound);
+//                    FinalQueue = (long) (bid/(this.bytesPerRound*PromoteWeight) - this.currentRound);
+                    FinalQueue = (long)((bid-this.currentRound*this.bytesPerRound*weight)/(this.bytesPerRound*PromoteWeight));
                     if(FinalQueue < 0){
                         FinalQueue = 0;
                     }
