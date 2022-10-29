@@ -520,6 +520,20 @@ def analyze_Acked_Pearson(flows):
             time = int(row[-1])
             AckTimes[flowid].append(time)
             AckSeqs[flowid].append(seq)
+    with open(analysis_folder_path+"/Normalized_Acked_Bytes.csv","w",newline='') as NormFile:
+        NFWriter = csv.writer(NormFile)
+        NBs = []
+        Bs = []
+        for id in flows.keys():
+            weight = flows[id].weight
+            if(len(AckSeqs[id]) == 0):
+                AckedBytes = 0
+            else:
+                AckedBytes = AckSeqs[id][-1]
+            NFWriter.writerow([id,'{:e}'.format(AckedBytes*1.0/weight),'{:e}'.format(AckedBytes),weight])
+            NBs.append(AckedBytes*1.0/weight)
+            Bs.append(AckedBytes)
+        NFWriter.writerow(["ave",'{:e}'.format(np.mean(NBs)),'{:e}'.format(np.mean(Bs))])
     Units = [1000*1000*1000,100*1000*1000,1000*1000,500*1000,200*1000,100*1000]
     # Units = [100*1000*1000]
     total_time = 1000*1000*1000
@@ -530,15 +544,16 @@ def analyze_Acked_Pearson(flows):
     Pearsons001 = {}
     Pearsons00001 = {}
     Pearson = []
+    IDvector = list(flows.keys())
+    WeightVector = []
+    for id in IDvector:
+        flow = flows[id]
+        WeightVector.append(flow.weight)
+
     for unit in Units:
         Pearson.clear()
         NumUnit = math.ceil(total_time * 1.0 / unit)
         GoodPuts = analyzeGoodput_Unit(flows,unit,NumUnit,AckTimes,AckSeqs)
-        IDvector = list(flows.keys())
-        WeightVector = []
-        for id in IDvector:
-            flow = flows[id]
-            WeightVector.append(flow.weight)
         for k in range(0,NumUnit):
             GPvecotr = []
             for id in IDvector:
