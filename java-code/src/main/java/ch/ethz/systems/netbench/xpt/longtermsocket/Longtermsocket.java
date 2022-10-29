@@ -4,8 +4,12 @@ package ch.ethz.systems.netbench.xpt.longtermsocket;
 
 //a longterm socket is identified by a num (flow set num?)
 
+import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
+import ch.ethz.systems.netbench.core.run.traffic.FlowStartEvent;
 import ch.ethz.systems.netbench.xpt.newreno.newrenotcp.NewRenoTcpSocket;
+
+import java.util.Random;
 
 public class Longtermsocket {
     private final int LongtermID;
@@ -21,6 +25,8 @@ public class Longtermsocket {
 
     private final int srcID;
 
+    private final Random RestTimeRandom ;
+
     public Longtermsocket(int LongtermID,long resttimeNs,long burst_bytes,double weight,TransportLayer transportLayer,int dstID,int srcID)
     {
         this.LongtermID = LongtermID;
@@ -30,16 +36,16 @@ public class Longtermsocket {
         this.dstID = dstID;
         this.srcID = srcID;
         this.weight = weight;
+        this.RestTimeRandom = Simulator.selectIndependentRandom("RestRandomTime"+this.LongtermID);
     }
 
-    //trigger by rest_over event
+    //trigger by burst start event
     public void Start_Burst(){
         this.transportLayer.startFlow(this.dstID,burst_bytes,(float) this.weight,this.LongtermID);
     }
     //trigger by burst_socket over event
     public void Start_Rest(){
-        long restTime = 100;    //get a random rest time
-                                //register next start burst event
-
+        long RealrestTime = RestTimeRandom.nextLong()%(this.resttimeNs)+this.resttimeNs/2;    //get a random rest time, expectation is resttimeNs,if Random of python is uniform
+        Simulator.registerEvent(new StartBurstEvent(RealrestTime,this.transportLayer,this.dstID,this.burst_bytes,(float)this.weight,this.LongtermID));
     }
 }

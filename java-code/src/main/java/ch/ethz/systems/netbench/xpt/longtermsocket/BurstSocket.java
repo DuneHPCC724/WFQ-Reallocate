@@ -12,12 +12,19 @@ public class BurstSocket extends WFQTcpSocket {
         this.longtermsocket = longtermsocket;
     }
 
+    public BurstSocket(TransportLayer transportLayer, long flowId, int sourceId, int destinationId, long flowSizeByte, float weight,int flowset_num)
+    {
+        super(transportLayer, flowId, sourceId, destinationId, flowSizeByte,weight,flowset_num);
+        this.longtermsocket = null;
+    }
+
     @Override
     protected void handleAcknowledgment(FullExtTcpPacket packet){
         super.handleAcknowledgment(packet);
-        if(isAllFlowConfirmed())
-        {
-            //register a sleep event for Longter Socket
+        if(this.longtermsocket != null){
+            if(isAllFlowConfirmed()) {
+                this.longtermsocket.Start_Rest();//register next burst event
+            }
         }
     }
 

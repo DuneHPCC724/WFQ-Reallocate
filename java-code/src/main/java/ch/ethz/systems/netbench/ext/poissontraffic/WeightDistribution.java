@@ -12,8 +12,9 @@ public class WeightDistribution {
     private int weight_num;
 
     private Random ownRng;
-    public WeightDistribution(String distribution, int weight_num){
-        this.ownRng = Simulator.selectIndependentRandom("weight_distribute"+distribution);
+    public WeightDistribution(String distribution, int weight_num,boolean needRng){
+        if(needRng)
+            this.ownRng = Simulator.selectIndependentRandom("weight_distribute"+distribution);
         switch (distribution) {
             //need to be modified
             case "uniform":

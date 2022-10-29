@@ -5,15 +5,16 @@ import ch.ethz.systems.netbench.core.network.TransportLayer;
 
 public class StartLongSocketEvent extends Event {
 
-    LongtermTransportLayer longtermTransportLayer;
+    private final LongtermTransportLayer longtermTransportLayer;
     int flowset_num;
     long resttimeNs;
     long burst_bytes;
     double weight;
     int targetId;
 
-    public StartLongSocketEvent(long timeFromNs, LongtermTransportLayer longtermtransportLayer,int flowset_num,long resttimeNs,long burst_bytes,double weight,int targetId) {
+    public StartLongSocketEvent(long timeFromNs, LongtermTransportLayer longtermtransportLayer,int targetId,float weight,int flowset_num,long resttimeNs,long burst_bytes) {
         super(timeFromNs);
+        this.longtermTransportLayer = longtermtransportLayer;
         this.flowset_num = flowset_num;
         this.resttimeNs = resttimeNs;
         this.burst_bytes = burst_bytes;

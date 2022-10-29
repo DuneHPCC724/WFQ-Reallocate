@@ -6,13 +6,13 @@ import ch.ethz.systems.netbench.core.network.TransportLayer;
 public class FlowStartEvent extends Event {
     static float ave_flowsize_byte = 2369492.4f;
     static float median_flowsize_byte = 77380f;
-    private final TransportLayer transportLayer;
-    private final int targetId;
-    private final long flowSizeByte;
+    protected final TransportLayer transportLayer;
+    protected final int targetId;
+    protected final long flowSizeByte;
 
     //add by WFQ
-    private float weight = 0;
-    private int flowset_num = -1;
+    protected float weight = 0;
+    protected int flowset_num = -1;
 
     /**
      * Create event which will happen the given amount of nanoseconds later.

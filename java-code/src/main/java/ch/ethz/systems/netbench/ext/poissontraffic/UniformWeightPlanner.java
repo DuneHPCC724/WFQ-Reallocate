@@ -29,19 +29,26 @@ public class UniformWeightPlanner extends TrafficPlanner {
     private final Random ownIndependentRng;
     private final RandomCollection<Pair<Integer, Integer>> randomPairGenerator;
     private final RandomCollection<Pair<Integer, Integer>> randomPairGenerator2;
-    private final int TotalFlowNumber;
+    protected final int TotalFlowNumber;
     private final int WeightNumber;
-    private final WeightDistribution wd;
+    protected final WeightDistribution wd;
     private final PairDistribution pairDistribution;
 
-    public UniformWeightPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, FlowSizeDistribution flowSizeDistribution,int weight_num ,int FlowNum,PairDistribution pairDistribution,String wdistribution) {
+    public UniformWeightPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, FlowSizeDistribution flowSizeDistribution,int weight_num ,int FlowNum,PairDistribution pairDistribution,String wdistribution,boolean needRng) {
         super(idToTransportLayerMap);
         this.flowSizeDistribution = flowSizeDistribution;
         this.TotalFlowNumber = FlowNum;
         this.WeightNumber = weight_num;
-        this.ownIndependentRng = Simulator.selectIndependentRandom("uniform_arrival"+Integer.toString(FlowNum));
-        this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"+Integer.toString(FlowNum)));
-        this.randomPairGenerator2 = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw2"+Integer.toString(FlowNum)));
+        if(!needRng){
+            this.ownIndependentRng = Simulator.selectIndependentRandom("uniform_arrival"+Integer.toString(FlowNum));
+            this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"+Integer.toString(FlowNum)));
+            this.randomPairGenerator2 = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw2"+Integer.toString(FlowNum)));
+        }
+        else {
+            this.ownIndependentRng = Simulator.selectIndependentRandom("uniform_arrival_long"+Integer.toString(FlowNum));
+            this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw_long"+Integer.toString(FlowNum)));
+            this.randomPairGenerator2 = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw2_long"+Integer.toString(FlowNum)));
+        }
         this.pairDistribution = pairDistribution;
         switch (pairDistribution) {
 
@@ -58,7 +65,7 @@ public class UniformWeightPlanner extends TrafficPlanner {
                 throw new IllegalArgumentException("Invalid pair distribution given: " + pairDistribution + ".");
 
         }
-        this.wd = new WeightDistribution(wdistribution,WeightNumber);
+        this.wd = new WeightDistribution(wdistribution,WeightNumber,needRng);
         SimulationLogger.logInfo("Flow planner", "Unifrom_Weight_Traffic(flownumber=" + this.TotalFlowNumber + ", pairDistribution=" + pairDistribution + ")");
 
     }
@@ -172,7 +179,7 @@ public class UniformWeightPlanner extends TrafficPlanner {
     }
 
     //copy from poisson planner
-    private Pair<Integer, Integer> choosePair() {
+    protected Pair<Integer, Integer> choosePair() {
         return this.randomPairGenerator.next();
     }
     private Pair<Integer, Integer> choosePair2() {

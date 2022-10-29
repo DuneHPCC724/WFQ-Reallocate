@@ -111,6 +111,15 @@ public class BaseAllowedProperties {
             "alpha_factor",
             "headqueue_bpr_limit",
 
+            //for Bursty traffic:
+            "traffic_long",
+            "traffic_probabilities_generator_long",
+            "weight_num_long",
+            "flow_num_long",
+            "weight_distribution_long",
+            "resttimeNs_long",
+            "burst_bytes_long",
+
             // TCP
             "TCP_ROUND_TRIP_TIMEOUT_NS",
             "TCP_MAX_SEGMENT_SIZE",

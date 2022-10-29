@@ -6,6 +6,7 @@ import ch.ethz.systems.netbench.core.network.TransportLayer;
 import ch.ethz.systems.netbench.ext.poissontraffic.FromStringArrivalPlanner;
 import ch.ethz.systems.netbench.core.run.traffic.TrafficPlanner;
 import ch.ethz.systems.netbench.ext.poissontraffic.PoissonArrivalPlanner;
+import ch.ethz.systems.netbench.ext.poissontraffic.UniformWeightLongPlanner;
 import ch.ethz.systems.netbench.ext.poissontraffic.UniformWeightPlanner;
 import ch.ethz.systems.netbench.ext.trafficpair.TrafficPairPlanner;
 import ch.ethz.systems.netbench.ext.poissontraffic.flowsize.*;
@@ -244,11 +245,11 @@ class TrafficSelector {
                 String weightdist = Simulator.getConfiguration().getPropertyOrFail("weight_distribution");
                 switch (generativePairProbabilities){
                     case "all_to_all":
-                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis,weightnum, flownum, UniformWeightPlanner.PairDistribution.ALL_TO_ALL,weightdist);
+                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis,weightnum, flownum, UniformWeightPlanner.PairDistribution.ALL_TO_ALL,weightdist,true);
                     case "incast":
-                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis, weightnum ,flownum, UniformWeightPlanner.PairDistribution.Incast,weightdist);
+                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis, weightnum ,flownum, UniformWeightPlanner.PairDistribution.Incast,weightdist,true);
                     case "side_to_side":
-                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis, weightnum ,flownum, UniformWeightPlanner.PairDistribution.Side_To_Side,weightdist);
+                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis, weightnum ,flownum, UniformWeightPlanner.PairDistribution.Side_To_Side,weightdist,true);
                         default:
                         throw new PropertyValueInvalidException(Simulator.getConfiguration(), "traffic_probabilities_generator");
                 }
@@ -261,6 +262,34 @@ class TrafficSelector {
 
         }
 
+
+    }
+
+    static TrafficPlanner selectPlannerLong(Map<Integer, TransportLayer> idToTransportLayer)
+    {
+        switch (Simulator.getConfiguration().getPropertyOrFail("traffic_long")){
+            case "uniformly_weight":{
+
+
+                String generativePairProbabilities = Simulator.getConfiguration().getPropertyWithDefault("traffic_probabilities_generator_long", "incast");
+                int flownum = Simulator.getConfiguration().getIntegerPropertyOrFail("flow_num_long");
+                int weightnum = Simulator.getConfiguration().getIntegerPropertyOrFail("weight_num_long");
+                String weightdist = Simulator.getConfiguration().getPropertyOrFail("weight_distribution_long");
+                long resttimeNs = Simulator.getConfiguration().getLongPropertyOrFail("resttimeNs_long");
+                long burst_bytes = Simulator.getConfiguration().getIntegerPropertyOrFail("burst_bytes_long");
+                switch (generativePairProbabilities){
+                    case "incast":
+                        return new UniformWeightLongPlanner(idToTransportLayer, null, weightnum ,flownum, UniformWeightPlanner.PairDistribution.Incast,weightdist,resttimeNs,burst_bytes);
+                    default:
+                        throw new PropertyValueInvalidException(Simulator.getConfiguration(), "traffic_probabilities_generator");
+                }
+            }
+            default:
+                throw new PropertyValueInvalidException(
+                        Simulator.getConfiguration(),
+                        "traffic"
+                );
+        }
     }
 
 
@@ -493,9 +522,9 @@ class TrafficSelector {
                 String weightdist = Simulator.getConfiguration().getPropertyOrFail("weight_distribution");
                 switch (generativePairProbabilities){
                     case "all_to_all":
-                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis,weightnum, flownum, UniformWeightPlanner.PairDistribution.ALL_TO_ALL,weightdist);
+                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis,weightnum, flownum, UniformWeightPlanner.PairDistribution.ALL_TO_ALL,weightdist,true);
                     case "incast":
-                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis,weightnum, flownum, UniformWeightPlanner.PairDistribution.Incast,weightdist);
+                        return new UniformWeightPlanner(idToTransportLayer, flowSizeDis,weightnum, flownum, UniformWeightPlanner.PairDistribution.Incast,weightdist,true);
                     default:
                         throw new PropertyValueInvalidException(Simulator.getConfiguration(), "traffic_probabilities_generator");
                 }

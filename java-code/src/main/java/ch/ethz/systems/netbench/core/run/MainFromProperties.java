@@ -63,6 +63,10 @@ public class MainFromProperties {
         else if (runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp_evenly") || runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_dctcp_evenly") ){
             planevenlyTraffic(runtimeNs,initializer.getIdToTransportLayer());
         }
+        else if(runConfiguration.getPropertyOrFail("transport_layer").equals("Mixing_LongtermTCP") ){
+            planevenlyTraffic(runtimeNs,initializer.getIdToTransportLayer());
+            planLongTraffic(runtimeNs,initializer.getIdToTransportLayer());
+        }
         else
             planTraffic(runtimeNs, initializer.getIdToTransportLayer());
 
@@ -258,6 +262,14 @@ public class MainFromProperties {
         TrafficPlanner planner = TrafficSelector.selectPlanner(idToTransportLayer);
         planner.createPlan(runtimeNs);
         System.out.println("Finished generating traffic flow starts.\n");
+    }
+
+    //need to be completed
+    private static void planLongTraffic(long runtimeNs,Map<Integer, TransportLayer> idToTransportLayer){
+        System.out.println("Traffic Long\n=======================");
+        TrafficPlanner planner = TrafficSelector.selectPlannerLong(idToTransportLayer);
+        planner.createPlan(runtimeNs);
+        System.out.println("Finished generating long  traffic flow starts.\n");
     }
 
     /**

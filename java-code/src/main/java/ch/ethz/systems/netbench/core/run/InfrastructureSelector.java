@@ -22,6 +22,7 @@ import ch.ethz.systems.netbench.ext.hybrid.EcmpThenValiantSwitchGenerator;
 import ch.ethz.systems.netbench.ext.valiant.RangeValiantSwitchGenerator;
 import ch.ethz.systems.netbench.xpt.WFQDCTCP.WFQDCTcpTransportLayerGenerator;
 import ch.ethz.systems.netbench.xpt.WFQTCP.WFQTcpTransportLayerGenerator;
+import ch.ethz.systems.netbench.xpt.longtermsocket.LongtermTransportLayerGenerator;
 import ch.ethz.systems.netbench.xpt.ports.AFQ.AFQOutputPortGenerator;
 import ch.ethz.systems.netbench.xpt.ports.FIFO.FIFOOutputPortGenerator;
 import ch.ethz.systems.netbench.xpt.ports.PIFO.PIFOOutputPortGenerator;
@@ -371,6 +372,8 @@ class InfrastructureSelector {
                 return new WFQDCTcpTransportLayerGenerator();
             case "wfq_dctcp_multiple":
                 return new WFQDCTcpTransportLayerGenerator();
+            case "Mixing_LongtermTCP":
+                return new LongtermTransportLayerGenerator();
             default:
                 throw new PropertyValueInvalidException(
                         Simulator.getConfiguration(),
