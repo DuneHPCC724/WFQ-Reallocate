@@ -119,6 +119,8 @@ public class BaseAllowedProperties {
             "weight_distribution_long",
             "resttimeNs_long",
             "burst_bytes_long",
+            "total_weight",
+            "total_weight_long",
 
             // TCP
             "TCP_ROUND_TRIP_TIMEOUT_NS",

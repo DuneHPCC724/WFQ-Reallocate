@@ -78,7 +78,7 @@ public class WeightDistribution {
         return weights_real;
     }
 
-    public double[] get_weights_uniformlyset(int flownum){
+    public double[] get_weights_uniformlyset(int flownum,double total_weight){
         if(flownum%this.weight_num != 0){
             System.err.println("weight num is not acoordinate to flownum\n");
         }
@@ -96,7 +96,7 @@ public class WeightDistribution {
         }
         double[] weights_real = new double[flownum];
         for(int i=0;i<flownum;i++){
-            weights_real[i] = weights_int[i]*1.0/weight_total;
+            weights_real[i] = weights_int[i]*total_weight/weight_total;
         }
         return weights_real;
     }

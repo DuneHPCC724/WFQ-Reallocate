@@ -276,7 +276,7 @@ class TrafficSelector {
                 int weightnum = Simulator.getConfiguration().getIntegerPropertyOrFail("weight_num_long");
                 String weightdist = Simulator.getConfiguration().getPropertyOrFail("weight_distribution_long");
                 long resttimeNs = Simulator.getConfiguration().getLongPropertyOrFail("resttimeNs_long");
-                long burst_bytes = Simulator.getConfiguration().getIntegerPropertyOrFail("burst_bytes_long");
+                long burst_bytes = Simulator.getConfiguration().getLongPropertyOrFail("burst_bytes_long");
                 switch (generativePairProbabilities){
                     case "incast":
                         return new UniformWeightLongPlanner(idToTransportLayer, null, weightnum ,flownum, UniformWeightPlanner.PairDistribution.Incast,weightdist,resttimeNs,burst_bytes);

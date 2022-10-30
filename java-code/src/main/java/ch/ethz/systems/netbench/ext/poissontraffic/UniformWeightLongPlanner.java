@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class UniformWeightLongPlanner extends UniformWeightPlanner{
 
-    private static int LongflowIDCounter  = 1;
+    private int LongflowIDCounter  = 1;
     private final long resttimeNs;
     private final long burst_bytes;
     //input the Flowsize Distribution ,but we donnot use it
@@ -23,8 +23,8 @@ public class UniformWeightLongPlanner extends UniformWeightPlanner{
 
     @Override
     public void createPlan_Incast(){
-
-        double[] weights = super.wd.get_weights_uniformlyset(super.TotalFlowNumber);
+        double total_weight_long = Simulator.getConfiguration().getDoublePropertyWithDefault("total_weight_long",1.0);
+        double[] weights = super.wd.get_weights_uniformlyset(super.TotalFlowNumber,total_weight_long);
         for(int i=0;i<weights.length;i++){
             double weight_current = weights[i];
             Pair<Integer, Integer> pair = choosePair();
@@ -43,7 +43,10 @@ public class UniformWeightLongPlanner extends UniformWeightPlanner{
         } else if (timeFromNs < 0) {
             throw new RuntimeException("Cannot register a flow with a negative timestamp of " + timeFromNs);
         }
-        StartLongSocketEvent longevent = new StartLongSocketEvent(timeFromNs,(LongtermTransportLayer)idToTransportLayerMap.get(srcId),dstId,weight,flow_set_num,resttimeNs,burst_bytes);
-        Simulator.registerEvent(longevent);
+        if(LongtermTransportLayer.class.isInstance(idToTransportLayerMap.get(srcId)))
+        {
+            StartLongSocketEvent longevent = new StartLongSocketEvent(timeFromNs,(LongtermTransportLayer)idToTransportLayerMap.get(srcId),dstId,weight,flow_set_num,resttimeNs,burst_bytes);
+            Simulator.registerEvent(longevent);
+        }
     }
 }
