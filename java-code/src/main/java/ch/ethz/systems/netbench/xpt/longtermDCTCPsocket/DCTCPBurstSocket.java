@@ -1,29 +1,30 @@
-package ch.ethz.systems.netbench.xpt.longtermsocket;
+package ch.ethz.systems.netbench.xpt.longtermDCTCPsocket;
 
 import ch.ethz.systems.netbench.core.network.TransportLayer;
+import ch.ethz.systems.netbench.xpt.WFQDCTCP.WFQDCTcpSocket;
 import ch.ethz.systems.netbench.xpt.WFQTCP.WFQTcpSocket;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 
-public class BurstSocket extends WFQTcpSocket {
-    private final Longtermsocket longtermsocket;
+public class DCTCPBurstSocket extends WFQDCTcpSocket {
+    private final DCTCPLongtermsocket DCTCPLongtermsocket;
 
-    public BurstSocket (TransportLayer transportLayer, long flowId, int sourceId, int destinationId, long flowSizeByte, float weight, int flowset_num,Longtermsocket longtermsocket){
+    public DCTCPBurstSocket(TransportLayer transportLayer, long flowId, int sourceId, int destinationId, long flowSizeByte, float weight, int flowset_num, DCTCPLongtermsocket DCTCPLongtermsocket){
         super(transportLayer, flowId, sourceId, destinationId, flowSizeByte,weight,flowset_num);
-        this.longtermsocket = longtermsocket;
+        this.DCTCPLongtermsocket = DCTCPLongtermsocket;
     }
 
-    public BurstSocket(TransportLayer transportLayer, long flowId, int sourceId, int destinationId, long flowSizeByte, float weight,int flowset_num)
+    public DCTCPBurstSocket(TransportLayer transportLayer, long flowId, int sourceId, int destinationId, long flowSizeByte, float weight, int flowset_num)
     {
         super(transportLayer, flowId, sourceId, destinationId, flowSizeByte,weight,flowset_num);
-        this.longtermsocket = null;
+        this.DCTCPLongtermsocket = null;
     }
 
     @Override
     protected void handleAcknowledgment(FullExtTcpPacket packet){
         super.handleAcknowledgment(packet);
-        if(this.longtermsocket != null){
+        if(this.DCTCPLongtermsocket != null){
             if(isAllFlowConfirmed()) {
-                this.longtermsocket.Start_Rest();//register next burst event
+                this.DCTCPLongtermsocket.Start_Rest();//register next burst event
             }
         }
     }
@@ -38,7 +39,7 @@ public class BurstSocket extends WFQTcpSocket {
             boolean ECE
     )
     {
-        if(this.longtermsocket == null) {
+        if(this.DCTCPLongtermsocket == null) {
             return super.createPacket(dataSizeByte,sequenceNumber,ackNumber,ACK,SYN,ECE);
         }
         else {

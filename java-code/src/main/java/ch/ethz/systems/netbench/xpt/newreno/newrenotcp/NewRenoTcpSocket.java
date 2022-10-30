@@ -694,7 +694,7 @@ public class NewRenoTcpSocket extends Socket {
         // Reset retransmission time-out if there is a new acknowledgment
         if (newAck && !inFastRecovery) {
             this.resetRetransmissionTimeOutTimer();
-            this.tcpLogger.logAckedEvent(this.sourceId,ack);
+            this.tcpLogger.logAckedEvent(this.sourceId,ack,packet.flowset_num);
         }
 
         // Log congestion window
@@ -986,7 +986,10 @@ public class NewRenoTcpSocket extends Socket {
             fillWindow();
 
         }
-        this.tcpLogger.logTimeOutEvent(this.sourceId,sendUnackNumber,roundTripTimeout);
+        if(WFQTcpSocket.class.isInstance(this))
+            this.tcpLogger.logTimeOutEvent(this.sourceId,((WFQTcpSocket)this).getFlowset_num(),sendUnackNumber,roundTripTimeout);
+        else
+            this.tcpLogger.logTimeOutEvent(this.sourceId,0,sendUnackNumber,roundTripTimeout);
     }
 
     /**

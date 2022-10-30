@@ -109,17 +109,17 @@ public class TcpLogger implements LoggerCallback {
         }
     }
 
-    public void logTimeOutEvent(int transportID,long sequenceNumber,long newRTT){
+    public void logTimeOutEvent(int transportID,int flowset_num,long sequenceNumber,long newRTT){
         try {
-            TimeoutWriter.write(flowId+","+transportID+","+sequenceNumber+newRTT+","+","+Simulator.getCurrentTime()+"\n");
+            TimeoutWriter.write(flowId+","+flowset_num+","+transportID+","+sequenceNumber+","+newRTT+","+","+Simulator.getCurrentTime()+"\n");
         }catch (IOException e){
             throw new LogFailureException(e);
         }
     }
 
-    public void logAckedEvent(int transportID,long sequenceNumber){
+    public void logAckedEvent(int transportID,long sequenceNumber,int flowset_num){
         try{
-            AckedWriter.write(flowId+","+sequenceNumber+","+transportID+","+Simulator.getCurrentTime()+"\n");
+            AckedWriter.write(flowId+","+sequenceNumber+","+flowset_num+","+transportID+","+Simulator.getCurrentTime()+"\n");
         } catch (IOException e) {
             throw new LogFailureException(e);
         }

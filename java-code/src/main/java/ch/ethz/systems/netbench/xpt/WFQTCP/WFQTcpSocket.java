@@ -22,7 +22,7 @@ public class WFQTcpSocket extends NewRenoTcpSocket {
     }
 
     //need createPacket
-    //@Override
+    @Override
     protected FullExtTcpPacket createPacket(
             long dataSizeByte,
             long sequenceNumber,
@@ -42,7 +42,8 @@ public class WFQTcpSocket extends NewRenoTcpSocket {
                 false, SYN, false, // RST, SYN, FIN
                 0, // Window size
                 weight,
-                flowset_num
+                flowset_num,
+                false
         );
     }
 
