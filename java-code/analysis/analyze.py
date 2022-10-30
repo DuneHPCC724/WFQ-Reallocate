@@ -960,6 +960,8 @@ def analyze_buffer_util(flows):
         return np.mean(buffer_util)
 
 def analyze_timeout_rate(flows):
+    total_timeout=0
+    total_packets = 0
     timeoutcount = {}
     for id in flows.keys():
         timeoutcount[id] = 0
@@ -971,12 +973,14 @@ def analyze_timeout_rate(flows):
     with open(analysis_folder_path + "/Timeout_Rates.csv","w") as timeout_file:
         writer = csv.writer(timeout_file)
         for id in timeoutcount.keys():
+            total_timeout+= timeoutcount[id]
+            total_packets+= len(flows[id].pkt_bytes)
             if(len(flows[id].pkt_bytes) != 0):
                 rate = timeoutcount[id]*1.0/len(flows[id].pkt_bytes)
             else:
                 rate = 0
             writer.writerow([id,flows[id].weight,rate,timeoutcount[id],len(flows[id].pkt_bytes)])
-
+        writer.writerow(["total",total_timeout*1.0/total_packets,total_timeout,total_packets])
 
 
             # Call analysis functions
@@ -1014,4 +1018,5 @@ os.system("rm -f " +run_folder_path + "/drop_event.csv.log")
 os.system("rm -f " +run_folder_path + "/flow_IAT.csv.log")
 os.system("rm -f " +run_folder_path + "/Inflight_Bytes.csv.log")
 os.system("rm -f " +run_folder_path + "/congestion_window.csv.log")
+os.system("rm -f " +run_folder_path + "/Timeout_Events.csv.log")
 os.system("rm -f " +run_folder_path + "/Acked_Events.csv.log")
