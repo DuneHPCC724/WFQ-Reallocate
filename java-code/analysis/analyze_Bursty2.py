@@ -495,7 +495,9 @@ def analyze_Acked_Pearson(flows):
                 GPvecotr.append(GoodPuts[id][k])
                 if(id>=0):
                     NormalGPvector.append(GoodPuts[id][k])
-            Pearson.append(pearsonr(NormalWeightVector,NormalGPvector)[0])
+            temp_pear = pearsonr(NormalWeightVector,NormalGPvector)[0]
+            if not np.isnan(temp_pear):
+                Pearson.append(temp_pear)
         meanPearsons[unit] = np.mean(Pearson)
         medianPearsons[unit] = np.median(Pearson)
         Pearsons99[unit] = np.percentile(Pearson,99)

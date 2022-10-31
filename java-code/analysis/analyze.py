@@ -557,8 +557,10 @@ def analyze_Acked_Pearson(flows):
         for k in range(0,NumUnit):
             GPvecotr = []
             for id in IDvector:
-                GPvecotr.append(GoodPuts[id][k])
-            Pearson.append(pearsonr(WeightVector,GPvecotr)[0])
+                GPvector.append(GoodPuts[id][k])
+            temp_pear = pearsonr(WeightVector,GPvector)[0]
+            if not np.isnan(temp_pear):
+                Pearson.append(temp_pear)
         meanPearsons[unit] = np.mean(Pearson)
         medianPearsons[unit] = np.median(Pearson)
         Pearsons99[unit] = np.percentile(Pearson,99)
