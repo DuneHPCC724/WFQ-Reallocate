@@ -131,6 +131,9 @@ public class SQSWFQQueue implements Queue{
                         AlphaFactor = 1;
                     }
                 }
+//                if(p.getFlowset_num() == 0){
+//                    AlphaFactor = 1;
+//                }
                 double PromoteWeight = weight*AlphaFactor;
                 if(PromoteWeight > 1){//<yuxin> can't exceed 1
                     PromoteWeight = 1;
@@ -311,7 +314,7 @@ public class SQSWFQQueue implements Queue{
 //    }
 
     public void updateRound(Packet p){
-        this.currentRound += (p.getSizeBit()/8*this.queuelength/this.QueueOccupied)/R;
+        this.currentRound += (p.getSizeBit()/8*this.queuelength*1.0/this.QueueOccupied)/R;
     }
 
     public void logEnDeEvent(FullExtTcpPacket p){

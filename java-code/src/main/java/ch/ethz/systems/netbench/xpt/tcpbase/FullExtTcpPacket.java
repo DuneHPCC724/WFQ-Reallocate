@@ -117,5 +117,11 @@ public class FullExtTcpPacket extends TcpPacket implements SelectiveAckHeader, E
 //        return Integer.toString(getFlowset_num());
         // return getFlowset_num() + "," + getSourceId() + "," + getDestinationId();
         return Long.toString(getFlowId());
+//        if(this.flowset_num == 0) {
+//            return Long.toString(getFlowId());
+//        }
+//        else {
+//            return Integer.toString(0-flowset_num);
+//        }
     }
 }

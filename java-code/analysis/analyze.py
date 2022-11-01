@@ -555,7 +555,7 @@ def analyze_Acked_Pearson(flows):
         NumUnit = math.ceil(total_time * 1.0 / unit)
         GoodPuts = analyzeGoodput_Unit(flows,unit,NumUnit,AckTimes,AckSeqs)
         for k in range(0,NumUnit):
-            GPvecotr = []
+            GPvector = []
             for id in IDvector:
                 GPvector.append(GoodPuts[id][k])
             temp_pear = pearsonr(WeightVector,GPvector)[0]
@@ -577,7 +577,7 @@ def analyze_Acked_Pearson(flows):
             pf.write("99.99th Pearson: "+str(Pearsons9999[unit])+"\n")
             pf.write("1th Pearson: "+str(Pearsons001[unit])+"\n")
             pf.write("0.01th Pearson: "+str(Pearsons00001[unit])+"\n")
-    return medianPearsons
+    return medianPearsons,np.mean(NBs)
 
 
 
@@ -983,6 +983,7 @@ def analyze_timeout_rate(flows):
                 rate = 0
             writer.writerow([id,flows[id].weight,rate,timeoutcount[id],len(flows[id].pkt_bytes)])
         writer.writerow(["total",total_timeout*1.0/total_packets,total_timeout,total_packets])
+        return total_timeout*1.0/total_packets
 
 
             # Call analysis functions
@@ -991,26 +992,30 @@ analyze_flow_completion()
 analyze_port_utilization()
 Flow_initiate(flows)
 analyze_IAT(flows)
-# nfms = analyze_throughput_and_NFM(flows)
+nfms = analyze_throughput_and_NFM(flows)
 # analyze_ack_bytes()
 # analyze_Inflight_Perflow(flows)
-droprate = analyze_total_drop_rate(flows, 10000000)
+# droprate = analyze_total_drop_rate(flows, 10000000)
 # analyze_perflow_drop_rate(flows, 10000000)
-util = analyze_buffer_util(flows)
-analyze_timeout_rate(flows)
+# util = analyze_buffer_util(flows)
+droprate = analyze_timeout_rate(flows)
 
-median_pearsons = analyze_Acked_Pearson(flows)
+median_pearsons,ngoodput = analyze_Acked_Pearson(flows)
 with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
     Writer = csv.writer(sumfile)
     temp1 = []
     temp2 = []
     temp1.append(" ")
     temp2.append(run_folder_path)
+    for k,v in nfms.items():
+            temp1.append(k)
+            temp2.append(v)
+    temp2.append(droprate)
+    temp2.append(ngoodput)
     for k,v in median_pearsons.items():
         temp1.append(k)
         temp2.append(v)
-    temp2.append(droprate)
-    temp2.append(util)
+#     temp2.append(util)
     #     Writer.writerow(temp1)
     Writer.writerow(temp2)
 

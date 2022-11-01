@@ -446,6 +446,10 @@ def analyze_Acked_Pearson(flows):
     BNFWriter = csv.writer(BurstNormFile)
     BNBs=[]
     BBs=[]
+    NormalNormFile = open(analysis_folder_path+"/Normalized_Acked_Bytes_Normal.csv","w",newline='')#<yuxin>add normal flow
+    NNFWriter = csv.writer(NormalNormFile)
+    NormalNBs=[]
+    NormalBs=[]
     with open(analysis_folder_path+"/Normalized_Acked_Bytes.csv","w",newline='') as NormFile:
         NFWriter = csv.writer(NormFile)
         NBs = []
@@ -463,8 +467,13 @@ def analyze_Acked_Pearson(flows):
                 BNFWriter.writerow([id,'{:e}'.format(AckedBytes*1.0/weight),'{:e}'.format(AckedBytes),weight])
                 BNBs.append(AckedBytes*1.0/weight)
                 BBs.append(AckedBytes)
+            else:
+                NNFWriter.writerow([id,'{:e}'.format(AckedBytes*1.0/weight),'{:e}'.format(AckedBytes),weight])
+                NormalNBs.append(AckedBytes*1.0/weight)
+                NormalBs.append(AckedBytes)
         NFWriter.writerow(["ave",'{:e}'.format(np.mean(NBs)),'{:e}'.format(np.mean(Bs))])
         BNFWriter.writerow(["ave",'{:e}'.format(np.mean(BNBs)),'{:e}'.format(np.mean(BBs))])
+        NNFWriter.writerow(["ave",'{:e}'.format(np.mean(NormalNBs)),'{:e}'.format(np.mean(NormalBs))])
     Units = [1000*1000*1000,100*1000*1000,1000*1000,500*1000,200*1000,100*1000]
     # Units = [100*1000*1000]
     total_time = 1000*1000*1000
@@ -489,10 +498,10 @@ def analyze_Acked_Pearson(flows):
         NumUnit = math.ceil(total_time * 1.0 / unit)
         GoodPuts = analyzeGoodput_Unit(flows,unit,NumUnit,AckTimes,AckSeqs)
         for k in range(0,NumUnit):
-            GPvecotr = []
+            GPvector = []
             NormalGPvector = []
             for id in IDvector:
-                GPvecotr.append(GoodPuts[id][k])
+                GPvector.append(GoodPuts[id][k])
                 if(id>=0):
                     NormalGPvector.append(GoodPuts[id][k])
             temp_pear = pearsonr(NormalWeightVector,NormalGPvector)[0]
@@ -514,7 +523,7 @@ def analyze_Acked_Pearson(flows):
             pf.write("99.99th Pearson: "+str(Pearsons9999[unit])+"\n")
             pf.write("1th Pearson: "+str(Pearsons001[unit])+"\n")
             pf.write("0.01th Pearson: "+str(Pearsons00001[unit])+"\n")
-    return medianPearsons
+    return medianPearsons,np.mean(NormalNBs),np.sum(BBs)
 
 
 
@@ -916,6 +925,8 @@ def analyze_timeout_rate(flows):
     with open(analysis_folder_path + "/Timeout_Rates.csv","w") as timeout_file:
         writer = csv.writer(timeout_file)
         for id in timeoutcount.keys():
+            if (id < 0):
+                continue
             total_timeout+= timeoutcount[id]
             total_packets+= len(flows[id].pkt_bytes)
             if(len(flows[id].pkt_bytes) != 0):
@@ -924,6 +935,7 @@ def analyze_timeout_rate(flows):
                 rate = 0
             writer.writerow([id,flows[id].weight,rate,timeoutcount[id],len(flows[id].pkt_bytes)])
         writer.writerow(["total",total_timeout*1.0/total_packets,total_timeout,total_packets])
+        return total_timeout*1.0/total_packets
 
 
 
@@ -935,30 +947,35 @@ Flow_initiate(flows)
 nfms = analyze_throughput_and_NFM(flows)
 # analyze_ack_bytes()
 # analyze_Inflight_Perflow(flows)
-droprate = analyze_total_drop_rate(flows, 10000000)
+# droprate = analyze_total_drop_rate(flows, 10000000)
 # analyze_perflow_drop_rate(flows, 10000000)
-util = analyze_buffer_util(flows)
-analyze_timeout_rate(flows)
+# util = analyze_buffer_util(flows)
+droprate=analyze_timeout_rate(flows)
 
-median_pearsons = analyze_Acked_Pearson(flows)
+median_pearsons,ngoodput,bgoodput = analyze_Acked_Pearson(flows)
 with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
     Writer = csv.writer(sumfile)
     temp1 = []
     temp2 = []
     temp1.append(" ")
     temp2.append(run_folder_path)
+    for k,v in nfms.items():
+                temp1.append(k)
+                temp2.append(v)
+    temp2.append(droprate)
+    temp2.append(ngoodput)
     for k,v in median_pearsons.items():
         temp1.append(k)
         temp2.append(v)
-    temp2.append(droprate)
-    temp2.append(util)
+    temp2.append(bgoodput)
     #     Writer.writerow(temp1)
     Writer.writerow(temp2)
 
-#os.system("rm -f " +run_folder_path + "/dequeue_event.csv.log")
-#os.system("rm -f " +run_folder_path + "/enqueue_event.csv.log")
-#os.system("rm -f " +run_folder_path + "/drop_event.csv.log")
-#os.system("rm -f " +run_folder_path + "/flow_IAT.csv.log")
-#os.system("rm -f " +run_folder_path + "/Inflight_Bytes.csv.log")
-#os.system("rm -f " +run_folder_path + "/congestion_window.csv.log")
-#os.system("rm -f " +run_folder_path + "/Acked_Events.csv.log")
+os.system("rm -f " +run_folder_path + "/dequeue_event.csv.log")
+os.system("rm -f " +run_folder_path + "/enqueue_event.csv.log")
+os.system("rm -f " +run_folder_path + "/drop_event.csv.log")
+os.system("rm -f " +run_folder_path + "/flow_IAT.csv.log")
+os.system("rm -f " +run_folder_path + "/Inflight_Bytes.csv.log")
+os.system("rm -f " +run_folder_path + "/congestion_window.csv.log")
+os.system("rm -f " +run_folder_path + "/Timeout_Events.csv.log")
+os.system("rm -f " +run_folder_path + "/Acked_Events.csv.log")

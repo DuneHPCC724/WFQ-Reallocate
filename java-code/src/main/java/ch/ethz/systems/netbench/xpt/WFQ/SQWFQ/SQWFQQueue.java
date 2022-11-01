@@ -204,7 +204,7 @@ public class SQWFQQueue implements Queue{
 //    }
 
     public void updateRound(Packet p){
-        this.currentRound += (p.getSizeBit()/8*this.queuelength/this.QueueOccupied)/R;
+        this.currentRound += (p.getSizeBit()/8*this.queuelength*1.0/this.QueueOccupied)/R;
     }
 
     public void logEnDeEvent(FullExtTcpPacket p){
