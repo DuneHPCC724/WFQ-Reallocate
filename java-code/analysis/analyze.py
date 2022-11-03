@@ -520,6 +520,10 @@ def analyze_Acked_Pearson(flows):
             time = int(row[-1])
             AckTimes[flowid].append(time)
             AckSeqs[flowid].append(seq)
+    WeightGoodPutFile = open(analysis_folder_path+"/Weight_GoodPut.csv","w",newline='')
+    WGPFWriter = csv.writer(WeightGoodPutFile)
+    putListPerWeight = {}
+    AvgPutPerWeight = []
     with open(analysis_folder_path+"/Normalized_Acked_Bytes.csv","w",newline='') as NormFile:
         NFWriter = csv.writer(NormFile)
         NBs = []
@@ -530,9 +534,18 @@ def analyze_Acked_Pearson(flows):
                 AckedBytes = 0
             else:
                 AckedBytes = AckSeqs[id][-1]
+            if weight in putListPerWeight.keys():
+                putListPerWeight[weight].append(AckedBytes)
+            else:
+                putListPerWeight[weight]=[AckedBytes]
             NFWriter.writerow([id,'{:e}'.format(AckedBytes*1.0/weight),'{:e}'.format(AckedBytes),weight])
             NBs.append(AckedBytes*1.0/weight)
             Bs.append(AckedBytes)
+        ListPerWeightKeys = [key for key in putListPerWeight.keys()]
+        ListPerWeightKeys.sort()
+        for key in ListPerWeightKeys:
+            WGPFWriter.writerow([key,'{:e}'.format(np.mean(putListPerWeight[key]))])
+            AvgPutPerWeight.append(np.mean(putListPerWeight[key]))
         NFWriter.writerow(["ave",'{:e}'.format(np.mean(NBs)),'{:e}'.format(np.mean(Bs))])
     Units = [1000*1000*1000,100*1000*1000,1000*1000,500*1000,200*1000,100*1000]
     # Units = [100*1000*1000]
@@ -577,7 +590,7 @@ def analyze_Acked_Pearson(flows):
             pf.write("99.99th Pearson: "+str(Pearsons9999[unit])+"\n")
             pf.write("1th Pearson: "+str(Pearsons001[unit])+"\n")
             pf.write("0.01th Pearson: "+str(Pearsons00001[unit])+"\n")
-    return medianPearsons,np.mean(NBs)
+    return medianPearsons,AvgPutPerWeight
 
 
 
@@ -992,29 +1005,31 @@ analyze_flow_completion()
 analyze_port_utilization()
 Flow_initiate(flows)
 analyze_IAT(flows)
-nfms = analyze_throughput_and_NFM(flows)
+# nfms = analyze_throughput_and_NFM(flows)
 # analyze_ack_bytes()
 # analyze_Inflight_Perflow(flows)
 # droprate = analyze_total_drop_rate(flows, 10000000)
 # analyze_perflow_drop_rate(flows, 10000000)
 # util = analyze_buffer_util(flows)
-droprate = analyze_timeout_rate(flows)
+# droprate = analyze_timeout_rate(flows)
 
-median_pearsons,ngoodput = analyze_Acked_Pearson(flows)
+median_pearsons,weightgoodput = analyze_Acked_Pearson(flows)
 with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
     Writer = csv.writer(sumfile)
     temp1 = []
     temp2 = []
     temp1.append(" ")
     temp2.append(run_folder_path)
-    for k,v in nfms.items():
-            temp1.append(k)
-            temp2.append(v)
-    temp2.append(droprate)
-    temp2.append(ngoodput)
-    for k,v in median_pearsons.items():
-        temp1.append(k)
-        temp2.append(v)
+    for put in weightgoodput:
+        temp2.append(put)
+#     for k,v in nfms.items():
+#             temp1.append(k)
+#             temp2.append(v)
+#     temp2.append(droprate)
+#     temp2.append(ngoodput)
+#     for k,v in median_pearsons.items():
+#         temp1.append(k)
+#         temp2.append(v)
 #     temp2.append(util)
     #     Writer.writerow(temp1)
     Writer.writerow(temp2)

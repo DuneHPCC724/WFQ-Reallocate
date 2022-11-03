@@ -131,9 +131,9 @@ public class SQSWFQQueue implements Queue{
                         AlphaFactor = 1;
                     }
                 }
-//                if(p.getFlowset_num() == 0){
-//                    AlphaFactor = 1;
-//                }
+                if(p.getFlowset_num() == 0){
+                    AlphaFactor = 1;
+                }
                 double PromoteWeight = weight*AlphaFactor;
                 if(PromoteWeight > 1){//<yuxin> can't exceed 1
                     PromoteWeight = 1;
@@ -338,10 +338,49 @@ public class SQSWFQQueue implements Queue{
         return util;
     }
 
+
+//    public void UpdateST(FullExtTcpPacket p){
+//        String Id = p.getDiffFlowId3();
+//        if (!p.isSYN() && !p.isACK()) { // update packet size
+//            if(FlowBytesArrived.containsKey(Id)){
+//                long Bytes = FlowBytesArrived.get(Id) + p.getSizeBit()/8;
+//                FlowBytesArrived.put(Id, Bytes);
+//                long Packets = FlowPacketsArrived.get(Id) + 1;
+//                FlowPacketsArrived.put(Id, Packets);
+//            }
+//            else{
+//                FlowBytesArrived.put(Id, p.getSizeBit()/8);
+//                FlowPacketsArrived.put(Id, (long)(1));
+//            }
+//        }
+//        if(!FlowTimeInterval.containsKey(Id)){//update interval
+//            FlowTimeInterval.put(Id, (long)(-2));
+//            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
+//        }
+//        else if((FlowTimeInterval.get(Id) == (long)(-2))){
+//            FlowTimeInterval.put(Id, (long)(-1));
+//            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
+//        }
+//        else if((FlowTimeInterval.get(Id) == (long)(-1))){
+//            long time =Simulator.getCurrentTime();
+//            long Interval = time - FlowTimeLastArrive.get(Id);
+//            FlowTimeInterval.put(Id, Interval);
+//            FlowTimeLastArrive.put(Id, time);
+//        }
+//        else{
+//            long time =Simulator.getCurrentTime();
+//            long LastInterval = FlowTimeInterval.get(Id);
+//            long Interval = (long)((1-alpha)*LastInterval + alpha*(time - FlowTimeLastArrive.get(Id)));
+//            FlowTimeInterval.put(Id, Interval);
+//            FlowTimeLastArrive.put(Id, time);
+//        }
+//    }
+
     public void UpdateST(FullExtTcpPacket p){
         String Id = p.getDiffFlowId3();
         if (p.isSYN() == true){ //<yuxin> if is SYN, initialize flowtimeinterval as -2, Bytes and Packets as 0
-            FlowTimeInterval.put(Id, (long)(-2));//<yuxin> tell next packet that you are first
+            FlowTimeInterval.put(Id, (long)(-1));//<yuxin> tell next packet that you are first
+            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
             FlowBytesArrived.put(Id, (long)(0));
             FlowPacketsArrived.put(Id, (long)(0));
         } else if (p.isACK()) {
