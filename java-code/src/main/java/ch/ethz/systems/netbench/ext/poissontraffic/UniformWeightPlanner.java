@@ -144,6 +144,7 @@ public class UniformWeightPlanner extends TrafficPlanner {
         switch(this.pairDistribution){
             case Incast:
                 this.createPlan_Incast();
+                this.createPlan_Outcast();
                 break;
             case Side_To_Side:
                 this.createPlan_Side();
@@ -161,6 +162,16 @@ public class UniformWeightPlanner extends TrafficPlanner {
             double weight_current = weights[i];
             Pair<Integer, Integer> pair = choosePair();
             registerFlow(0, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),(float) weight_current,0);
+        }
+    }
+
+    public void createPlan_Outcast(){
+        double total_weight =1.0;
+        double[] weights = this.wd.get_weights_uniformlyset(this.TotalFlowNumber,total_weight);
+        for(int i=0;i<weights.length/5;i++){
+            double weight_current = weights[i];
+            Pair<Integer, Integer> pair = choosePair();
+            registerFlow(0,  pair.getRight(), pair.getLeft(),flowSizeDistribution.generateFlowSizeByte(),(float) weight_current,0);
         }
     }
 

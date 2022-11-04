@@ -32,6 +32,7 @@ public class UniformWeightLongPlanner extends UniformWeightPlanner{
             LongflowIDCounter++;
         }
     }
+    public void createPlan_Outcast(){return;}
 
     public void registerLongFlow(long timeFromNs, int srcId,int dstId,float weight,int flow_set_num,long resttimeNs,long burst_bytes){
         if (srcId == dstId) {

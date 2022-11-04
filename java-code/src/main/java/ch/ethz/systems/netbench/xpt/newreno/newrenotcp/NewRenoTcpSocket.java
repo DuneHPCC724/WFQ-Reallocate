@@ -694,7 +694,9 @@ public class NewRenoTcpSocket extends Socket {
         // Reset retransmission time-out if there is a new acknowledgment
         if (newAck && !inFastRecovery) {
             this.resetRetransmissionTimeOutTimer();
-            this.tcpLogger.logAckedEvent(this.sourceId,ack,packet.flowset_num);
+            if(this.sourceId != 11){
+                this.tcpLogger.logAckedEvent(this.sourceId,ack,packet.flowset_num);
+            }
         }
 
         // Log congestion window
@@ -775,8 +777,9 @@ public class NewRenoTcpSocket extends Socket {
                 return;
             }
         }
-        tcpLogger.logPacketIAT(this.sourceId,seqNumber,((FullExtTcpPacket)packet).getDataSizeByte(),((FullExtTcpPacket) packet).getFlowset_num(),((FullExtTcpPacket) packet).getWeight());
-
+        if(this.sourceId == 11){
+            tcpLogger.logPacketIAT(this.sourceId,seqNumber,((FullExtTcpPacket)packet).getDataSizeByte(),((FullExtTcpPacket) packet).getFlowset_num(),((FullExtTcpPacket) packet).getWeight());
+        }
     }
 
     /**
