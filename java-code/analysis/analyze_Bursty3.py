@@ -473,7 +473,7 @@ def analyze_Acked_Pearson(flows):
         NumUnit = math.ceil(total_time * 1.0 / unit)
         GoodPuts = analyzeGoodput_Unit(flows,unit,NumUnit,AckTimes,AckSeqs)
         for k in range(0,NumUnit):
-            GPvecotr = []
+            GPvector = []
             for id in IDvector:
                 GPvector.append(GoodPuts[id][k])
             temp_pear = pearsonr(WeightVector,GPvector)[0]
@@ -917,28 +917,12 @@ Flow_initiate(flows)
 nfms = analyze_throughput_and_NFM(flows)
 # analyze_ack_bytes()
 # analyze_Inflight_Perflow(flows)
-# droprate = analyze_total_drop_rate(flows, 10000000)
+#droprate = analyze_total_drop_rate(flows, 10000000)
 # analyze_perflow_drop_rate(flows, 10000000)
-# util = analyze_buffer_util(flows)
-# analyze_timeout_rate(flows)
+util = analyze_buffer_util(flows)
+analyze_timeout_rate(flows)
 
 median_pearsons = analyze_Acked_Pearson(flows)
-with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
-    Writer = csv.writer(sumfile)
-    temp1 = []
-    temp2 = []
-    temp1.append(" ")
-    temp2.append(run_folder_path)
-    for k,v in nfms.items():
-        temp1.append(k)
-        temp2.append(v)
-    for k,v in median_pearsons.items():
-        temp1.append(k)
-        temp2.append(v)
-#     temp2.append(droprate)
-#     temp2.append(util)
-    #     Writer.writerow(temp1)
-    Writer.writerow(temp2)
 
 os.system("rm -f " +run_folder_path + "/dequeue_event.csv.log")
 os.system("rm -f " +run_folder_path + "/enqueue_event.csv.log")

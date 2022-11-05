@@ -344,75 +344,75 @@ public class SQSWFQQueue implements Queue{
     }
 
 
-//    public void UpdateST(FullExtTcpPacket p){
-//        String Id = p.getDiffFlowId3();
-//        if (!p.isSYN() && !p.isACK()) { // update packet size
-//            if(FlowBytesArrived.containsKey(Id)){
-//                long Bytes = FlowBytesArrived.get(Id) + p.getSizeBit()/8;
-//                FlowBytesArrived.put(Id, Bytes);
-//                long Packets = FlowPacketsArrived.get(Id) + 1;
-//                FlowPacketsArrived.put(Id, Packets);
-//            }
-//            else{
-//                FlowBytesArrived.put(Id, p.getSizeBit()/8);
-//                FlowPacketsArrived.put(Id, (long)(1));
-//            }
-//        }
-//        if(!FlowTimeInterval.containsKey(Id)){//update interval
-//            FlowTimeInterval.put(Id, (long)(-2));
-//            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
-//        }
-//        else if((FlowTimeInterval.get(Id) == (long)(-2))){
-//            FlowTimeInterval.put(Id, (long)(-1));
-//            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
-//        }
-//        else if((FlowTimeInterval.get(Id) == (long)(-1))){
-//            long time =Simulator.getCurrentTime();
-//            long Interval = time - FlowTimeLastArrive.get(Id);
-//            FlowTimeInterval.put(Id, Interval);
-//            FlowTimeLastArrive.put(Id, time);
-//        }
-//        else{
-//            long time =Simulator.getCurrentTime();
-//            long LastInterval = FlowTimeInterval.get(Id);
-//            long Interval = (long)((1-alpha)*LastInterval + alpha*(time - FlowTimeLastArrive.get(Id)));
-//            FlowTimeInterval.put(Id, Interval);
-//            FlowTimeLastArrive.put(Id, time);
-//        }
-//    }
-
     public void UpdateST(FullExtTcpPacket p){
         String Id = p.getDiffFlowId3();
-        if (p.isSYN() == true){ //<yuxin> if is SYN, initialize flowtimeinterval as -2, Bytes and Packets as 0
-            FlowTimeInterval.put(Id, (long)(-1));//<yuxin> tell next packet that you are first
-            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
-            FlowBytesArrived.put(Id, (long)(0));
-            FlowPacketsArrived.put(Id, (long)(0));
-        } else if (p.isACK()) {
-            FlowTimeInterval.put(Id, (long)(-1));
-            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
-            FlowBytesArrived.put(Id, (long)(0));
-            FlowPacketsArrived.put(Id, (long)(0));
-        } else{//<yuxin> data packets
-            long Bytes = FlowBytesArrived.get(Id) + p.getSizeBit()/8;
-            FlowBytesArrived.put(Id, Bytes);
-            long Packets = FlowPacketsArrived.get(Id) + 1;
-            FlowPacketsArrived.put(Id, Packets);
-            if(FlowTimeInterval.get(Id) == (long)(-1)){//<yuxin> second date packet, compute interval at first time
-                long time =Simulator.getCurrentTime();
-                long Interval = time - FlowTimeLastArrive.get(Id);
-                FlowTimeInterval.put(Id, Interval);
-                FlowTimeLastArrive.put(Id, time);
+        if (!p.isSYN() && !p.isACK()) { // update packet size
+            if(FlowBytesArrived.containsKey(Id)){
+                long Bytes = FlowBytesArrived.get(Id) + p.getSizeBit()/8;
+                FlowBytesArrived.put(Id, Bytes);
+                long Packets = FlowPacketsArrived.get(Id) + 1;
+                FlowPacketsArrived.put(Id, Packets);
             }
-            else{//<yuxin> other data packets, compute interval use EMA
-                long time =Simulator.getCurrentTime();
-                long LastInterval = FlowTimeInterval.get(Id);
-                long Interval = (long)((1-alpha)*LastInterval + alpha*(time - FlowTimeLastArrive.get(Id)));
-                FlowTimeInterval.put(Id, Interval);
-                FlowTimeLastArrive.put(Id, time);
+            else{
+                FlowBytesArrived.put(Id, p.getSizeBit()/8);
+                FlowPacketsArrived.put(Id, (long)(1));
             }
         }
+        if(!FlowTimeInterval.containsKey(Id)){//update interval
+            FlowTimeInterval.put(Id, (long)(-2));
+            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
+        }
+        else if((FlowTimeInterval.get(Id) == (long)(-2))){
+            FlowTimeInterval.put(Id, (long)(-1));
+            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
+        }
+        else if((FlowTimeInterval.get(Id) == (long)(-1))){
+            long time =Simulator.getCurrentTime();
+            long Interval = time - FlowTimeLastArrive.get(Id);
+            FlowTimeInterval.put(Id, Interval);
+            FlowTimeLastArrive.put(Id, time);
+        }
+        else{
+            long time =Simulator.getCurrentTime();
+            long LastInterval = FlowTimeInterval.get(Id);
+            long Interval = (long)((1-alpha)*LastInterval + alpha*(time - FlowTimeLastArrive.get(Id)));
+            FlowTimeInterval.put(Id, Interval);
+            FlowTimeLastArrive.put(Id, time);
+        }
     }
+
+//    public void UpdateST(FullExtTcpPacket p){
+//        String Id = p.getDiffFlowId3();
+//        if (p.isSYN() == true){ //<yuxin> if is SYN, initialize flowtimeinterval as -2, Bytes and Packets as 0
+//            FlowTimeInterval.put(Id, (long)(-1));//<yuxin> tell next packet that you are first
+//            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
+//            FlowBytesArrived.put(Id, (long)(0));
+//            FlowPacketsArrived.put(Id, (long)(0));
+//        } else if (p.isACK()) {
+//            FlowTimeInterval.put(Id, (long)(-1));
+//            FlowTimeLastArrive.put(Id, Simulator.getCurrentTime());
+//            FlowBytesArrived.put(Id, (long)(0));
+//            FlowPacketsArrived.put(Id, (long)(0));
+//        } else{//<yuxin> data packets
+//            long Bytes = FlowBytesArrived.get(Id) + p.getSizeBit()/8;
+//            FlowBytesArrived.put(Id, Bytes);
+//            long Packets = FlowPacketsArrived.get(Id) + 1;
+//            FlowPacketsArrived.put(Id, Packets);
+//            if(FlowTimeInterval.get(Id) == (long)(-1)){//<yuxin> second date packet, compute interval at first time
+//                long time =Simulator.getCurrentTime();
+//                long Interval = time - FlowTimeLastArrive.get(Id);
+//                FlowTimeInterval.put(Id, Interval);
+//                FlowTimeLastArrive.put(Id, time);
+//            }
+//            else{//<yuxin> other data packets, compute interval use EMA
+//                long time =Simulator.getCurrentTime();
+//                long LastInterval = FlowTimeInterval.get(Id);
+//                long Interval = (long)((1-alpha)*LastInterval + alpha*(time - FlowTimeLastArrive.get(Id)));
+//                FlowTimeInterval.put(Id, Interval);
+//                FlowTimeLastArrive.put(Id, time);
+//            }
+//        }
+//    }
 
 
     @Override

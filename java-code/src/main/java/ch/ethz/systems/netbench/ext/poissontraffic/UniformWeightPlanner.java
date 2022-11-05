@@ -167,8 +167,8 @@ public class UniformWeightPlanner extends TrafficPlanner {
 
     public void createPlan_Outcast(){
         double total_weight =1.0;
-        double[] weights = this.wd.get_weights_uniformlyset(this.TotalFlowNumber,total_weight);
-        for(int i=0;i<weights.length/10;i++){
+        double[] weights = this.wd.get_weights_uniformlyset(500,total_weight);
+        for(int i=0;i<weights.length/5;i++){
             double weight_current = weights[i];
             Pair<Integer, Integer> pair = choosePair();
             registerFlow(0,  pair.getRight(), pair.getLeft(),flowSizeDistribution.generateFlowSizeByte(),(float) weight_current,0);
