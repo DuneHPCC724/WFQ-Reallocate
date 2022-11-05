@@ -42,75 +42,12 @@ if not os.path.exists(analysis_folder_path):
 
 #class flow to manage flow info
 class Flow:
-    def __init__(self,flowID,source_id,target_id,sent_bytes,total_size_bytes,start_time,end_time,duration,completed):
+    def __init__(self,flowID):
         self.flowID = flowID
-        self.source_id = source_id
-        self.target_id = target_id
         self.sent_bytes = 0
-        self.total_size_bytes = total_size_bytes
-        self.start_time = start_time
-        self.end_ent = end_time
-        self.duration = duration
-        self.completed = completed
-        self.IATs = []
         self.ArrivalTimes = []
         self.pkt_bytes = []
-        self.rates = []
         self.weight = 0
-        self.current_pkt_time = 0
-        self.current_seqnum = -1
-        self.p00 = 0
-        self.p01 = 0
-        self.p10 = 0
-        self.p11 = 0
-        self.pp = 0.0
-        self.ave_rate = 0
-        self.current_state = -1          #设2个状态为0,1,normal,burst
-        self.burst_duration = 0.0
-        self.burst_bytes = 0.0
-
-    def calcu_rate(self):
-        self.ave_rate = self.sent_bytes/self.duration
-    def calcu_pp(self,L):     #第一种方式：第一个和第二个各自除以第一个IAT的一半
-        for i in range(0,len(self.IATs)):
-            if(self.IATs[i] == 0):
-                print(self.IATs)
-                print(self.flowID)
-                exit(0)
-            self.rates.append(self.pkt_bytes[i]/self.IATs[i])
-        for i in range(0,len(self.rates)):
-            rate = self.rates[i]
-            time = self.IATs[i]
-            bytes = self.pkt_bytes[i]
-            if(self.current_state == -1):
-                if(rate > L*self.ave_rate):
-                    self.current_state = 1
-                    self.burst_duration += time
-                    self.burst_bytes += bytes
-                else:
-                    self.current_state = 0
-            elif self.current_state == 0:
-                if(rate > L*self.ave_rate):
-                    self.current_state = 1
-                    self.p01 += 1
-                    self.burst_duration += time
-                    self.burst_bytes += bytes
-                else:
-                    self.current_state = 0
-                    self.p00 += 1
-            else:
-                if(rate > L*self.ave_rate):
-                    self.current_state = 1
-                    self.p11 += 1
-                    self.burst_duration += time
-                    self.burst_bytes += bytes
-                else:
-                    self.current_state = 0
-                    self.p10 += 1
-        if(self.p10 != 0):
-            self.pp = self.p11*1.0/self.p10
-        else:
-            self.pp = -1
 
 
 
@@ -308,61 +245,26 @@ def analyze_port_utilization():
 
 #analyze IAT and Burst:
 def Flow_initiate(flows):
-    with open(run_folder_path + '/flow_completion.csv.log') as FCT_file:
-        with open (run_folder_path + "/flow_IAT.csv.log") as IAT_file:
-            FCT_Reader = csv.reader(FCT_file)
-            for row in FCT_Reader:
-                flow_id = int(row[0])
-                source_id = int(row[1])
-                target_id = int(row[2])
-                sent_bytes = float(row[3])
-                total_size_bytes = float(row[4])
-                start_time = float(row[5])
-                end_time = float(row[6])
-                duration = float(row[7])
-                completed = row[8] == 'TRUE'
-                flows[flow_id] = Flow(flow_id,source_id,target_id,sent_bytes,total_size_bytes,start_time,end_time,duration,completed)
-            IAT_Reader = csv.reader(IAT_file)
-            for row in IAT_Reader:
-                flow_id = int(row[1])
-                seq_num = int(row[2])
-                byte = float(row[3])
-                timeNs = float(row[4])
-                flow = flows[flow_id]
-                #first pkt
-                if(flow.current_pkt_time == 0.0):
-                    flow.current_pkt_time = timeNs
-                    flow.IATs.append(0.0)
-                    flow.current_seqnum = seq_num
-                elif(flow.current_seqnum == seq_num):
-                    continue
-                else:
-                    flow.IATs.append(timeNs-flow.current_pkt_time)
-                    flow.current_pkt_time = timeNs
-                    flow.current_seqnum = seq_num
-                flow.pkt_bytes.append(byte)
-                flow.ArrivalTimes.append(timeNs)
-                flow.sent_bytes += byte
     with open(run_folder_path + "/flowset_num_flowID.csv.log") as weight_file:
         weight_reader = csv.reader(weight_file)
         for row in weight_reader:
             id = int(row[0])
+            flowsetnum = int(row[1])
             weight = float(row[2])
+            flows[id] = Flow(id)
             flows[id].weight=weight
-def analyze_IAT(flows):
-    L = 2
-    for flow in flows.values():
-        if len(flow.IATs) > 1:
-            flow.calcu_rate()
-            flow.IATs[0] = flow.IATs[1]/2.0
-            flow.IATs[1] = flow.IATs[0]
-            flow.calcu_pp(L)
-    sorted_flows = sorted(flows.values(),key=lambda x:x.ave_rate,reverse=True)
-    print('Writing to result file pktIAT.statistics...')
-    with open(analysis_folder_path+"/pkt_IAT.statistics"+str(L)+".csv","w",newline = '') as csvfile:
-        writer = csv.writer(csvfile)
-        for flow in flows.values():
-            writer.writerow([flow.flowID,flow.p00,flow.p01,flow.p10,flow.p11,flow.pp,flow.burst_duration/1000.0,flow.burst_bytes,flow.duration/1000.0,flow.sent_bytes,len(flow.IATs)])
+    with open (run_folder_path + "/flow_IAT.csv.log") as IAT_file:
+        IAT_Reader = csv.reader(IAT_file)
+        for row in IAT_Reader:
+            flow_id = int(row[1])
+            seq_num = int(row[2])
+            byte = float(row[3])
+            timeNs = float(row[4])
+            flowsetnum = int(row[5])
+            flow = flows[flow_id]
+            flow.pkt_bytes.append(byte)
+            flow.ArrivalTimes.append(timeNs)
+            flow.sent_bytes += byte
 
 #input: unit(Ns), output: a serial of Throughput
 def analyzeThroughput_Unit(flows,UnitNs,NumUnit):
@@ -441,8 +343,14 @@ def analyze_throughput_and_NFM(flows):
         with open(analysis_folder_path+"/NFM_"+str(unit)+".statics","w") as f:
             Max_diffs = [-1]*NumUnit
             ids = throuputs.keys()
-            for i in range(0,len(ids)):
-                for j in range(i+1,len(ids)):
+            for i in ids:
+                if(i<0):
+                    continue
+                for j in ids:
+                    if(j<0):
+                        continue
+                    if(i>=j):
+                        continue
                     th1 = throuputs[i]
                     th2 = throuputs[j]
                     weight1 = flows[i].weight
@@ -517,9 +425,38 @@ def analyze_Acked_Pearson(flows):
         for row in ACK_Reader:
             flowid = int(row[0])
             seq = int(row[1])
+            flowset_num = int(row[2])
             time = int(row[-1])
             AckTimes[flowid].append(time)
             AckSeqs[flowid].append(seq)
+    BurstTotalGoodputFile = open(analysis_folder_path+"/Burst_total_goodput.csv","w",newline='')
+    BTGFWriter = csv.writer(BurstTotalGoodputFile)
+    burstGoodPutDic = {}
+    for id in AckSeqs.keys():
+        if id < 0:
+            if len(AckSeqs[id]) == 0:
+                burstGoodPutDic[id] = 0
+                BTGFWriter.writerow([id,'{:e}'.format(burstGoodPutDic[id]),flows[id].weight])
+            else:
+                burstGoodPutDic[id] = 0
+                temp = AckSeqs[id][0]
+                for i in range(1,len(AckSeqs[id])):
+                    if AckSeqs[id][i] >= AckSeqs[id][i-1]:
+                        temp = AckSeqs[id][i]
+                    else:
+                        burstGoodPutDic[id] += temp
+                        temp = AckSeqs[id][i]
+                burstGoodPutDic[id] += temp
+                BTGFWriter.writerow([id,'{:e}'.format(burstGoodPutDic[id]),flows[id].weight])
+    BTGFWriter.writerow(["total",'{:e}'.format(np.sum([value for value in burstGoodPutDic.values()]))])
+    BurstNormFile = open(analysis_folder_path+"/Normalized_Acked_Bytes_Burst.csv","w",newline='')
+    BNFWriter = csv.writer(BurstNormFile)
+    BNBs=[]
+    BBs=[]
+    NormalNormFile = open(analysis_folder_path+"/Normalized_Acked_Bytes_Normal.csv","w",newline='')#<yuxin>add normal flow
+    NNFWriter = csv.writer(NormalNormFile)
+    NormalNBs=[]
+    NormalBs=[]
     WeightGoodPutFile = open(analysis_folder_path+"/Weight_GoodPut.csv","w",newline='')
     WGPFWriter = csv.writer(WeightGoodPutFile)
     putListPerWeight = {}
@@ -534,19 +471,29 @@ def analyze_Acked_Pearson(flows):
                 AckedBytes = 0
             else:
                 AckedBytes = AckSeqs[id][-1]
-            if weight in putListPerWeight.keys():
-                putListPerWeight[weight].append(AckedBytes)
-            else:
-                putListPerWeight[weight]=[AckedBytes]
             NFWriter.writerow([id,'{:e}'.format(AckedBytes*1.0/weight),'{:e}'.format(AckedBytes),weight])
             NBs.append(AckedBytes*1.0/weight)
             Bs.append(AckedBytes)
+            if(id < 0):
+                BNFWriter.writerow([id,'{:e}'.format(AckedBytes*1.0/weight),'{:e}'.format(AckedBytes),weight])
+                BNBs.append(AckedBytes*1.0/weight)
+                BBs.append(AckedBytes)
+            else:
+                if weight in putListPerWeight.keys():
+                    putListPerWeight[weight].append(AckedBytes)
+                else:
+                    putListPerWeight[weight]=[AckedBytes]
+                NNFWriter.writerow([id,'{:e}'.format(AckedBytes*1.0/weight),'{:e}'.format(AckedBytes),weight])
+                NormalNBs.append(AckedBytes*1.0/weight)
+                NormalBs.append(AckedBytes)
         ListPerWeightKeys = [key for key in putListPerWeight.keys()]
         ListPerWeightKeys.sort()
         for key in ListPerWeightKeys:
             WGPFWriter.writerow([key,'{:e}'.format(np.mean(putListPerWeight[key]))])
             AvgPutPerWeight.append(np.mean(putListPerWeight[key]))
         NFWriter.writerow(["ave",'{:e}'.format(np.mean(NBs)),'{:e}'.format(np.mean(Bs))])
+        BNFWriter.writerow(["ave",'{:e}'.format(np.mean(BNBs)),'{:e}'.format(np.mean(BBs))])
+        NNFWriter.writerow(["ave",'{:e}'.format(np.mean(NormalNBs)),'{:e}'.format(np.mean(NormalBs))])
     Units = [1000*1000*1000,100*1000*1000,1000*1000,500*1000,200*1000,100*1000]
     # Units = [100*1000*1000]
     total_time = 1000*1000*1000
@@ -559,9 +506,12 @@ def analyze_Acked_Pearson(flows):
     Pearson = []
     IDvector = list(flows.keys())
     WeightVector = []
+    NormalWeightVector = []
     for id in IDvector:
         flow = flows[id]
         WeightVector.append(flow.weight)
+        if(id>=0):
+            NormalWeightVector.append(flow.weight)
 
     for unit in Units:
         Pearson.clear()
@@ -569,9 +519,12 @@ def analyze_Acked_Pearson(flows):
         GoodPuts = analyzeGoodput_Unit(flows,unit,NumUnit,AckTimes,AckSeqs)
         for k in range(0,NumUnit):
             GPvector = []
+            NormalGPvector = []
             for id in IDvector:
                 GPvector.append(GoodPuts[id][k])
-            temp_pear = pearsonr(WeightVector,GPvector)[0]
+                if(id>=0):
+                    NormalGPvector.append(GoodPuts[id][k])
+            temp_pear = pearsonr(NormalWeightVector,NormalGPvector)[0]
             if not np.isnan(temp_pear):
                 Pearson.append(temp_pear)
         meanPearsons[unit] = np.mean(Pearson)
@@ -590,7 +543,7 @@ def analyze_Acked_Pearson(flows):
             pf.write("99.99th Pearson: "+str(Pearsons9999[unit])+"\n")
             pf.write("1th Pearson: "+str(Pearsons001[unit])+"\n")
             pf.write("0.01th Pearson: "+str(Pearsons00001[unit])+"\n")
-    return medianPearsons,AvgPutPerWeight
+    return medianPearsons,AvgPutPerWeight,np.sum([value for value in burstGoodPutDic.values()]),np.sum(NormalBs),np.mean(NormalBs)
 
 
 
@@ -984,10 +937,14 @@ def analyze_timeout_rate(flows):
         reader = csv.reader(timeout_event)
         for row in reader:
             id = int(row[0])
-            timeoutcount[id] += 1
+            flowset_num = int(row[1])
+            if id in flows.keys():
+                timeoutcount[id] += 1
     with open(analysis_folder_path + "/Timeout_Rates.csv","w") as timeout_file:
         writer = csv.writer(timeout_file)
         for id in timeoutcount.keys():
+            if (id < 0):
+                continue
             total_timeout+= timeoutcount[id]
             total_packets+= len(flows[id].pkt_bytes)
             if(len(flows[id].pkt_bytes) != 0):
@@ -998,40 +955,83 @@ def analyze_timeout_rate(flows):
         writer.writerow(["total",total_timeout*1.0/total_packets,total_timeout,total_packets])
         return total_timeout*1.0/total_packets
 
+def analyze_promote_weight(flows):
+    promote_weight_dic = {}
+    with open(run_folder_path+"/promote_weight.csv.log","r") as promote_weight:
+        reader = csv.reader(promote_weight)
+        for row in reader:
+            flowid = int(row[0])
+            flowset_num = int(row[1])
+            if flowset_num != 0:
+                promote_weight = float(row[4])
+                if -flowset_num not in promote_weight_dic.keys():
+                    promote_weight_dic[-flowset_num] = [promote_weight]
+                else:
+                    promote_weight_dic[-flowset_num].append(promote_weight)
+    promoteWeightFile = open(analysis_folder_path+"/promote_weight.csv","w",newline='')
+    PWFWriter = csv.writer(promoteWeightFile)
+    sortedkey = [key for key in promote_weight_dic.keys()]
+    sortedkey.sort()
+    for id in sortedkey:
+        PWFWriter.writerow([id,'{:e}'.format(np.mean(promote_weight_dic[id])),'{:e}'.format(flows[id].weight)])
+
+def analyze_burstflow_inorder():
+    burst_dic = {}
+    with open(run_folder_path+"/promote_weight.csv.log","r") as promote_weight:
+        reader = csv.reader(promote_weight)
+        for row in reader:
+            flowid = int(row[0])
+            flowset_num = int(row[1])
+            if flowset_num != 0:
+                if flowid not in burst_dic.keys():
+                    burst_dic[flowid] = [row]
+                else:
+                    burst_dic[flowid].append(row)
+    burstOrderFile = open(analysis_folder_path+"/burstflow_inorder.csv","w",newline='')
+    BOFWriter = csv.writer(burstOrderFile)
+    sortedkey = [key for key in burst_dic.keys()]
+    sortedkey.sort()
+    for id in sortedkey:
+        for row in burst_dic[id]:
+            BOFWriter.writerow(row)
+
+
 
             # Call analysis functions
 flows = {}
 analyze_flow_completion()
 analyze_port_utilization()
 Flow_initiate(flows)
-analyze_IAT(flows)
 # nfms = analyze_throughput_and_NFM(flows)
 # analyze_ack_bytes()
 # analyze_Inflight_Perflow(flows)
-# droprate = analyze_total_drop_rate(flows, 10000000)
+droprate = analyze_total_drop_rate(flows, 10000000)
 # analyze_perflow_drop_rate(flows, 10000000)
-# util = analyze_buffer_util(flows)
-# droprate = analyze_timeout_rate(flows)
+util = analyze_buffer_util(flows)
+droprate=analyze_timeout_rate(flows)
+# analyze_promote_weight(flows)
+# analyze_burstflow_inorder()
 
-median_pearsons,weightgoodput = analyze_Acked_Pearson(flows)
+median_pearsons,weightgoodput,bgoodput,totalput,avgput = analyze_Acked_Pearson(flows)
 with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
     Writer = csv.writer(sumfile)
     temp1 = []
     temp2 = []
     temp1.append(" ")
     temp2.append(run_folder_path)
-    for put in weightgoodput:
-        temp2.append(put)
+#     temp2.append(bgoodput)
+#     for put in weightgoodput:
+#         temp2.append(put)
 #     for k,v in nfms.items():
-#             temp1.append(k)
-#             temp2.append(v)
-#     temp2.append(droprate)
-#     temp2.append(ngoodput)
-#     for k,v in median_pearsons.items():
 #         temp1.append(k)
 #         temp2.append(v)
-#     temp2.append(util)
-    #     Writer.writerow(temp1)
+#     temp2.append(droprate)
+    temp2.append(totalput)
+    temp2.append(avgput)
+    for k,v in median_pearsons.items():
+        temp1.append(k)
+        temp2.append(v)
+#     #     Writer.writerow(temp1)
     Writer.writerow(temp2)
 
 os.system("rm -f " +run_folder_path + "/dequeue_event.csv.log")
@@ -1042,3 +1042,4 @@ os.system("rm -f " +run_folder_path + "/Inflight_Bytes.csv.log")
 os.system("rm -f " +run_folder_path + "/congestion_window.csv.log")
 os.system("rm -f " +run_folder_path + "/Timeout_Events.csv.log")
 os.system("rm -f " +run_folder_path + "/Acked_Events.csv.log")
+os.system("rm -f " +run_folder_path + "/promote_weight.csv.log")
