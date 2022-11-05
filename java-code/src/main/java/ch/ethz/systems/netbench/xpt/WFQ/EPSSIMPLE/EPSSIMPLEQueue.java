@@ -145,6 +145,9 @@ public class EPSSIMPLEQueue implements Queue {
                             AlphaFactor = 1;
                         }
                     }
+                    if(p.getFlowset_num() == 0){
+                        AlphaFactor = 1;
+                    }
                     double PromoteWeight = weight*AlphaFactor;
                     if(PromoteWeight > 1){//<yuxin> can't exceed 1
                         PromoteWeight = 1;
@@ -173,33 +176,47 @@ public class EPSSIMPLEQueue implements Queue {
                 rounddrop += 1;
             }
             else {
-                boolean TailDropMark = true;
-                for (int i = (int)FinalQueue; i<queueList.size(); i++){
-                    int QueueToSend = (int)((i+this.servingQueue)%(queueList.size()));
-                    long FIFOSizeEstimate = p.getSizeBit()/8 + FIFOBytesOccupied.get(QueueToSend);
-                    if(FIFOSizeEstimate <= this.bytesPerRound){//<yuxin> find a available FIFO
-                        result = QueueToSend;
-                        if (islogswitch) {
-                            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+                if(p.getFlowset_num() != 0) {
+                    boolean TailDropMark = true;
+                    for (int i = (int) FinalQueue; i < queueList.size(); i++) {
+                        int QueueToSend = (int) ((i + this.servingQueue) % (queueList.size()));
+                        long FIFOSizeEstimate = p.getSizeBit() / 8 + FIFOBytesOccupied.get(QueueToSend);
+                        if (FIFOSizeEstimate <= this.bytesPerRound) {//<yuxin> find a available FIFO
+                            result = QueueToSend;
+                            if (islogswitch) {
+                                SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+                            }
+                            TailDropMark = false;
+                            flowBytesSent.put(Id, bid);
+                            FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
+                            long FIFOBytesSendEstimate = p.getSizeBit() / 8 + FIFOBytesSend.get(QueueToSend);
+                            FIFOBytesSend.put(QueueToSend, FIFOBytesSendEstimate);
+                            break;
                         }
-                        TailDropMark = false;
-                        flowBytesSent.put(Id, bid);
-                        FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
-                        long FIFOBytesSendEstimate = p.getSizeBit()/8 + FIFOBytesSend.get(QueueToSend);
-                        FIFOBytesSend.put(QueueToSend, FIFOBytesSendEstimate);
-                        break;
+                    }
+                    if (TailDropMark) {
+                        taildrop += 1;
+                        if (islogswitch) {
+                            if (fullDrop(p)) {
+                                SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+                            } else {
+                                SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                            }
+                        }
+                        result = -1;
                     }
                 }
-                if (TailDropMark){
-                    taildrop += 1;
-                    if (islogswitch) {
-                        if (fullDrop(p)) {
-                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
-                        } else {
-                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
-                        }
+                else {
+                    int QueueToSend = (int) ((FinalQueue + this.servingQueue) % (queueList.size()));
+                    long FIFOSizeEstimate = p.getSizeBit() / 8 + FIFOBytesOccupied.get(QueueToSend);
+                    if (FIFOSizeEstimate <= this.bytesPerRound) {
+                        result = QueueToSend;
+                        flowBytesSent.put(Id, bid);
+                        FIFOBytesOccupied.put(QueueToSend, FIFOSizeEstimate);
                     }
-                    result = -1;
+                    else {
+                        result = -1;
+                    }
                 }
             }
         } catch (Exception e){

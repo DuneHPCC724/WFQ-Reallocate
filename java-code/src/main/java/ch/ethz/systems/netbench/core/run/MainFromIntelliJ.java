@@ -6,12 +6,12 @@ public class MainFromIntelliJ {
     public static void main(String args[]) {
 
 
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/SQWFQ.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/PCQ.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/AIFO.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/PIFOOUR.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/DCTCP.properties"});
-//        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/SQSWFQ.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/SQWFQ.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/PCQ.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/AIFO.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/PIFOOUR.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/DCTCP.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/SQSWFQ.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/EPSSIMPLE.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/OEPSSIMPLE.properties"});
 

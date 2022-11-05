@@ -274,10 +274,14 @@ public class NewRenoTcpSocket extends Socket {
         ));
         //add by WFQ,recorde the flowset num
         if(WFQTcpSocket.class.isInstance(this) ) {
-            this.tcpLogger.logFlowID_Setnum(this.flowId, ((WFQTcpSocket)this).getFlowset_num(),((WFQTcpSocket)this).getWeight(),this.flowSizeByte);
+            if(this.sourceId!=11) {
+                this.tcpLogger.logFlowID_Setnum(this.flowId, ((WFQTcpSocket) this).getFlowset_num(), ((WFQTcpSocket) this).getWeight(), this.flowSizeByte);
+            }
         }
         if(WFQDCTcpSocket.class.isInstance(this) ) {
-            this.tcpLogger.logFlowID_Setnum(this.flowId, ((WFQDCTcpSocket)this).getFlowset_num(),((WFQDCTcpSocket)this).getWeight(),this.flowSizeByte);
+            if(this.sourceId!=11) {
+                this.tcpLogger.logFlowID_Setnum(this.flowId, ((WFQDCTcpSocket) this).getFlowset_num(), ((WFQDCTcpSocket) this).getWeight(), this.flowSizeByte);
+            }
         }
         // System.out.println("3-WAY HANDSHAKE: 0. Sender sent SYN.");
 
@@ -990,9 +994,13 @@ public class NewRenoTcpSocket extends Socket {
 
         }
         if(WFQTcpSocket.class.isInstance(this))
-            this.tcpLogger.logTimeOutEvent(this.sourceId,((WFQTcpSocket)this).getFlowset_num(),sendUnackNumber,roundTripTimeout);
+            if(this.sourceId!=11) {
+                this.tcpLogger.logTimeOutEvent(this.sourceId, ((WFQTcpSocket) this).getFlowset_num(), sendUnackNumber, roundTripTimeout);
+            }
         else
-            this.tcpLogger.logTimeOutEvent(this.sourceId,0,sendUnackNumber,roundTripTimeout);
+            if(this.sourceId!=11) {
+                this.tcpLogger.logTimeOutEvent(this.sourceId, 0, sendUnackNumber, roundTripTimeout);
+            }
     }
 
     /**

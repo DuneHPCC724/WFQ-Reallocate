@@ -145,8 +145,10 @@ public class SQSWFQQueue implements Queue{
                     result = false; // Packet dropped since computed round is too far away
                     if (islogswitch) {
                         if (fullDrop(p)) {
+                            SimulationLogger.logPromoteWeight(p.getFlowId(),p.getFlowset_num(),Simulator.getCurrentTime(),weight,PromoteWeight,t,p.getSequenceNumber(),1);
                             SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
                         } else {
+                            SimulationLogger.logPromoteWeight(p.getFlowId(),p.getFlowset_num(),Simulator.getCurrentTime(),weight,PromoteWeight,t,p.getSequenceNumber(),2);
                             SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
                         }
                     }
@@ -157,14 +159,17 @@ public class SQSWFQQueue implements Queue{
                         QueueOccupied = bytesEstimate;
                         flowBytesSent.put(Id, bid);
                         if (islogswitch) {
+                            SimulationLogger.logPromoteWeight(p.getFlowId(),p.getFlowset_num(),Simulator.getCurrentTime(),weight,PromoteWeight,t,p.getSequenceNumber(),0);
                             SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
                         }
                     } else {
                         result = false;
                         if (islogswitch) {
                             if (fullDrop(p)) {
+                                SimulationLogger.logPromoteWeight(p.getFlowId(),p.getFlowset_num(),Simulator.getCurrentTime(),weight,PromoteWeight,t,p.getSequenceNumber(),1);
                                 SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
                             } else {
+                                SimulationLogger.logPromoteWeight(p.getFlowId(),p.getFlowset_num(),Simulator.getCurrentTime(),weight,PromoteWeight,t,p.getSequenceNumber(),2);
                                 SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
                             }
                         }

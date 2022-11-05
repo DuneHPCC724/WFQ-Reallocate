@@ -111,7 +111,7 @@ public class TcpLogger implements LoggerCallback {
 
     public void logTimeOutEvent(int transportID,int flowset_num,long sequenceNumber,long newRTT){
         try {
-            TimeoutWriter.write(flowId+","+flowset_num+","+transportID+","+sequenceNumber+","+newRTT+","+","+Simulator.getCurrentTime()+"\n");
+            TimeoutWriter.write(flowId+","+flowset_num+","+transportID+","+sequenceNumber+","+newRTT+","+Simulator.getCurrentTime()+"\n");
         }catch (IOException e){
             throw new LogFailureException(e);
         }

@@ -556,7 +556,7 @@ def analyze_Acked_Pearson(flows):
             pf.write("99.99th Pearson: "+str(Pearsons9999[unit])+"\n")
             pf.write("1th Pearson: "+str(Pearsons001[unit])+"\n")
             pf.write("0.01th Pearson: "+str(Pearsons00001[unit])+"\n")
-    return medianPearsons,AvgPutPerWeight,np.sum([value for value in burstGoodPutDic.values()])
+    return medianPearsons,AvgPutPerWeight,np.sum([value for value in burstGoodPutDic.values()]),np.sum(NormalBs),np.mean([value for value in burstGoodPutDic.values()]),np.mean(NormalBs)
 
 
 
@@ -952,7 +952,8 @@ def analyze_timeout_rate(flows):
             id = int(row[0])
             flowset_num = int(row[1])
             if(flowset_num == 0):
-                timeoutcount[id] += 1
+                if id in flows.keys():
+                    timeoutcount[id] += 1
             else:
                 timeoutcount[-flowset_num] += 1
     with open(analysis_folder_path + "/Timeout_Rates.csv","w") as timeout_file:
@@ -970,6 +971,46 @@ def analyze_timeout_rate(flows):
         writer.writerow(["total",total_timeout*1.0/total_packets,total_timeout,total_packets])
         return total_timeout*1.0/total_packets
 
+def analyze_promote_weight(flows):
+    promote_weight_dic = {}
+    with open(run_folder_path+"/promote_weight.csv.log","r") as promote_weight:
+        reader = csv.reader(promote_weight)
+        for row in reader:
+            flowid = int(row[0])
+            flowset_num = int(row[1])
+            if flowset_num != 0:
+                promote_weight = float(row[4])
+                if -flowset_num not in promote_weight_dic.keys():
+                    promote_weight_dic[-flowset_num] = [promote_weight]
+                else:
+                    promote_weight_dic[-flowset_num].append(promote_weight)
+    promoteWeightFile = open(analysis_folder_path+"/promote_weight.csv","w",newline='')
+    PWFWriter = csv.writer(promoteWeightFile)
+    sortedkey = [key for key in promote_weight_dic.keys()]
+    sortedkey.sort()
+    for id in sortedkey:
+        PWFWriter.writerow([id,'{:e}'.format(np.mean(promote_weight_dic[id])),'{:e}'.format(flows[id].weight)])
+
+def analyze_burstflow_inorder():
+    burst_dic = {}
+    with open(run_folder_path+"/promote_weight.csv.log","r") as promote_weight:
+        reader = csv.reader(promote_weight)
+        for row in reader:
+            flowid = int(row[0])
+            flowset_num = int(row[1])
+            if flowset_num != 0:
+                if flowid not in burst_dic.keys():
+                    burst_dic[flowid] = [row]
+                else:
+                    burst_dic[flowid].append(row)
+    burstOrderFile = open(analysis_folder_path+"/burstflow_inorder.csv","w",newline='')
+    BOFWriter = csv.writer(burstOrderFile)
+    sortedkey = [key for key in burst_dic.keys()]
+    sortedkey.sort()
+    for id in sortedkey:
+        for row in burst_dic[id]:
+            BOFWriter.writerow(row)
+
 
 
             # Call analysis functions
@@ -980,29 +1021,34 @@ Flow_initiate(flows)
 # nfms = analyze_throughput_and_NFM(flows)
 # analyze_ack_bytes()
 # analyze_Inflight_Perflow(flows)
-# droprate = analyze_total_drop_rate(flows, 10000000)
+droprate = analyze_total_drop_rate(flows, 10000000)
 # analyze_perflow_drop_rate(flows, 10000000)
-# util = analyze_buffer_util(flows)
-# droprate=analyze_timeout_rate(flows)
+util = analyze_buffer_util(flows)
+droprate=analyze_timeout_rate(flows)
+# analyze_promote_weight(flows)
+# analyze_burstflow_inorder()
 
-median_pearsons,weightgoodput,bgoodput = analyze_Acked_Pearson(flows)
+median_pearsons,weightgoodput,bgoodput,ngoodput,meanbgootput,meanngoodput = analyze_Acked_Pearson(flows)
 with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
     Writer = csv.writer(sumfile)
     temp1 = []
     temp2 = []
     temp1.append(" ")
     temp2.append(run_folder_path)
+    temp2.append(bgoodput)
+    temp2.append(ngoodput)
+    temp2.append(bgoodput+ngoodput)
+    temp2.append(meanbgootput)
+    temp2.append(meanngoodput)
 #     for put in weightgoodput:
 #         temp2.append(put)
 #     for k,v in nfms.items():
-#                 temp1.append(k)
-#                 temp2.append(v)
-#     temp2.append(droprate)
-#     temp2.append(ngoodput)
-#     for k,v in median_pearsons.items():
 #         temp1.append(k)
 #         temp2.append(v)
-    temp2.append(bgoodput)
+#     temp2.append(droprate)
+    for k,v in median_pearsons.items():
+        temp1.append(k)
+        temp2.append(v)
 #     #     Writer.writerow(temp1)
     Writer.writerow(temp2)
 
@@ -1014,3 +1060,4 @@ os.system("rm -f " +run_folder_path + "/Inflight_Bytes.csv.log")
 os.system("rm -f " +run_folder_path + "/congestion_window.csv.log")
 os.system("rm -f " +run_folder_path + "/Timeout_Events.csv.log")
 os.system("rm -f " +run_folder_path + "/Acked_Events.csv.log")
+os.system("rm -f " +run_folder_path + "/promote_weight.csv.log")

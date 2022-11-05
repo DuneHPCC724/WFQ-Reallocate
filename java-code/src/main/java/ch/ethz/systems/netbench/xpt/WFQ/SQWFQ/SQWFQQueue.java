@@ -66,34 +66,11 @@ public class SQWFQQueue implements Queue{
         boolean result = true;
 
         try {
-            String Id = p.getDiffFlowId3();
-            float weight = p.getWeight();
-            long bid = (long)(this.currentRound * this.R * weight);
-            if(flowBytesSent.containsKey(Id)){
-                if(bid < (Long)flowBytesSent.get(Id)){
-                    bid = (Long)flowBytesSent.get(Id);
-                }
-            }
-            bid = bid + (p.getSizeBit()/8);
-
-            long packetRound = (long) (bid/(this.R*weight));
-//            PriorityHeader header = (PriorityHeader) p;
-//            header.setPriority(packetRound);
-            if((packetRound - this.currentRound) > this.queuelength/this.R){
-                result = false; // Packet dropped since computed round is too far away
-                if (islogswitch) {
-                    if (fullDrop(p)) {
-                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
-                    } else {
-                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
-                    }
-                }
-            } else {
-                long bytesEstimate = QueueOccupied + p.getSizeBit()/8;
-                if (bytesEstimate <= queuelength){
+            if(p.isSYN() || p.isACK()){
+                long sbytesEstimate = QueueOccupied + p.getSizeBit()/8;
+                if (sbytesEstimate <= queuelength){
                     result = true;
-                    QueueOccupied = bytesEstimate;
-                    flowBytesSent.put(Id, bid);
+                    QueueOccupied = sbytesEstimate;
                     if (islogswitch) {
                         SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
                     }
@@ -105,6 +82,56 @@ public class SQWFQQueue implements Queue{
                             SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
                         } else {
                             SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                        }
+                    }
+                }
+            }
+            else {
+                String Id = p.getDiffFlowId3();
+                float weight = p.getWeight();
+                long bid = (long) (this.currentRound * this.R * weight);
+                if (flowBytesSent.containsKey(Id)) {
+                    if (bid < (Long) flowBytesSent.get(Id)) {
+                        bid = (Long) flowBytesSent.get(Id);
+                    }
+                }
+                bid = bid + (p.getSizeBit() / 8);
+
+                long finishTime = (long)((bid-this.currentRound*weight*this.R)/(this.R*weight));
+//                long packetRound = (long) ((double)bid / (this.R * weight)) - currentRound;
+//            PriorityHeader header = (PriorityHeader) p;
+//            header.setPriority(packetRound);
+                if ((finishTime) > this.queuelength / this.R) {
+                    result = false; // Packet dropped since computed round is too far away
+                    if (islogswitch) {
+                        if (fullDrop(p)) {
+                            SimulationLogger.logPromoteWeight(p.getFlowId(), p.getFlowset_num(), Simulator.getCurrentTime(), weight, 0, 0, p.getSequenceNumber(), 1);
+                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+                        } else {
+                            SimulationLogger.logPromoteWeight(p.getFlowId(), p.getFlowset_num(), Simulator.getCurrentTime(), weight, 0, 0, p.getSequenceNumber(), 2);
+                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                        }
+                    }
+                } else {
+                    long bytesEstimate = QueueOccupied + p.getSizeBit() / 8;
+                    if (bytesEstimate <= queuelength) {
+                        result = true;
+                        QueueOccupied = bytesEstimate;
+                        flowBytesSent.put(Id, bid);
+                        if (islogswitch) {
+                            SimulationLogger.logPromoteWeight(p.getFlowId(), p.getFlowset_num(), Simulator.getCurrentTime(), weight, 0, 0, p.getSequenceNumber(), 0);
+                            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+                        }
+                    } else {
+                        result = false;
+                        if (islogswitch) {
+                            if (fullDrop(p)) {
+                                SimulationLogger.logPromoteWeight(p.getFlowId(), p.getFlowset_num(), Simulator.getCurrentTime(), weight, 0, 0, p.getSequenceNumber(), 1);
+                                SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+                            } else {
+                                SimulationLogger.logPromoteWeight(p.getFlowId(), p.getFlowset_num(), Simulator.getCurrentTime(), weight, 0, 0, p.getSequenceNumber(), 2);
+                                SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), currentRound, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                            }
                         }
                     }
                 }
@@ -185,7 +212,10 @@ public class SQWFQQueue implements Queue{
             if (islogswitch) {
                 SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), ((FullExtTcpPacket) packet).getSequenceNumber(), currentRound, Simulator.getCurrentTime(), packet.getSizeBit() / 8, BufferUtil());
             }
-            updateRound(packet);
+            FullExtTcpPacket p = (FullExtTcpPacket) packet;
+            if (!p.isSYN() && !p.isACK()){
+                updateRound(packet);
+            }
             QueueOccupied -= packet.getSizeBit()/8;
             return packet;
         } catch (Exception e){
