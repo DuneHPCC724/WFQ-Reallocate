@@ -9,6 +9,7 @@ public class MainFromIntelliJ_SQEX2 {
         //EX1
         MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_SQEX2/EX1/SQWFQ.properties"});
         MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_SQEX2/EX1/PCQ.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_SQEX2/EX1/PCQ2.properties"});
         MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_SQEX2/EX1/AIFO.properties"});
         MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_SQEX2/EX1/PIFOOUR.properties"});
         MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_SQEX2/EX1/DCTCP.properties"});
