@@ -46,9 +46,9 @@ public class Longtermsocket {
     }
     //trigger by burst_socket over event
     public void Start_Rest(){
-        //long RealrestTime = RestTimeRandom.nextLong()%(this.resttimeNs)+this.resttimeNs/2;    //get a random rest time, expectation is resttimeNs,if Random of python is uniform
+        long RealrestTime = Math.abs(RestTimeRandom.nextLong()%(this.resttimeNs))+this.resttimeNs/2;    //get a random rest time, expectation is resttimeNs,if Random of python is uniform
 //        long RealrestTime = this.resttimeNs/(((int)(this.weight/0.0006)));
-        long RealrestTime = this.resttimeNs;
+//        long RealrestTime = this.resttimeNs;
         Simulator.registerEvent(new StartBurstEvent(RealrestTime,this.transportLayer,this.dstID,this.burst_bytes,(float)this.weight,this.LongtermID));
     }
 }

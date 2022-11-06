@@ -75,53 +75,82 @@ public class AIFOQueue implements Queue{
         boolean result = true;
 
         try {
-            String Id = p.getDiffFlowId3();
-            long startTime = this.round;
-            if(last_finishTime.containsKey(Id)){
-                if((long)last_finishTime.get(Id) > round){
-                    startTime = (long)last_finishTime.get(Id);
-                }
-            }
-            float weight = p.getWeight();
-            long rank = (long)(startTime + (p.getSizeBit()/(8*weight)));
-
-            int quantileCounter = 0;
-            int windowCounter = 0;
-            for (int i=0; i<windowSize; i++){
-                if (window[i] != (long)-1) {
-                    windowCounter++;
-                    if (rank > window[i]) {
-                        quantileCounter++;
-                    }
-                }
-            }
-            double quantile;
-            if(windowCounter == (long)0){
-                quantile = 0;
-            }
-            else {
-                quantile = quantileCounter*1.0/windowCounter;
-            }
-
-            window[windowPointer] = rank;
-            windowPointer = (windowPointer+1)%windowSize;
-
-            double threshhold = (queuelength-QueueOccupied)/((1-k)*queuelength);
-            if (QueueOccupied <= k*queuelength || quantile <= threshhold){
-                long bytesEstimate = QueueOccupied + p.getSizeBit()/8;
-                if (bytesEstimate <= queuelength){
-                    last_finishTime.put(Id, rank);
-                    QueueOccupied = bytesEstimate;
-
-                    PriorityHeader header = (PriorityHeader) p;
-                    header.setPriority(rank);
-//                    result = aifo.offer(p);
+            if(p.isSYN() || p.isACK()){
+                long sbytesEstimate = QueueOccupied + p.getSizeBit()/8;
+                if (sbytesEstimate <= queuelength){
                     result = true;
+                    QueueOccupied = sbytesEstimate;
                     if (islogswitch) {
                         SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8);
                     }
                 }
                 else {
+                    result = false;
+                    if (islogswitch) {
+                        if (fullDrop(p)) {
+                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+                        } else {
+                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                        }
+                    }
+                }
+            }
+            else {
+                String Id = p.getDiffFlowId3();
+                long startTime = this.round;
+                if (last_finishTime.containsKey(Id)) {
+                    if ((long) last_finishTime.get(Id) > round) {
+                        startTime = (long) last_finishTime.get(Id);
+                    }
+                }
+                float weight = p.getWeight();
+                long rank = (long) (startTime + (p.getSizeBit() / (8 * weight)));
+
+                int quantileCounter = 0;
+                int windowCounter = 0;
+                for (int i = 0; i < windowSize; i++) {
+                    if (window[i] != (long) -1) {
+                        windowCounter++;
+                        if (rank > window[i]) {
+                            quantileCounter++;
+                        }
+                    }
+                }
+                double quantile;
+                if (windowCounter == (long) 0) {
+                    quantile = 0;
+                } else {
+                    quantile = quantileCounter * 1.0 / windowCounter;
+                }
+
+                window[windowPointer] = rank;
+                windowPointer = (windowPointer + 1) % windowSize;
+
+                double threshhold = (queuelength - QueueOccupied) / ((1 - k) * queuelength);
+                if (QueueOccupied <= k * queuelength || quantile <= threshhold) {
+                    long bytesEstimate = QueueOccupied + p.getSizeBit() / 8;
+                    if (bytesEstimate <= queuelength) {
+                        last_finishTime.put(Id, rank);
+                        QueueOccupied = bytesEstimate;
+
+                        PriorityHeader header = (PriorityHeader) p;
+                        header.setPriority(rank);
+//                    result = aifo.offer(p);
+                        result = true;
+                        if (islogswitch) {
+                            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+                        }
+                    } else {
+                        if (islogswitch) {
+                            if (fullDrop(p)) {
+                                SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+                            } else {
+                                SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                            }
+                        }
+                        result = false;
+                    }
+                } else {
                     if (islogswitch) {
                         if (fullDrop(p)) {
                             SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
@@ -131,16 +160,6 @@ public class AIFOQueue implements Queue{
                     }
                     result = false;
                 }
-            }
-            else {
-                if (islogswitch) {
-                    if (fullDrop(p)) {
-                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
-                    } else {
-                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
-                    }
-                }
-                result = false;
             }
         } catch (Exception e){
             e.printStackTrace();
