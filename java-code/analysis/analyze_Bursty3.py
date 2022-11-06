@@ -892,7 +892,8 @@ def analyze_timeout_rate(flows):
             id = int(row[0])
             flowset_num = int(row[1])
             if(flowset_num == 0):
-                timeoutcount[id] += 1
+                if id in flows.keys():
+                    timeoutcount[id] += 1
             else:
                 timeoutcount[-flowset_num] += 1
     with open(analysis_folder_path + "/Timeout_Rates.csv","w") as timeout_file:
@@ -920,9 +921,25 @@ nfms = analyze_throughput_and_NFM(flows)
 #droprate = analyze_total_drop_rate(flows, 10000000)
 # analyze_perflow_drop_rate(flows, 10000000)
 util = analyze_buffer_util(flows)
-analyze_timeout_rate(flows)
+# analyze_timeout_rate(flows)
 
 median_pearsons = analyze_Acked_Pearson(flows)
+
+with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
+    Writer = csv.writer(sumfile)
+    temp1 = []
+    temp2 = []
+    temp1.append(" ")
+    temp2.append(run_folder_path)
+
+    for k,v in nfms.items():
+        temp1.append(k)
+        temp2.append(v)
+    for k,v in median_pearsons.items():
+        temp1.append(k)
+        temp2.append(v)
+#     #     Writer.writerow(temp1)
+    Writer.writerow(temp2)
 
 os.system("rm -f " +run_folder_path + "/dequeue_event.csv.log")
 os.system("rm -f " +run_folder_path + "/enqueue_event.csv.log")
