@@ -445,11 +445,17 @@ def analyze_Acked_Pearson(flows):
     BurstTotalGoodputFile = open(analysis_folder_path+"/Burst_total_goodput.csv","w",newline='')
     BTGFWriter = csv.writer(BurstTotalGoodputFile)
     burstGoodPutDic = {}
+    burstListperWeight = {}
+    BurstAvgPutPerWeight = []
     for id in AckSeqs.keys():
         if id < 0:
             if len(AckSeqs[id]) == 0:
                 burstGoodPutDic[id] = 0
                 BTGFWriter.writerow([id,'{:e}'.format(burstGoodPutDic[id]),flows[id].weight])
+                if flows[id].weight in burstListperWeight.keys():
+                    burstListperWeight[flows[id].weight].append(burstGoodPutDic[id])
+                else:
+                    burstListperWeight[flows[id].weight] = [burstGoodPutDic[id]]
             else:
                 burstGoodPutDic[id] = 0
                 temp = AckSeqs[id][0]
@@ -461,6 +467,15 @@ def analyze_Acked_Pearson(flows):
                         temp = AckSeqs[id][i]
                 burstGoodPutDic[id] += temp
                 BTGFWriter.writerow([id,'{:e}'.format(burstGoodPutDic[id]),flows[id].weight])
+                if flows[id].weight in burstListperWeight.keys():
+                    burstListperWeight[flows[id].weight].append(burstGoodPutDic[id])
+                else:
+                    burstListperWeight[flows[id].weight] = [burstGoodPutDic[id]]
+    BurstListPerWeightKeys = [key for key in burstListperWeight.keys()]
+    BurstListPerWeightKeys.sort()
+    for key in BurstListPerWeightKeys:
+        BTGFWriter.writerow([key,'{:e}'.format(np.mean(burstListperWeight[key]))])
+        BurstAvgPutPerWeight.append(np.mean(burstListperWeight[key]))
     BTGFWriter.writerow(["total",'{:e}'.format(np.sum([value for value in burstGoodPutDic.values()]))])
     BurstNormFile = open(analysis_folder_path+"/Normalized_Acked_Bytes_Burst.csv","w",newline='')
     BNFWriter = csv.writer(BurstNormFile)
@@ -556,7 +571,7 @@ def analyze_Acked_Pearson(flows):
             pf.write("99.99th Pearson: "+str(Pearsons9999[unit])+"\n")
             pf.write("1th Pearson: "+str(Pearsons001[unit])+"\n")
             pf.write("0.01th Pearson: "+str(Pearsons00001[unit])+"\n")
-    return medianPearsons,AvgPutPerWeight,np.sum([value for value in burstGoodPutDic.values()]),np.sum(NormalBs),np.mean([value for value in burstGoodPutDic.values()]),np.mean(NormalBs)
+    return medianPearsons,AvgPutPerWeight,BurstAvgPutPerWeight,np.sum([value for value in burstGoodPutDic.values()]),np.sum(NormalBs),np.mean([value for value in burstGoodPutDic.values()]),np.mean(NormalBs)
 
 
 
@@ -1028,7 +1043,7 @@ droprate=analyze_timeout_rate(flows)
 # analyze_promote_weight(flows)
 # analyze_burstflow_inorder()
 
-median_pearsons,weightgoodput,bgoodput,ngoodput,meanbgootput,meanngoodput = analyze_Acked_Pearson(flows)
+median_pearsons,weightgoodput,burstweightgoodput,bgoodput,ngoodput,meanbgootput,meanngoodput = analyze_Acked_Pearson(flows)
 
 with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as sumfile:
     Writer = csv.writer(sumfile)
@@ -1037,6 +1052,9 @@ with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as 
     temp1.append(" ")
     temp2.append(run_folder_path)
 
+    temp2.append(bgoodput)
+    for put in burstweightgoodput:
+        temp2.append(put)
     for k,v in nfms.items():
         temp1.append(k)
         temp2.append(v)
@@ -1048,7 +1066,6 @@ with open(run_folder_path+"/../../../"+"summury_statics.csv","a",newline='') as 
     for k,v in median_pearsons.items():
         temp1.append(k)
         temp2.append(v)
-    temp2.append(bgoodput)
 #     #     Writer.writerow(temp1)
     Writer.writerow(temp2)
 

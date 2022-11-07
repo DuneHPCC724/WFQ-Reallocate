@@ -15,6 +15,7 @@ import ch.ethz.systems.netbench.core.run.infrastructure.BaseInitializer;
 import ch.ethz.systems.netbench.core.run.routing.RoutingPopulator;
 import ch.ethz.systems.netbench.core.run.traffic.TrafficPlanner;
 import ch.ethz.systems.netbench.core.utility.UnitConverter;
+import ch.ethz.systems.netbench.ext.poissontraffic.PoissonArrivalPlanner;
 import ch.ethz.systems.netbench.xpt.WFQTCP.Weight_Distribution;
 import sun.awt.X11.XSystemTrayPeer;
 
@@ -69,6 +70,7 @@ public class MainFromProperties {
         }
         else
             planTraffic(runtimeNs, initializer.getIdToTransportLayer());
+
 
         // Save analysis command
         String analysisCommand = Simulator.getConfiguration().getPropertyWithDefault("analysis_command", null);
@@ -271,6 +273,9 @@ public class MainFromProperties {
         planner.createPlan(runtimeNs);
         System.out.println("Finished generating long  traffic flow starts.\n");
     }
+
+
+
 
     /**
      * Manage the topology, meaning that the topology can be extended with servers.

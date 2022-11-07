@@ -5,6 +5,7 @@ import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
 import ch.ethz.systems.netbench.core.run.traffic.TrafficPlanner;
 import ch.ethz.systems.netbench.ext.poissontraffic.flowsize.FlowSizeDistribution;
+import ch.ethz.systems.netbench.ext.poissontraffic.flowsize.pFabricWebSearchAlbert;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -26,6 +27,8 @@ public class UniformWeightPlanner extends TrafficPlanner {
     }
 
     private final FlowSizeDistribution flowSizeDistribution;
+
+    private FlowSizeDistribution poissonDistributionforOutcast;
     private final Random ownIndependentRng;
     private final RandomCollection<Pair<Integer, Integer>> randomPairGenerator;
     private final RandomCollection<Pair<Integer, Integer>> randomPairGenerator2;
@@ -37,12 +40,14 @@ public class UniformWeightPlanner extends TrafficPlanner {
     public UniformWeightPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, FlowSizeDistribution flowSizeDistribution,int weight_num ,int FlowNum,PairDistribution pairDistribution,String wdistribution,boolean needRng) {
         super(idToTransportLayerMap);
         this.flowSizeDistribution = flowSizeDistribution;
+        this.poissonDistributionforOutcast = null;
         this.TotalFlowNumber = FlowNum;
         this.WeightNumber = weight_num;
-        if(!needRng){
+        if(needRng){
             this.ownIndependentRng = Simulator.selectIndependentRandom("uniform_arrival"+Integer.toString(FlowNum));
             this.randomPairGenerator = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw"+Integer.toString(FlowNum)));
             this.randomPairGenerator2 = new RandomCollection<>(Simulator.selectIndependentRandom("pair_probabilities_draw2"+Integer.toString(FlowNum)));
+            this.poissonDistributionforOutcast = new  pFabricWebSearchAlbert(2);
         }
         else {
             this.ownIndependentRng = Simulator.selectIndependentRandom("uniform_arrival_long"+Integer.toString(FlowNum));
@@ -95,16 +100,7 @@ public class UniformWeightPlanner extends TrafficPlanner {
         double pdfNumBytes = 1.0 /  (this.idToTransportLayerMap.size() - 1);
         int numofserver = this.idToTransportLayerMap.keySet().size();
         int dst = 11;//temp
-//        int dst_ind = ownIndependentRng.nextInt(numofserver);
-//        int count = 0;
-//        for(Integer i:this.idToTransportLayerMap.keySet())
-//        {
-//            if(count == dst_ind){
-//                dst = i;
-//                break;
-//            }
-//            count++;
-//        }
+
         for(Integer src:this.idToTransportLayerMap.keySet()){
             if(!src.equals(dst)){
                 this.randomPairGenerator.add(pdfNumBytes,new ImmutablePair<>(src,dst));
@@ -144,7 +140,7 @@ public class UniformWeightPlanner extends TrafficPlanner {
         switch(this.pairDistribution){
             case Incast:
                 this.createPlan_Incast();
-                this.createPlan_Outcast();
+                this.createPlan_Outcast(durationNs);
                 break;
             case Side_To_Side:
                 this.createPlan_Side();
@@ -165,13 +161,32 @@ public class UniformWeightPlanner extends TrafficPlanner {
         }
     }
 
-    public void createPlan_Outcast(){
+    public void createPlan_Outcast(long durationNs){
         double total_weight =1.0;
         double[] weights = this.wd.get_weights_uniformlyset(500,total_weight);
-        for(int i=0;i<weights.length/5;i++){
-            double weight_current = weights[i];
+
+        long lambdaFlowStartsPerSecond = 100;
+        long time = 0;
+        int x = 0;
+        long sum = 0;
+        // Generate flow start events until the duration
+        // of the experiment has lapsed
+        long nextProgressLog = durationNs / 10;
+        int weight_index = 0;
+        while (time <= durationNs) {
+            long interArrivalTime = 10000000;
+            sum += interArrivalTime;
+            // Register flow
             Pair<Integer, Integer> pair = choosePair();
-            registerFlow(0,  pair.getRight(), pair.getLeft(),flowSizeDistribution.generateFlowSizeByte(),(float) weight_current,0);
+            double weight_current = weights[weight_index];
+            registerFlow(time,  pair.getRight(), pair.getLeft(),this.poissonDistributionforOutcast.generateFlowSizeByte(),(float) weight_current,0);
+            weight_index = (weight_index+100)%500;
+            // Advance time to next arrival
+            time += interArrivalTime;
+            x++;
+            if (time > nextProgressLog) {
+                nextProgressLog += durationNs / 10;
+            }
         }
     }
 

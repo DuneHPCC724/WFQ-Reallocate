@@ -44,7 +44,8 @@ public class DCTCPLongtermsocket {
     }
     //trigger by burst_socket over event
     public void Start_Rest(){
-        long RealrestTime = RestTimeRandom.nextLong()%(this.resttimeNs)+this.resttimeNs/2;    //get a random rest time, expectation is resttimeNs,if Random of python is uniform
+        long RealrestTime = Math.abs(RestTimeRandom.nextLong()%(this.resttimeNs))+this.resttimeNs/2;
+//        long RealrestTime = RestTimeRandom.nextLong()%(this.resttimeNs)+this.resttimeNs/2;    //get a random rest time, expectation is resttimeNs,if Random of python is uniform
         Simulator.registerEvent(new DCTCPStartBurstEvent(RealrestTime,this.transportLayer,this.dstID,this.burst_bytes,(float)this.weight,this.LongtermID));
     }
 }

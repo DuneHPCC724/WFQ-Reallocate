@@ -34,8 +34,8 @@ public class WFQTcpSocket extends NewRenoTcpSocket {
     {
         float weight = this.weight;
         int flowset_num = this.flowset_num;
-        if(destinationId == 11 && ACK == true){
-            return  new FullExtTcpPacket(flowId, 0, sourceId, destinationId,
+        if(ACK == true){
+            FullExtTcpPacket packet =   new FullExtTcpPacket(flowId, 0, sourceId, destinationId,
                     100, 80, 80, // TTL, source port, destination port
                     sequenceNumber, ackNumber, // Seq number, Ack number
                     false, false, ECE, // NS, CWR, ECE
@@ -46,6 +46,8 @@ public class WFQTcpSocket extends NewRenoTcpSocket {
                     flowset_num,
                     false
             );
+//            packet.setSizeBit(0);
+            return packet;
         }
         else{
             return  new FullExtTcpPacket(flowId, dataSizeByte, sourceId, destinationId,

@@ -180,7 +180,10 @@ public class AIFOQueue implements Queue{
             }
 
             // Update round number
-            this.updateRound(packet);
+            FullExtTcpPacket p = (FullExtTcpPacket) packet;
+            if (!p.isSYN() && !p.isACK()){
+                updateRound(packet);
+            }
             QueueOccupied -= packet.getSizeBit()/8;
             return packet;
         } catch (Exception e){

@@ -10,7 +10,7 @@ public abstract class Packet implements PacketHeader {
 
     private int flowletId;
     private final long flowId;
-    private final long sizeBit;
+    private long sizeBit;
     private final long departureTime;
 
     /**
@@ -46,6 +46,8 @@ public abstract class Packet implements PacketHeader {
     public long getSizeBit() {
         return sizeBit;
     }
+
+    public void setSizeBit(long sizebit){ this.sizeBit = sizebit;}
 
     /**
      * Retrieve the departure time (equal to the construction time)
