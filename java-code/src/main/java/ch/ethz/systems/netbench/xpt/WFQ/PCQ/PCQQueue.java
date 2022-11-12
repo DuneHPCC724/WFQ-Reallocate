@@ -92,11 +92,11 @@ public class PCQQueue implements Queue {
             // Compute the packet bid (when will the last byte be transmitted) as the max. between the current round (in bytes) and the last bid of the flow
 //            float weight = p.getWeight();// <yuxin> flow weight
 
-
-            if(weight != 1 && p.getFlowId() == 6){
-                System.out.println(this.ownId+","+p.getFlowId()+","+weight_origin+","+weight+","+this.OwnerPort.FlowIds+","+this.OwnerPort.weightTotal);
-
-            }
+//
+//            if(weight != 1 && p.getFlowId() == 6){
+//                System.out.println(this.ownId+","+p.getFlowId()+","+weight_origin+","+weight+","+this.OwnerPort.FlowIds+","+this.OwnerPort.weightTotal);
+//
+//            }
 
 //            float weight = 1;
             long bid = (long)(this.currentRound * this.bytesPerRound * weight);
