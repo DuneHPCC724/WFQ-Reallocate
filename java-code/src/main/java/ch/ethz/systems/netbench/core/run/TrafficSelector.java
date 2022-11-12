@@ -3,11 +3,8 @@ package ch.ethz.systems.netbench.core.run;
 import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.config.exceptions.PropertyValueInvalidException;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
-import ch.ethz.systems.netbench.ext.poissontraffic.FromStringArrivalPlanner;
+import ch.ethz.systems.netbench.ext.poissontraffic.*;
 import ch.ethz.systems.netbench.core.run.traffic.TrafficPlanner;
-import ch.ethz.systems.netbench.ext.poissontraffic.PoissonArrivalPlanner;
-import ch.ethz.systems.netbench.ext.poissontraffic.UniformWeightLongPlanner;
-import ch.ethz.systems.netbench.ext.poissontraffic.UniformWeightPlanner;
 import ch.ethz.systems.netbench.ext.trafficpair.TrafficPairPlanner;
 import ch.ethz.systems.netbench.ext.poissontraffic.flowsize.*;
 
@@ -161,6 +158,146 @@ class TrafficSelector {
 
                         case "dual_all_to_all_server_fraction":
                             return new PoissonArrivalPlanner(
+                                    idToTransportLayer,
+                                    Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
+                                    flowSizeDistribution,
+                                    PoissonArrivalPlanner.PairDistribution.DUAL_ALL_TO_ALL_SERVER_FRACTION
+                            );
+
+                        default:
+                            throw new PropertyValueInvalidException(Simulator.getConfiguration(), "traffic_probabilities_generator");
+
+                    }
+
+
+                }
+
+
+            //WFQ
+            case "perflow_weight_poisson_arrival":
+
+                FlowSizeDistribution flowSizeDistribution_perflow;
+                switch (Simulator.getConfiguration().getPropertyOrFail("traffic_flow_size_dist")) {
+
+                    case "pfabric_data_mining_lower_bound": {
+                        flowSizeDistribution = new PFabricDataMiningLowerBoundFSD();
+                        break;
+                    }
+                    case "pfabric_data_mining_upper_bound": {
+                        flowSizeDistribution = new PFabricDataMiningUpperBoundFSD();
+                        break;
+                    }
+
+                    case "pfabric_web_search_lower_bound": {
+                        flowSizeDistribution = new PFabricWebSearchLowerBoundFSD();
+                        break;
+                    }
+
+                    case "pfabric_data_mining_albert": {
+                        flowSizeDistribution = new pFabricDataMiningAlbert();
+                        break;
+                    }
+
+                    case "pfabric_web_search_albert": {
+                        flowSizeDistribution = new pFabricWebSearchAlbert();
+                        break;
+                    }
+
+                    case "pfabric_web_search_upper_bound": {
+                        flowSizeDistribution = new PFabricWebSearchUpperBoundFSD();
+                        break;
+                    }
+                    case "pareto": {
+                        flowSizeDistribution = new ParetoFSD(
+                                Simulator.getConfiguration().getDoublePropertyOrFail("traffic_flow_size_dist_pareto_shape"),
+                                Simulator.getConfiguration().getLongPropertyOrFail("traffic_flow_size_dist_pareto_mean_kilobytes")
+                        );
+                        break;
+                    }
+
+                    case "uniform": {
+                        flowSizeDistribution = new UniformFSD(
+                                Simulator.getConfiguration().getLongPropertyOrFail("traffic_flow_size_dist_uniform_mean_bytes")
+                        );
+                        break;
+                    }
+
+
+
+                    default: {
+                        throw new PropertyValueInvalidException(
+                                Simulator.getConfiguration(),
+                                "traffic_flow_size_dist"
+                        );
+                    }
+
+                }
+
+                // Attempt to retrieve pair probabilities file
+                String pairProbabilitiesFile_perflow = Simulator.getConfiguration().getPropertyWithDefault("traffic_probabilities_file", null);
+
+                if (pairProbabilitiesFile_perflow != null) {
+
+                    // Create poisson arrival plan from file
+                    return null;
+
+                } else {
+
+                    // If we don't supply the pair probability file we fallback to all-to-all
+                    String generativePairProbabilities = Simulator.getConfiguration().getPropertyWithDefault("traffic_probabilities_generator", "all_to_all");
+
+                    switch (generativePairProbabilities) {
+                        case "all_to_all":
+
+                            return new PerFlowWeightPoissonPlanner(
+                                    idToTransportLayer,
+                                    Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
+                                    flowSizeDistribution,
+                                    PoissonArrivalPlanner.PairDistribution.ALL_TO_ALL
+                            );
+
+                        case "all_to_all_fraction":
+                            return new PerFlowWeightPoissonPlanner(
+                                    idToTransportLayer,
+                                    Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
+                                    flowSizeDistribution,
+                                    PoissonArrivalPlanner.PairDistribution.ALL_TO_ALL_FRACTION
+                            );
+
+                        case "all_to_all_server_fraction":
+                            return new PerFlowWeightPoissonPlanner(
+                                    idToTransportLayer,
+                                    Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
+                                    flowSizeDistribution,
+                                    PoissonArrivalPlanner.PairDistribution.ALL_TO_ALL_SERVER_FRACTION
+                            );
+
+                        case "pairings_fraction":
+                            return new PerFlowWeightPoissonPlanner(
+                                    idToTransportLayer,
+                                    Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
+                                    flowSizeDistribution,
+                                    PoissonArrivalPlanner.PairDistribution.PAIRINGS_FRACTION
+                            );
+
+                        case "skew_pareto_distribution":
+                            return new PerFlowWeightPoissonPlanner(
+                                    idToTransportLayer,
+                                    Simulator.getConfiguration().getDoublePropertyOrFail("traffic_lambda_flow_starts_per_s"),
+                                    flowSizeDistribution,
+                                    PoissonArrivalPlanner.PairDistribution.PARETO_SKEW_DISTRIBUTION
+                            );
+
+                        case "dual_all_to_all_fraction":
+                            return new PerFlowWeightPoissonPlanner(
+                                    idToTransportLayer,
+                                    Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
+                                    flowSizeDistribution,
+                                    PoissonArrivalPlanner.PairDistribution.DUAL_ALL_TO_ALL_FRACTION
+                            );
+
+                        case "dual_all_to_all_server_fraction":
+                            return new PerFlowWeightPoissonPlanner(
                                     idToTransportLayer,
                                     Simulator.getConfiguration().getIntegerPropertyOrFail("traffic_lambda_flow_starts_per_s"),
                                     flowSizeDistribution,

@@ -26,9 +26,9 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
         Incast      //add by WFQ
     }
 
-    private final double lambdaFlowStartsPerSecond;
-    private final FlowSizeDistribution flowSizeDistribution;
-    private final Random ownIndependentRng;
+    final double lambdaFlowStartsPerSecond;
+    final FlowSizeDistribution flowSizeDistribution;
+    final Random ownIndependentRng;
     private final RandomCollection<Pair<Integer, Integer>> randomPairGenerator;
 
     private PoissonArrivalPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, double lambdaFlowStartsPerSecond, FlowSizeDistribution flowSizeDistribution) {
@@ -780,7 +780,7 @@ public class PoissonArrivalPlanner extends TrafficPlanner {
      *
      * @return (src, dst) pair
      */
-    private Pair<Integer, Integer> choosePair() {
+    Pair<Integer, Integer> choosePair() {
         return this.randomPairGenerator.next();
     }
 

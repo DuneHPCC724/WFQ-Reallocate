@@ -1,9 +1,6 @@
 package ch.ethz.systems.netbench.core.network;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Abstraction for a network device.
@@ -26,6 +23,13 @@ public abstract class NetworkDevice {
     protected final List<Integer> connectedTo;
     protected final Map<Integer, OutputPort> targetIdToOutputPort;
     protected final Intermediary intermediary;
+
+
+
+    //add by WFQ
+    public Map<Integer,OutputPort> getTargetIdToOutputPort(){
+        return this.targetIdToOutputPort;
+    }
 
     /**
      * Constructor of a network device.

@@ -13,6 +13,8 @@ public class SQWFQOutputPort extends OutputPort {
 
     public SQWFQOutputPort(NetworkDevice ownNetworkDevice, NetworkDevice targetNetworkDevice, Link link, long sizeBytes) {
         super(ownNetworkDevice, targetNetworkDevice, link, new SQWFQQueue(sizeBytes, targetNetworkDevice.getIdentifier(), ownNetworkDevice.getIdentifier()));
+        SQWFQQueue q = (SQWFQQueue)getQueue();
+        q.setOwnerPort(this);
     }
 
     /**

@@ -5,7 +5,9 @@ import ch.ethz.systems.netbench.core.log.PortLogger;
 import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 
+import java.util.HashSet;
 import java.util.Queue;
+import java.util.Set;
 
 
 /**
@@ -60,6 +62,39 @@ public abstract class OutputPort {
         // Logging
         this.logger = new PortLogger(this);
 
+    }
+
+
+    //add by WFQ
+    protected double weightTotal = 0;
+    protected Set<Long> FlowIds = new HashSet<Long>();
+
+    public void IncreaseTotalWeight(float w,long flowid){
+        this.weightTotal += w;
+        this.FlowIds.add(flowid);
+    }
+
+    public void DecreaseTotalWeight(float w,long flowid){
+        this.weightTotal -= w;
+        this.FlowIds.remove(flowid);
+    }
+
+    public boolean ContainFlow(long flowid){
+        if(this.FlowIds.contains(flowid)){
+            return true;
+        }
+        else
+            return false;
+    }
+
+    public double getFlowWeight(long flowid,float weight){
+        if(this.ContainFlow(flowid)){
+            return weight*1.0/this.weightTotal;
+        }
+        else {
+            this.IncreaseTotalWeight(weight,flowid);
+            return weight*1.0/this.weightTotal;
+        }
     }
 
     /**

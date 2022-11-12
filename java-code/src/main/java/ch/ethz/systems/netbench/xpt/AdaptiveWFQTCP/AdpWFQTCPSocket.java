@@ -1,0 +1,48 @@
+package ch.ethz.systems.netbench.xpt.AdaptiveWFQTCP;
+
+import ch.ethz.systems.netbench.core.Simulator;
+import ch.ethz.systems.netbench.core.network.NetworkDevice;
+import ch.ethz.systems.netbench.core.network.OutputPort;
+import ch.ethz.systems.netbench.core.network.TransportLayer;
+import ch.ethz.systems.netbench.core.run.infrastructure.BaseInitializer;
+import ch.ethz.systems.netbench.ext.ecmp.EcmpSwitch;
+import ch.ethz.systems.netbench.xpt.WFQTCP.WFQTcpSocket;
+import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
+
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
+
+public class AdpWFQTCPSocket extends WFQTcpSocket{
+    public AdpWFQTCPSocket(TransportLayer transportLayer, long flowId, int sourceId, int destinationId, long flowSizeByte, float weight, int flowset_num) {
+        super(transportLayer, flowId, sourceId, destinationId, flowSizeByte,weight,flowset_num);
+    }
+
+    @Override
+    protected void handleAcknowledgment(FullExtTcpPacket packet){
+        super.handleAcknowledgment(packet);
+        if(isAllFlowConfirmed()){
+            this.UpdateWeightPool(packet);
+        }
+    }
+
+    public void UpdateWeightPool(FullExtTcpPacket packet) {
+        ArrayList<Integer> PathIds = packet.getPathIDs();
+        long flowid = packet.getFlowId();
+        BaseInitializer initializer = Simulator.getInitializer();
+        Map<Integer, NetworkDevice> integerNetworkDeviceMap = initializer.getIdToNetworkDevice();
+        int src = this.sourceId;
+        int dst = this.destinationId;
+        for(int i=PathIds.size()-1;i>=0;i--){
+            int deviceid = PathIds.get(i);
+            if(deviceid == src)
+                continue;
+            int nextid = PathIds.get(i+1);
+            NetworkDevice device = integerNetworkDeviceMap.get(deviceid);
+            if(EcmpSwitch.class.isInstance(device)){
+                OutputPort port = device.getTargetIdToOutputPort().get(nextid);
+                port.DecreaseTotalWeight(packet.weight,flowid);
+            }
+        }
+    }
+}

@@ -1,8 +1,8 @@
 package ch.ethz.systems.netbench.xpt.tcpbase;
 
-import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.ext.basic.TcpPacket;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class FullExtTcpPacket extends TcpPacket implements SelectiveAckHeader, EchoHeader, PriorityHeader, Comparable {
@@ -18,6 +18,9 @@ public class FullExtTcpPacket extends TcpPacket implements SelectiveAckHeader, E
     public int flowset_num = -1;
 
     public boolean burst = false;
+    //WFQ path
+
+    public ArrayList<Integer> PathIDs = new ArrayList<Integer>();
 
     public FullExtTcpPacket(long flowId, long dataSizeByte, int sourceId, int destinationId, int TTL, int sourcePort, int destinationPort, long sequenceNumber, long acknowledgementNumber, boolean NS, boolean CWR, boolean ECE, boolean URG, boolean ACK, boolean PSH, boolean RST, boolean SYN, boolean FIN, double windowSize, long priority) {
         super(flowId, dataSizeByte, sourceId, destinationId, TTL, sourcePort, destinationPort, sequenceNumber, acknowledgementNumber, NS, CWR, ECE, URG, ACK, PSH, RST, SYN, FIN, windowSize);
@@ -108,7 +111,9 @@ public class FullExtTcpPacket extends TcpPacket implements SelectiveAckHeader, E
     }
 
     //WFQ
-    public float getWeight(){return this.weight;}
+    public float getWeight(){
+        return this.weight;
+    }
 
     public int getFlowset_num(){return this.flowset_num;};
 
@@ -123,5 +128,13 @@ public class FullExtTcpPacket extends TcpPacket implements SelectiveAckHeader, E
         else {
             return Integer.toString(0-flowset_num);
         }
+    }
+
+    //add by WFQ set path,and set path
+    public void addPath(int DeviceID){
+        this.PathIDs.add(DeviceID);
+    }
+    public ArrayList<Integer> getPathIDs(){
+        return this.PathIDs;
     }
 }

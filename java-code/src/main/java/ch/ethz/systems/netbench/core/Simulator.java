@@ -5,6 +5,7 @@ import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import ch.ethz.systems.netbench.core.network.Event;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
 import ch.ethz.systems.netbench.core.random.RandomManager;
+import ch.ethz.systems.netbench.core.run.infrastructure.BaseInitializer;
 
 import java.util.HashSet;
 import java.util.PriorityQueue;
@@ -44,6 +45,17 @@ public class Simulator {
 
     // Required for the PIFO implementation
     private static long enqueueCounter;
+
+    //modified by WFQ
+    private static BaseInitializer initializer;
+
+    public static void setInitializer(BaseInitializer initializer) {
+        Simulator.initializer = initializer;
+    }
+
+    public static BaseInitializer getInitializer(){
+        return Simulator.initializer;
+    }
 
     private Simulator() {
         // Static class only

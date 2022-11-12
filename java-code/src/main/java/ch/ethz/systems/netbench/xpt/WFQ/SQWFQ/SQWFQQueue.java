@@ -1,9 +1,9 @@
 package ch.ethz.systems.netbench.xpt.WFQ.SQWFQ;
 
 import ch.ethz.systems.netbench.core.Simulator;
+import ch.ethz.systems.netbench.core.network.OutputPort;
 import ch.ethz.systems.netbench.core.network.Packet;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
-import ch.ethz.systems.netbench.xpt.tcpbase.PriorityHeader;
 import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -32,6 +32,9 @@ public class SQWFQQueue implements Queue{
 
     private long QueueOccupied;
 
+    //add by LeafSpine
+    private SQWFQOutputPort OwnerPort = null;
+
 
     public SQWFQQueue(long queuelength, int targetId, int ownId){
         long perQueueCapacity = 8192;
@@ -57,6 +60,11 @@ public class SQWFQQueue implements Queue{
         else {
             islogswitch = false;
         }
+    }
+
+    //add by SpineLeaf
+    public void setOwnerPort(SQWFQOutputPort ownerPort){
+        this.OwnerPort = ownerPort;
     }
 
     @Override
@@ -88,7 +96,12 @@ public class SQWFQQueue implements Queue{
             }
             else {
                 String Id = p.getDiffFlowId3();
-                float weight = p.getWeight();
+
+                //add by LeafSpine
+                float weight_origin = p.getWeight();
+                float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin);
+
+
                 long bid = (long) (this.currentRound * this.R * weight);
                 if (flowBytesSent.containsKey(Id)) {
                     if (bid < (Long) flowBytesSent.get(Id)) {

@@ -993,14 +993,16 @@ public class NewRenoTcpSocket extends Socket {
             fillWindow();
 
         }
-        if(WFQTcpSocket.class.isInstance(this))
-            if(this.sourceId!=11) {
+        if(WFQTcpSocket.class.isInstance(this)) {
+            if (this.sourceId != 11) {
                 this.tcpLogger.logTimeOutEvent(this.sourceId, ((WFQTcpSocket) this).getFlowset_num(), sendUnackNumber, roundTripTimeout);
             }
-        else
-            if(this.sourceId!=11) {
+        }
+        else {
+            if (this.sourceId != 11) {
                 this.tcpLogger.logTimeOutEvent(this.sourceId, 0, sendUnackNumber, roundTripTimeout);
             }
+        }
     }
 
     /**

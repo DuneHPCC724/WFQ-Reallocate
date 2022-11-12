@@ -54,6 +54,11 @@ public class MainFromProperties {
         // Initialization of the three components
         BaseInitializer initializer = generateInfrastructure();
         populateRoutingState(initializer.getIdToNetworkDevice());
+
+        //modified by WFQ
+        Simulator.setInitializer(initializer);
+
+
         //wfq plan diffrent traffic
         if(runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp_multiple") || runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_dctcp_multiple")){
             Weight_Distribution wd = new Weight_Distribution(runConfiguration.getPropertyOrFail("weight_distribution"),runConfiguration.getIntegerPropertyOrFail("weight_num"));
@@ -67,6 +72,9 @@ public class MainFromProperties {
         else if(runConfiguration.getPropertyOrFail("transport_layer").equals("Mixing_LongtermTCP") ){
             planevenlyTraffic(runtimeNs,initializer.getIdToTransportLayer());
             planLongTraffic(runtimeNs,initializer.getIdToTransportLayer());
+        }
+        else if(runConfiguration.getPropertyOrFail("transport_layer").equals("AdpWFQTCP")){
+            planTraffic(runtimeNs, initializer.getIdToTransportLayer());
         }
         else
             planTraffic(runtimeNs, initializer.getIdToTransportLayer());
