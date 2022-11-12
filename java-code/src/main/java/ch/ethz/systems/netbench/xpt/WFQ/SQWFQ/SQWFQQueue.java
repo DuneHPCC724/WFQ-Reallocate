@@ -100,7 +100,7 @@ public class SQWFQQueue implements Queue{
                 //add by LeafSpine
                 float weight_origin = p.getWeight();
                 float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin);
-
+                p.addPath(this.OwnerPort.getOwnId());
 
                 long bid = (long) (this.currentRound * this.R * weight);
                 if (flowBytesSent.containsKey(Id)) {

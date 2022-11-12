@@ -75,8 +75,12 @@ public abstract class OutputPort {
     }
 
     public void DecreaseTotalWeight(float w,long flowid){
+        if(!this.FlowIds.contains(flowid)){
+            return;
+        }
         this.weightTotal -= w;
         this.FlowIds.remove(flowid);
+
     }
 
     public boolean ContainFlow(long flowid){
@@ -88,6 +92,8 @@ public abstract class OutputPort {
     }
 
     public double getFlowWeight(long flowid,float weight){
+        if(Simulator.getFinishedFlows().contains(flowid))
+            return 0;
         if(this.ContainFlow(flowid)){
             return weight*1.0/this.weightTotal;
         }

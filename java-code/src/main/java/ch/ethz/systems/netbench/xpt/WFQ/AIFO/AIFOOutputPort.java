@@ -4,7 +4,6 @@ import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import ch.ethz.systems.netbench.core.network.*;
 import ch.ethz.systems.netbench.ext.basic.IpHeader;
-import ch.ethz.systems.netbench.xpt.WFQ.PCQ.PCQQueue;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 
 
@@ -13,8 +12,6 @@ public class AIFOOutputPort extends OutputPort {
 
     public AIFOOutputPort(NetworkDevice ownNetworkDevice, NetworkDevice targetNetworkDevice, Link link, long sizeBytes) {
         super(ownNetworkDevice, targetNetworkDevice, link, new AIFOQueue(sizeBytes, targetNetworkDevice.getIdentifier(), ownNetworkDevice.getIdentifier()));
-        AIFOQueue q = (AIFOQueue) getQueue();
-        q.setOwnerPort(this);
     }
 
     /**

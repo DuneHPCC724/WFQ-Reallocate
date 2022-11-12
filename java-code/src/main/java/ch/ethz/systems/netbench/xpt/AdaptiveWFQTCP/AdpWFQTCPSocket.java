@@ -35,9 +35,13 @@ public class AdpWFQTCPSocket extends WFQTcpSocket{
         int dst = this.destinationId;
         for(int i=PathIds.size()-1;i>=0;i--){
             int deviceid = PathIds.get(i);
+            int nextid;
             if(deviceid == src)
                 continue;
-            int nextid = PathIds.get(i+1);
+            if(i != 0)
+                nextid = PathIds.get(i-1);
+            else
+                nextid = dst;
             NetworkDevice device = integerNetworkDeviceMap.get(deviceid);
             if(EcmpSwitch.class.isInstance(device)){
                 OutputPort port = device.getTargetIdToOutputPort().get(nextid);

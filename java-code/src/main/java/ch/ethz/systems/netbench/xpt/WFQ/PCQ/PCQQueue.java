@@ -84,15 +84,16 @@ public class PCQQueue implements Queue {
         this.reentrantLock.lock();
         FullExtTcpPacket p = (FullExtTcpPacket) o;
         int result = -1;
-
+        float weight_origin = p.getWeight();
+        float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin);
+        p.addPath(this.OwnerPort.getOwnId());
         try {
 
             // Compute the packet bid (when will the last byte be transmitted) as the max. between the current round (in bytes) and the last bid of the flow
 //            float weight = p.getWeight();// <yuxin> flow weight
 
 
-            float weight_origin = p.getWeight();
-            float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin);
+
 
 //            float weight = 1;
             long bid = (long)(this.currentRound * this.bytesPerRound * weight);
@@ -145,8 +146,10 @@ public class PCQQueue implements Queue {
             }
         } catch (Exception e){
             e.printStackTrace();
+            System.out.println(weight_origin);
+            System.out.println(weight);
             System.out.println("Probably the bid size has been exceeded, transmit less packets ");
-            System.out.println("Exception PCQ offer: " + e.getMessage() + e.getLocalizedMessage());
+            System.out.println("Exception PCQ offer: " + e.getMessage() +","+ e.getLocalizedMessage());
         } finally {
             this.reentrantLock.unlock();
             return result;

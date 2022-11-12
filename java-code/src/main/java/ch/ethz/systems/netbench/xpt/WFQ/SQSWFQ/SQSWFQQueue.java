@@ -117,7 +117,7 @@ public class SQSWFQQueue implements Queue{
 //                float weight = p.getWeight();
                 float weight_origin = p.getWeight();
                 float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin);
-
+                p.PathIDs.add(this.OwnerPort.getOwnId());
                 long bid = (long) (this.currentRound * this.R * weight);
                 if (flowBytesSent.containsKey(Id)) {
                     if (bid < (Long) flowBytesSent.get(Id)) {

@@ -61,6 +61,11 @@ public class Simulator {
         // Static class only
     }
 
+    //add by WFQ
+    public static Set<Long> getFinishedFlows(){
+        return finishedFlows;
+    }
+
     /**
      * Retrieve the configuration.
      *
