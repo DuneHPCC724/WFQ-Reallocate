@@ -85,7 +85,7 @@ public class PCQQueue implements Queue {
         FullExtTcpPacket p = (FullExtTcpPacket) o;
         int result = -1;
         float weight_origin = p.getWeight();
-        float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin);
+        float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
         p.addPath(this.OwnerPort.getOwnId());
         try {
 
@@ -93,7 +93,10 @@ public class PCQQueue implements Queue {
 //            float weight = p.getWeight();// <yuxin> flow weight
 
 
+            if(weight != 1 && p.getFlowId() == 6){
+                System.out.println(this.ownId+","+p.getFlowId()+","+weight_origin+","+weight+","+this.OwnerPort.FlowIds+","+this.OwnerPort.weightTotal);
 
+            }
 
 //            float weight = 1;
             long bid = (long)(this.currentRound * this.bytesPerRound * weight);

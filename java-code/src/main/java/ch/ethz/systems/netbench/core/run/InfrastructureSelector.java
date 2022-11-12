@@ -20,6 +20,7 @@ import ch.ethz.systems.netbench.ext.flowlet.IdentityFlowletIntermediaryGenerator
 import ch.ethz.systems.netbench.ext.flowlet.UniformFlowletIntermediaryGenerator;
 import ch.ethz.systems.netbench.ext.hybrid.EcmpThenValiantSwitchGenerator;
 import ch.ethz.systems.netbench.ext.valiant.RangeValiantSwitchGenerator;
+import ch.ethz.systems.netbench.xpt.AdaptiveWFQDCTCP.AdpWFQDCTCPTransportLayerGenerator;
 import ch.ethz.systems.netbench.xpt.AdaptiveWFQTCP.AdpWFQTCPTransportLayerGenerator;
 import ch.ethz.systems.netbench.xpt.WFQDCTCP.WFQDCTcpTransportLayerGenerator;
 import ch.ethz.systems.netbench.xpt.WFQTCP.WFQTcpTransportLayerGenerator;
@@ -380,6 +381,8 @@ class InfrastructureSelector {
                 return new DCTCPLongtermTransportLayerGenerator();
             case "AdpWFQTCP":
                 return new AdpWFQTCPTransportLayerGenerator();
+            case "AdpWFQDCTCP":
+                return new AdpWFQDCTCPTransportLayerGenerator();
             default:
                 throw new PropertyValueInvalidException(
                         Simulator.getConfiguration(),

@@ -7,10 +7,7 @@ import ch.ethz.systems.netbench.core.network.TransportLayer;
 import ch.ethz.systems.netbench.core.random.RandomManager;
 import ch.ethz.systems.netbench.core.run.infrastructure.BaseInitializer;
 
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The simulator is responsible for offering general
@@ -56,6 +53,32 @@ public class Simulator {
     public static BaseInitializer getInitializer(){
         return Simulator.initializer;
     }
+
+    public static Map<Long,List<Integer>> ActiveFlowPath = new HashMap<Long, List<Integer>>();
+
+    public static void AddFlow(long flowid,List<Integer> path){
+        if(ActiveFlowPath.containsKey(flowid)){
+            return;
+        }
+        else {
+            ActiveFlowPath.put(flowid,path);
+            return;
+        }
+    }
+
+    public static void RemoveFlow(long flowid){
+        if(ActiveFlowPath.containsKey(flowid)){
+            ActiveFlowPath.remove(flowid);
+        }
+        else {
+            return;
+        }
+    }
+
+    public static Map<Long,List<Integer>> getActiveFlowPath(){
+        return ActiveFlowPath;
+    }
+
 
     private Simulator() {
         // Static class only

@@ -66,8 +66,8 @@ public abstract class OutputPort {
 
 
     //add by WFQ
-    protected double weightTotal = 0;
-    protected Set<Long> FlowIds = new HashSet<Long>();
+    public double weightTotal = 0;
+    public Set<Long> FlowIds = new HashSet<Long>();
 
     public void IncreaseTotalWeight(float w,long flowid){
         this.weightTotal += w;
@@ -91,7 +91,13 @@ public abstract class OutputPort {
             return false;
     }
 
-    public double getFlowWeight(long flowid,float weight){
+    public double getFlowWeight(long flowid,float weight,boolean isAck,boolean isSYN){
+//        if(isAck||isSYN){
+//            if(this.weightTotal == 0)
+//                return 1;
+//            else
+//                return weight/this.weightTotal;
+//        }
         if(Simulator.getFinishedFlows().contains(flowid))
             return 0;
         if(this.ContainFlow(flowid)){

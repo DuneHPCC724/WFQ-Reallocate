@@ -91,6 +91,7 @@ public class SQSWFQQueue implements Queue{
         boolean result = true;
 
         try {
+            p.PathIDs.add(this.OwnerPort.getOwnId());
             UpdateST(p);//<yuxin> update s and t
             if(p.isSYN() || p.isACK()){
                 long sbytesEstimate = QueueOccupied + p.getSizeBit()/8;
@@ -115,9 +116,8 @@ public class SQSWFQQueue implements Queue{
             else {
                 String Id = p.getDiffFlowId3();
 //                float weight = p.getWeight();
-                float weight_origin = p.getWeight();
-                float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin);
-                p.PathIDs.add(this.OwnerPort.getOwnId());
+                 float weight_origin = p.getWeight();
+                 float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
                 long bid = (long) (this.currentRound * this.R * weight);
                 if (flowBytesSent.containsKey(Id)) {
                     if (bid < (Long) flowBytesSent.get(Id)) {
@@ -130,6 +130,9 @@ public class SQSWFQQueue implements Queue{
                 double speed = s/t;
                 double prediction = this.R*weight;
                 double AlphaFactor;
+//                if(weight != 1 && p.getFlowId() == 6){
+//                    System.out.println(this.ownId+","+this.OwnerPort.getTargetId()+","+p.getFlowId()+","+weight_origin+","+weight+","+this.OwnerPort.FlowIds+","+this.OwnerPort.weightTotal);
+//                }
                 if(speed < prediction){
                     //System.out.println("slow");
                     AlphaFactor = 1;

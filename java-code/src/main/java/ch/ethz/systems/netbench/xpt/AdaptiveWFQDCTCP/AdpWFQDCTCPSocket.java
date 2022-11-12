@@ -1,4 +1,4 @@
-package ch.ethz.systems.netbench.xpt.AdaptiveWFQTCP;
+package ch.ethz.systems.netbench.xpt.AdaptiveWFQDCTCP;
 
 import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.network.NetworkDevice;
@@ -6,15 +6,15 @@ import ch.ethz.systems.netbench.core.network.OutputPort;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
 import ch.ethz.systems.netbench.core.run.infrastructure.BaseInitializer;
 import ch.ethz.systems.netbench.ext.ecmp.EcmpSwitch;
+import ch.ethz.systems.netbench.xpt.WFQDCTCP.WFQDCTcpSocket;
 import ch.ethz.systems.netbench.xpt.WFQTCP.WFQTcpSocket;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Set;
 
-public class AdpWFQTCPSocket extends WFQTcpSocket{
-    public AdpWFQTCPSocket(TransportLayer transportLayer, long flowId, int sourceId, int destinationId, long flowSizeByte, float weight, int flowset_num) {
+public class AdpWFQDCTCPSocket extends WFQDCTcpSocket {
+    public AdpWFQDCTCPSocket(TransportLayer transportLayer, long flowId, int sourceId, int destinationId, long flowSizeByte, float weight, int flowset_num) {
         super(transportLayer, flowId, sourceId, destinationId, flowSizeByte,weight,flowset_num);
     }
 
