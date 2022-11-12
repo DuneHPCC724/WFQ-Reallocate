@@ -4,6 +4,7 @@ import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import ch.ethz.systems.netbench.core.network.*;
 import ch.ethz.systems.netbench.ext.basic.IpHeader;
+import ch.ethz.systems.netbench.xpt.WFQ.SQWFQ.SQWFQQueue;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 
 
@@ -14,6 +15,8 @@ public class PCQOutputPort extends OutputPort {
 
     public PCQOutputPort(NetworkDevice ownNetworkDevice, NetworkDevice targetNetworkDevice, Link link, long numQueues, long bytesPerRound) {
         super(ownNetworkDevice, targetNetworkDevice, link, new PCQQueue(numQueues, bytesPerRound, ownNetworkDevice.getIdentifier(), targetNetworkDevice.getIdentifier()));
+        PCQQueue q = (PCQQueue) getQueue();
+        q.setOwnerPort(this);
     }
 
     /**

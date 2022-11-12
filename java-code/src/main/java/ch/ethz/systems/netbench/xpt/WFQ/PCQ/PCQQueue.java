@@ -2,6 +2,7 @@ package ch.ethz.systems.netbench.xpt.WFQ.PCQ;
 
 import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.network.Packet;
+import ch.ethz.systems.netbench.xpt.WFQ.SQWFQ.SQWFQOutputPort;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import java.util.*;
@@ -35,6 +36,8 @@ public class PCQQueue implements Queue {
     private boolean islogswitch;
 
     private boolean head_bpr_limit;
+
+    private PCQOutputPort OwnerPort = null;
 
     public PCQQueue(long numQueues, long bytesPerRound, int ownId, int targetId){
         long perQueueCapacity = 8192;// <yuxin> physical size of a FIFO in packets
@@ -71,6 +74,11 @@ public class PCQQueue implements Queue {
         this.head_bpr_limit = Simulator.getConfiguration().getBooleanPropertyWithDefault("headqueue_bpr_limit", false);
     }
 
+    public void setOwnerPort(PCQOutputPort ownerPort){
+        this.OwnerPort = ownerPort;
+    }
+
+
     public int offerPacket(Object o){
 
         this.reentrantLock.lock();
@@ -80,7 +88,12 @@ public class PCQQueue implements Queue {
         try {
 
             // Compute the packet bid (when will the last byte be transmitted) as the max. between the current round (in bytes) and the last bid of the flow
-            float weight = p.getWeight();// <yuxin> flow weight
+//            float weight = p.getWeight();// <yuxin> flow weight
+
+
+            float weight_origin = p.getWeight();
+            float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin);
+
 //            float weight = 1;
             long bid = (long)(this.currentRound * this.bytesPerRound * weight);
 

@@ -7,6 +7,8 @@ public class MainFromIntelliJ {
 
 
         MainFromProperties.main(new String[]{"projects/WFQ/run/LeafSpine/SQ.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/LeafSpine/DCTCP.properties"});
+        MainFromProperties.main(new String[]{"projects/WFQ/run/LeafSpine/PCQ.properties"});
 
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/EPSSIMPLE.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Uniformly_Flows/OEPSSIMPLE.properties"});

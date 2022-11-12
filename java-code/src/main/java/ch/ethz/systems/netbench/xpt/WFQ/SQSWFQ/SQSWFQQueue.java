@@ -2,6 +2,8 @@ package ch.ethz.systems.netbench.xpt.WFQ.SQSWFQ;
 
 import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.network.Packet;
+import ch.ethz.systems.netbench.xpt.WFQ.PCQ.PCQOutputPort;
+import ch.ethz.systems.netbench.xpt.WFQ.SQWFQ.SQWFQOutputPort;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 import ch.ethz.systems.netbench.xpt.tcpbase.PriorityHeader;
 import ch.ethz.systems.netbench.core.log.SimulationLogger;
@@ -44,6 +46,7 @@ public class SQSWFQQueue implements Queue{
 
     private final Map<String, Long> FlowTimeLastArrive;
 
+    private SQSWFQOutputPort OwnerPort = null;
 
     public SQSWFQQueue(long queuelength, int targetId, int ownId){
         long perQueueCapacity = 8192;
@@ -76,6 +79,11 @@ public class SQSWFQQueue implements Queue{
         }
     }
 
+    public void setOwnerPort(SQSWFQOutputPort ownerPort){
+        this.OwnerPort = ownerPort;
+    }
+
+
     @Override
     public boolean offer(Object o){
         this.reentrantLock.lock();
@@ -106,7 +114,10 @@ public class SQSWFQQueue implements Queue{
             }
             else {
                 String Id = p.getDiffFlowId3();
-                float weight = p.getWeight();
+//                float weight = p.getWeight();
+                float weight_origin = p.getWeight();
+                float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin);
+
                 long bid = (long) (this.currentRound * this.R * weight);
                 if (flowBytesSent.containsKey(Id)) {
                     if (bid < (Long) flowBytesSent.get(Id)) {
