@@ -69,7 +69,7 @@ public abstract class OutputPort {
     public double weightTotal = 0;
     public Set<Long> FlowIds = new HashSet<Long>();
 
-    private double minweight = (float)1.0/1500;
+    private double minweight = 0;
     private double maxweight = (float) 1;
 
     public void IncreaseTotalWeight(float w,long flowid){
