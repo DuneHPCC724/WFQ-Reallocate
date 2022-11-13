@@ -69,6 +69,9 @@ public abstract class OutputPort {
     public double weightTotal = 0;
     public Set<Long> FlowIds = new HashSet<Long>();
 
+    private double minweight = (float)1.0/1500;
+    private double maxweight = (float) 1;
+
     public void IncreaseTotalWeight(float w,long flowid){
         this.weightTotal += w;
         this.FlowIds.add(flowid);
@@ -101,7 +104,12 @@ public abstract class OutputPort {
         if(Simulator.getFinishedFlows().contains(flowid))
             return 0;
         if(this.ContainFlow(flowid)){
-            return weight*1.0/this.weightTotal;
+            double newweight = weight*1.0/this.weightTotal;
+            if(newweight<minweight)
+                newweight = minweight;
+            else if (newweight>maxweight)
+                newweight = maxweight;
+            return newweight;
         }
         else {
             this.IncreaseTotalWeight(weight,flowid);
