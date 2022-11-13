@@ -45,6 +45,8 @@ public class SimulationLogger {
 
     private static BufferedWriter writerPromoteWeight;
 
+    private static BufferedWriter writer2Weight;
+
     // SP-PIFO Extension
     private static BufferedWriter writerRanktoQueuesMapping;
     private static boolean rankMappingEnabled;
@@ -201,6 +203,7 @@ public class SimulationLogger {
             if (DropEventEnabled){
                 writerDropEvent = openWriter("drop_event.csv.log");
             }
+            writer2Weight = openWriter("2weight.csv.log");
             writerPromoteWeight = openWriter("promote_weight.csv.log");
             writerFIFOSent = openWriter(("FIFOBytesSent.csv.log"));
 
@@ -325,6 +328,7 @@ public class SimulationLogger {
             if (DropEventEnabled){
                 writerDropEvent.close();
             }
+            writer2Weight.close();
             writerPromoteWeight.close();
             // SP-PIFO: Close log files
             if (rankMappingEnabled){
@@ -431,6 +435,14 @@ public class SimulationLogger {
     public static void logDropEvent(int ownId, int targetId, String flowId, long seqNum, long round, long currentTime, long pktSize, int dropType){
         try {
             writerDropEvent.write(ownId + "," + targetId + "," + flowId + "," +seqNum + "," + round + "," + currentTime + "," + pktSize + "," + dropType + "\n");
+        } catch (IOException e) {
+            throw new LogFailureException(e);
+        }
+    }
+
+    public static void log2Weight(int ownId, int targetId, String flowId, float originweight, float weight, long currentTime){
+        try {
+            writer2Weight.write(ownId + "," + targetId+ "," + flowId + "," + originweight + "," +weight + "," + currentTime + "\n");
         } catch (IOException e) {
             throw new LogFailureException(e);
         }

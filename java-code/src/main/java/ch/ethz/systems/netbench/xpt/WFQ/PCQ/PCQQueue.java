@@ -33,7 +33,7 @@ public class PCQQueue implements Queue {
 
     private int targetId;
 
-    private boolean islogswitch;
+    private boolean islogswitch = false;
 
     private boolean head_bpr_limit;
 
@@ -62,14 +62,8 @@ public class PCQQueue implements Queue {
         this.reentrantLock = new ReentrantLock();
         this.ownId = ownId;
         this.targetId = targetId;
-        if (ownId == 10 && targetId == 11){
+        if(ownId>=144 && ownId<=156){
             islogswitch = true;
-        }
-        else if (ownId == 16 && targetId == 17){
-            islogswitch = true;
-        }
-        else {
-            islogswitch = false;
         }
         this.head_bpr_limit = Simulator.getConfiguration().getBooleanPropertyWithDefault("headqueue_bpr_limit", false);
     }
@@ -86,6 +80,9 @@ public class PCQQueue implements Queue {
         int result = -1;
         float weight_origin = p.getWeight();
         float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
+        if(islogswitch){
+            SimulationLogger.log2Weight(ownId, targetId,p.getDiffFlowId3(),weight_origin,weight,Simulator.getCurrentTime());
+        }
         p.addPath(this.OwnerPort.getOwnId());
         try {
 

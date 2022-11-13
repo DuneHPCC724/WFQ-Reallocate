@@ -28,7 +28,7 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
 
     private long QueueOccupied;
 
-    private boolean islogswitch;
+    private boolean islogswitch = false;
 
     public PIFOOURQueue(long queuelength, int targetId, int ownId){
         this.ownId = ownId;
@@ -42,14 +42,8 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         this.round = 0;
         this.QueueOccupied = 0;
 
-        if (ownId == 10 && targetId == 11){
+        if(ownId>=144 && ownId<=156){
             islogswitch = true;
-        }
-        else if (ownId == 16 && targetId == 17){
-            islogswitch = true;
-        }
-        else {
-            islogswitch = false;
         }
     }
 

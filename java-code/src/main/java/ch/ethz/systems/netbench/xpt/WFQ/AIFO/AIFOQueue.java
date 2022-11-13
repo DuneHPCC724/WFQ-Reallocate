@@ -22,7 +22,7 @@ public class AIFOQueue implements Queue{
 
     private int targetId;
 
-    private boolean islogswitch;
+    private boolean islogswitch = false;
 
     private final Map last_finishTime;
 
@@ -57,14 +57,8 @@ public class AIFOQueue implements Queue{
         }
         this.windowPointer = 0;
 
-        if (ownId == 10 && targetId == 11){
+        if(ownId>=144 && ownId<=156){
             islogswitch = true;
-        }
-        else if (ownId == 16 && targetId == 17){
-            islogswitch = true;
-        }
-        else {
-            islogswitch = false;
         }
     }
 

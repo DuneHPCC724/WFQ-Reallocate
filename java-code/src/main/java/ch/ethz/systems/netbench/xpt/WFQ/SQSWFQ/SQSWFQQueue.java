@@ -30,7 +30,7 @@ public class SQSWFQQueue implements Queue{
 
     private int targetId;
 
-    private boolean islogswitch;
+    private boolean islogswitch = false;
 
     private long QueueOccupied;
 
@@ -68,14 +68,8 @@ public class SQSWFQQueue implements Queue{
         this.rho = Simulator.getConfiguration().getDoublePropertyWithDefault("esprho",0.1);
         this.alpha = Simulator.getConfiguration().getDoublePropertyWithDefault("alpha_factor", 0.2);
 
-        if (ownId == 10 && targetId == 11){
+        if(ownId>=144 && ownId<=156){
             islogswitch = true;
-        }
-        else if (ownId == 16 && targetId == 17){
-            islogswitch = true;
-        }
-        else {
-            islogswitch = false;
         }
     }
 
@@ -118,6 +112,9 @@ public class SQSWFQQueue implements Queue{
 //                float weight = p.getWeight();
                  float weight_origin = p.getWeight();
                  float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
+                if(islogswitch){
+                    SimulationLogger.log2Weight(ownId, targetId,p.getDiffFlowId3(),weight_origin,weight,Simulator.getCurrentTime());
+                }
                 long bid = (long) (this.currentRound * this.R * weight);
                 if (flowBytesSent.containsKey(Id)) {
                     if (bid < (Long) flowBytesSent.get(Id)) {
