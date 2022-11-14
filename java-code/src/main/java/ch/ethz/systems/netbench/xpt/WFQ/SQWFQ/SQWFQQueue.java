@@ -51,7 +51,7 @@ public class SQWFQQueue implements Queue{
 
         this.QueueOccupied = 0;
 
-        if(ownId>=144 && ownId<=156){
+        if(ownId>=144 && targetId>=144){
             islogswitch = true;
         }
     }
@@ -70,6 +70,10 @@ public class SQWFQQueue implements Queue{
         try {
             p.addPath(this.OwnerPort.getOwnId());
             if(p.isSYN() || p.isACK()){
+//                if(p.isSYN()){
+//                    float weight_origin = p.getWeight();
+//                    float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
+//                }
                 long sbytesEstimate = QueueOccupied + p.getSizeBit()/8;
                 if (sbytesEstimate <= queuelength){
                     result = true;
@@ -91,6 +95,8 @@ public class SQWFQQueue implements Queue{
             }
             else {
                 String Id = p.getDiffFlowId3();
+
+//                float weight = p.getWeight();
 
                 //add by LeafSpine
                 float weight_origin = p.getWeight();

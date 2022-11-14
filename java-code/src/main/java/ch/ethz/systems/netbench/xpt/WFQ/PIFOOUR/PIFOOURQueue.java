@@ -42,7 +42,7 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         this.round = 0;
         this.QueueOccupied = 0;
 
-        if(ownId>=144 && ownId<=156){
+        if(ownId>=144 && targetId>=144){
             islogswitch = true;
         }
     }

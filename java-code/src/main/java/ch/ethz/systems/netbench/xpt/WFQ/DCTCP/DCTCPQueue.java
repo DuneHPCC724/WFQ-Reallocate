@@ -22,7 +22,7 @@ public class DCTCPQueue implements Queue{
 
     private int targetId;
 
-    private boolean islogswitch;
+    private boolean islogswitch = false;
 
     private long QueueOccupied;
 
@@ -38,14 +38,8 @@ public class DCTCPQueue implements Queue{
 
         this.QueueOccupied = 0;
 
-        if (ownId == 10 && targetId == 11){
+        if(ownId>=144 && targetId>=144){
             islogswitch = true;
-        }
-        else if (ownId == 16 && targetId == 17){
-            islogswitch = true;
-        }
-        else {
-            islogswitch = false;
         }
     }
 

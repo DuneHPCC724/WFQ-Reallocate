@@ -68,7 +68,7 @@ public class SQSWFQQueue implements Queue{
         this.rho = Simulator.getConfiguration().getDoublePropertyWithDefault("esprho",0.1);
         this.alpha = Simulator.getConfiguration().getDoublePropertyWithDefault("alpha_factor", 0.2);
 
-        if(ownId>=144 && ownId<=156){
+        if(ownId>=144 && targetId>=144){
             islogswitch = true;
         }
     }
@@ -88,6 +88,7 @@ public class SQSWFQQueue implements Queue{
             p.PathIDs.add(this.OwnerPort.getOwnId());
             UpdateST(p);//<yuxin> update s and t
             if(p.isSYN() || p.isACK()){
+//            if(!FlowTimeInterval.containsKey(p.getDiffFlowId3()) ||FlowTimeInterval.get(p.getDiffFlowId3())<0){
                 long sbytesEstimate = QueueOccupied + p.getSizeBit()/8;
                 if (sbytesEstimate <= queuelength){
                     result = true;
@@ -141,9 +142,6 @@ public class SQSWFQQueue implements Queue{
                     if (AlphaFactor < 1){
                         AlphaFactor = 1;
                     }
-                }
-                if(p.getFlowset_num() == 0){
-                    AlphaFactor = 1;
                 }
                 double PromoteWeight = weight*AlphaFactor;
                 if(PromoteWeight > 1){//<yuxin> can't exceed 1

@@ -62,7 +62,7 @@ public class PCQQueue implements Queue {
         this.reentrantLock = new ReentrantLock();
         this.ownId = ownId;
         this.targetId = targetId;
-        if(ownId>=144 && ownId<=156){
+        if(ownId>=144 && targetId>=144){
             islogswitch = true;
         }
         this.head_bpr_limit = Simulator.getConfiguration().getBooleanPropertyWithDefault("headqueue_bpr_limit", false);
@@ -78,6 +78,7 @@ public class PCQQueue implements Queue {
         this.reentrantLock.lock();
         FullExtTcpPacket p = (FullExtTcpPacket) o;
         int result = -1;
+//        float weight = p.getWeight();
         float weight_origin = p.getWeight();
         float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
         if(islogswitch){

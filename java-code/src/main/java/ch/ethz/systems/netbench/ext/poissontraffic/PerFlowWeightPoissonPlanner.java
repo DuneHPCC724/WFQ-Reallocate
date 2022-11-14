@@ -38,7 +38,9 @@ public class PerFlowWeightPoissonPlanner extends PoissonArrivalPlanner{
             Pair<Integer, Integer> pair = super.choosePair();
             long size = super.flowSizeDistribution.generateFlowSizeByte();
 //            registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),(float)(weight/(lambdaFlowStartsPerSecond*0.061904f)),flowset_num);
-            registerFlow(time, pair.getLeft(), pair.getRight(),size ,size/1460,0);
+//            registerFlow(time, pair.getLeft(), pair.getRight(),size ,size/1460,0);
+            registerFlow(time, pair.getLeft(), pair.getRight(),size ,1,0);
+//            registerFlow(time, pair.getLeft(), pair.getRight(),size ,0.02f,0);
             //0.189559392 = median_flowsize_byte/1250000
             // Advance time to next arrival
             time += interArrivalTime;

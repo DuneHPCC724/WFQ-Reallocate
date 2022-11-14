@@ -57,7 +57,7 @@ public class AIFOQueue implements Queue{
         }
         this.windowPointer = 0;
 
-        if(ownId>=144 && ownId<=156){
+        if(ownId>=144 && targetId>=144){
             islogswitch = true;
         }
     }
