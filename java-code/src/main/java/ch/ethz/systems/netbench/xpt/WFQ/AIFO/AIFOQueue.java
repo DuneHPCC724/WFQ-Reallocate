@@ -30,13 +30,19 @@ public class AIFOQueue implements Queue{
 
     private long QueueOccupied;
 
-    private double k = 0.2;
+    private double k = 0.1;
 
-    private int windowSize = 40;
+    private int windowSize = 20;
 
     private long[] window;
 
     private int windowPointer;
+
+    private int samplecount = 15;
+
+    private int count;
+
+    private AIFOOutputPort OwnerPort = null;
 
     public AIFOQueue(long queuelength, int targetId, int ownId){
         long perQueueCapacity = 8192;
@@ -56,10 +62,15 @@ public class AIFOQueue implements Queue{
             window[i] = -1;
         }
         this.windowPointer = 0;
+        this.count = 0;
 
-        if(ownId>=144 && targetId>=144){
-            islogswitch = true;
-        }
+//        if(ownId>=144 && targetId>=144){
+//            islogswitch = true;
+//        }
+    }
+
+    public void setOwnerPort(AIFOOutputPort ownerPort){
+        this.OwnerPort = ownerPort;
     }
 
     @Override
@@ -67,29 +78,30 @@ public class AIFOQueue implements Queue{
         this.reentrantLock.lock();
         FullExtTcpPacket p = (FullExtTcpPacket) o;
         boolean result = true;
+        p.addPath(this.OwnerPort.getOwnId());
 
         try {
-            if(p.isSYN() || p.isACK()){
-                long sbytesEstimate = QueueOccupied + p.getSizeBit()/8;
-                if (sbytesEstimate <= queuelength){
-                    result = true;
-                    QueueOccupied = sbytesEstimate;
-                    if (islogswitch) {
-                        SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8);
-                    }
-                }
-                else {
-                    result = false;
-                    if (islogswitch) {
-                        if (fullDrop(p)) {
-                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
-                        } else {
-                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
-                        }
-                    }
-                }
-            }
-            else {
+//            if(p.isSYN() || p.isACK()){
+//                long sbytesEstimate = QueueOccupied + p.getSizeBit()/8;
+//                if (sbytesEstimate <= queuelength){
+//                    result = true;
+//                    QueueOccupied = sbytesEstimate;
+//                    if (islogswitch) {
+//                        SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+//                    }
+//                }
+//                else {
+//                    result = false;
+//                    if (islogswitch) {
+//                        if (fullDrop(p)) {
+//                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+//                        } else {
+//                            SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+//                        }
+//                    }
+//                }
+//            }
+//            else {
                 String Id = p.getDiffFlowId3();
                 long startTime = this.round;
                 if (last_finishTime.containsKey(Id)) {
@@ -98,6 +110,9 @@ public class AIFOQueue implements Queue{
                     }
                 }
                 float weight = p.getWeight();
+//                float weight_origin = p.getWeight();
+//                float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
+//                SimulationLogger.log2Weight(ownId, targetId,p.getDiffFlowId3(),weight_origin,weight,Simulator.getCurrentTime());
                 long rank = (long) (startTime + (p.getSizeBit() / (8 * weight)));
 
                 int quantileCounter = 0;
@@ -117,8 +132,14 @@ public class AIFOQueue implements Queue{
                     quantile = quantileCounter * 1.0 / windowCounter;
                 }
 
-                window[windowPointer] = rank;
-                windowPointer = (windowPointer + 1) % windowSize;
+                if(this.count == 0) {
+                    window[windowPointer] = rank;
+                    windowPointer = (windowPointer + 1) % windowSize;
+                }
+                this.count = this.count+1;
+                if(this.count == samplecount){
+                    this.count = 0;
+                }
 
                 double threshhold = (queuelength - QueueOccupied) / ((1 - k) * queuelength);
                 if (QueueOccupied <= k * queuelength || quantile <= threshhold) {
@@ -154,7 +175,7 @@ public class AIFOQueue implements Queue{
                     }
                     result = false;
                 }
-            }
+//            }
         } catch (Exception e){
             e.printStackTrace();
             System.out.println("Exception AIFO offer: " + e.getMessage() + e.getLocalizedMessage());
@@ -175,9 +196,9 @@ public class AIFOQueue implements Queue{
 
             // Update round number
             FullExtTcpPacket p = (FullExtTcpPacket) packet;
-            if (!p.isSYN() && !p.isACK()){
+//            if (!p.isSYN() && !p.isACK()){
                 updateRound(packet);
-            }
+//            }
             QueueOccupied -= packet.getSizeBit()/8;
             return packet;
         } catch (Exception e){

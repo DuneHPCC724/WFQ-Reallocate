@@ -5,9 +5,7 @@ import ch.ethz.systems.netbench.core.log.PortLogger;
 import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -28,7 +26,7 @@ public abstract class OutputPort {
 
     // Constants
     private final int ownId;                            // Own network device identifier
-    private final NetworkDevice ownNetworkDevice;       // Network device this output port is attached to
+    protected final NetworkDevice ownNetworkDevice;       // Network device this output port is attached to
     private final int targetId;                         // Target network device identifier
     private final NetworkDevice targetNetworkDevice;    // Target network device
     private final Link link;                            // Link type, defines latency and bandwidth of the medium
@@ -36,6 +34,9 @@ public abstract class OutputPort {
 
     // Logging utility
     private final PortLogger logger;
+
+    //add by new dynamic weight
+    public final Map<String ,Long> FlowArriveTime;
 
     /**
      * Constructor.
@@ -62,6 +63,8 @@ public abstract class OutputPort {
         // Logging
         this.logger = new PortLogger(this);
 
+        //add by new dynamic weight
+        this.FlowArriveTime = new HashMap();
     }
 
 
@@ -71,6 +74,17 @@ public abstract class OutputPort {
 
     private double minweight = 0;
     private double maxweight = (float) 1;
+
+    public double newGetWeight(String flowid,long time){
+        FlowArriveTime.put(flowid,time);
+        int activeFlowNum = 0;
+        for(long value: FlowArriveTime.values()){
+            if(time-value<=100000000){
+                activeFlowNum += 1;
+            }
+        }
+        return 1.0/activeFlowNum;
+    }
 
     public void IncreaseTotalWeight(float w,long flowid){
         this.weightTotal += w;
@@ -113,7 +127,13 @@ public abstract class OutputPort {
         }
         else {
             this.IncreaseTotalWeight(weight,flowid);
-            return weight*1.0/this.weightTotal;
+//            return weight*1.0/this.weightTotal;
+            double newweight = weight*1.0/this.weightTotal;
+            if(newweight<minweight)
+                newweight = minweight;
+            else if (newweight>maxweight)
+                newweight = maxweight;
+            return newweight;
         }
     }
 

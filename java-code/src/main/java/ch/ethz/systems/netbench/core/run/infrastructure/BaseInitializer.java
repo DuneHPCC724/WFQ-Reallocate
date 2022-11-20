@@ -5,6 +5,7 @@ import ch.ethz.systems.netbench.core.config.GraphDetails;
 import ch.ethz.systems.netbench.core.network.NetworkDevice;
 import ch.ethz.systems.netbench.core.network.OutputPort;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
+import ch.ethz.systems.netbench.ext.basic.PerfectSimpleLinkGenerator;
 import ch.ethz.systems.netbench.xpt.ports.FIFO.FIFOOutputPortGenerator;
 import edu.asu.emit.algorithm.graph.Graph;
 import edu.asu.emit.algorithm.graph.Vertex;
@@ -34,6 +35,8 @@ public class BaseInitializer {
     private final OutputPortGenerator outputPortGenerator;
     private final NetworkDeviceGenerator networkDeviceGenerator;
     private final LinkGenerator linkGenerator;
+    //add by WFQ
+    private final LinkGenerator linkGenerator_core;
     private final TransportLayerGenerator transportLayerGenerator;
 
     // Validation variables
@@ -52,6 +55,9 @@ public class BaseInitializer {
         this.outputPortGenerator = outputPortGenerator;
         this.networkDeviceGenerator = networkDeviceGenerator;
         this.linkGenerator = linkGenerator;
+        //add by WFQ
+        this.linkGenerator_core = new PerfectSimpleLinkGenerator(3000,40);
+
         this.transportLayerGenerator = transportLayerGenerator;
         this.runningNodeId = 0;
         this.infrastructureAlreadyCreated = false;
@@ -163,7 +169,7 @@ public class BaseInitializer {
         //add by WFQ
         OutputPortGenerator FIFOgenerator = new FIFOOutputPortGenerator(Integer.MAX_VALUE);
         GraphDetails details = Simulator.getConfiguration().getGraphDetails();
-        if(details.getServerNodeIds().contains(startVertexId))    //if port start from a server , it's a fifo port
+        if(details.getServerNodeIds().contains(startVertexId) || details.getServerNodeIds().contains(endVertexId))    //if port start from a server , it's a fifo port
         {
             portAtoB  = FIFOgenerator.generate(
                     devA,
@@ -176,7 +182,7 @@ public class BaseInitializer {
             portAtoB = outputPortGenerator.generate(
                     devA,
                     devB,
-                    linkGenerator.generate(devA, devB)
+                    linkGenerator_core.generate(devA, devB)
             );
         }
         devA.addConnection(portAtoB);

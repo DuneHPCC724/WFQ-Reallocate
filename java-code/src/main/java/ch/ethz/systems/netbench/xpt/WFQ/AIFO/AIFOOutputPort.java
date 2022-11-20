@@ -12,6 +12,8 @@ public class AIFOOutputPort extends OutputPort {
 
     public AIFOOutputPort(NetworkDevice ownNetworkDevice, NetworkDevice targetNetworkDevice, Link link, long sizeBytes) {
         super(ownNetworkDevice, targetNetworkDevice, link, new AIFOQueue(sizeBytes, targetNetworkDevice.getIdentifier(), ownNetworkDevice.getIdentifier()));
+        AIFOQueue q = (AIFOQueue) getQueue();
+        q.setOwnerPort(this);
     }
 
     /**

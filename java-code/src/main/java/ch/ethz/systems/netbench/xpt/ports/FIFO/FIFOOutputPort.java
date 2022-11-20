@@ -27,6 +27,8 @@ public class FIFOOutputPort extends OutputPort {
 
         // If it is not sending, then the queue is empty at the moment,
         // so this packet can be immediately send
+        if(FullExtTcpPacket.class.isInstance(packet))
+            ((FullExtTcpPacket)packet).addPath(super.ownNetworkDevice.getIdentifier());
         if (!getIsSending()) {
 
             // Link is now being utilized

@@ -30,6 +30,8 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
 
     private boolean islogswitch = false;
 
+    private PIFOOUROutputPort OwnerPort = null;
+
     public PIFOOURQueue(long queuelength, int targetId, int ownId){
         this.ownId = ownId;
         this.targetId = targetId;
@@ -42,9 +44,9 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         this.round = 0;
         this.QueueOccupied = 0;
 
-        if(ownId>=144 && targetId>=144){
-            islogswitch = true;
-        }
+//        if(ownId>=144 && targetId>=144){
+//            islogswitch = true;
+//        }
     }
 
     /*Rank computation following STFQ as proposed in the PIFO paper*/
@@ -57,8 +59,12 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
                 startTime = (long)last_finishTime.get(Id);
             }
         }
+        p.addPath(this.OwnerPort.getOwnId());
 
         float weight = ((FullExtTcpPacket)p).getWeight();
+//        float weight_origin = p.getWeight();
+//        float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
+//        SimulationLogger.log2Weight(ownId, targetId,p.getDiffFlowId3(),weight_origin,weight,Simulator.getCurrentTime());
 //        float weight = 1;
         long finishingTime_update = (long)(startTime + (p.getSizeBit()/(8*weight)));
         last_finishTime.put(Id, finishingTime_update);
@@ -74,8 +80,12 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
                 startTime = (long)last_finishTime.get(Id);
             }
         }
+        p.addPath(this.OwnerPort.getOwnId());
 
         float weight = ((FullExtTcpPacket)p).getWeight();
+//        float weight_origin = p.getWeight();
+//        float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
+//        SimulationLogger.log2Weight(ownId, targetId,p.getDiffFlowId3(),weight_origin,weight,Simulator.getCurrentTime());
         long finishingTime_update = (long)(startTime + (p.getSizeBit()/(8*weight)));
         last_finishTime.put(Id, finishingTime_update);
         this.round = finishingTime_update;
@@ -86,6 +96,10 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
         PriorityHeader header = (PriorityHeader) p;
         long rank = header.getPriority();
         this.round = rank;
+    }
+
+    public void setOwnerPort(PIFOOUROutputPort ownerPort){
+        this.OwnerPort = ownerPort;
     }
 
     public Packet offerPacket(Object o, int ownID) {

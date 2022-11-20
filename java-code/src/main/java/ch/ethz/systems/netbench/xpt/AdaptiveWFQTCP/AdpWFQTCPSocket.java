@@ -7,6 +7,7 @@ import ch.ethz.systems.netbench.core.network.TransportLayer;
 import ch.ethz.systems.netbench.core.run.infrastructure.BaseInitializer;
 import ch.ethz.systems.netbench.ext.ecmp.EcmpSwitch;
 import ch.ethz.systems.netbench.xpt.WFQTCP.WFQTcpSocket;
+import ch.ethz.systems.netbench.xpt.ports.FIFO.FIFOOutputPort;
 import ch.ethz.systems.netbench.xpt.tcpbase.FullExtTcpPacket;
 
 import java.util.ArrayList;
@@ -45,6 +46,8 @@ public class AdpWFQTCPSocket extends WFQTcpSocket{
             NetworkDevice device = integerNetworkDeviceMap.get(deviceid);
             if(EcmpSwitch.class.isInstance(device)){
                 OutputPort port = device.getTargetIdToOutputPort().get(nextid);
+                if(FIFOOutputPort.class.isInstance(port))
+                    continue;
                 port.DecreaseTotalWeight(packet.weight,flowid);
             }
         }
@@ -62,6 +65,8 @@ public class AdpWFQTCPSocket extends WFQTcpSocket{
             NetworkDevice device = integerNetworkDeviceMap.get(deviceid);
             if(EcmpSwitch.class.isInstance(device)){
                 OutputPort port = device.getTargetIdToOutputPort().get(nextid);
+                if(FIFOOutputPort.class.isInstance(port))
+                    continue;
                 port.DecreaseTotalWeight(packet.weight,flowid);
             }
         }

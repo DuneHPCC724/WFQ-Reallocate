@@ -1,11 +1,13 @@
 package ch.ethz.systems.netbench.ext.poissontraffic;
 
+import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.log.SimulationLogger;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
 import ch.ethz.systems.netbench.ext.poissontraffic.flowsize.FlowSizeDistribution;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Map;
+import java.util.Random;
 
 public class PerFlowWeightPoissonPlanner extends PoissonArrivalPlanner{
     public PerFlowWeightPoissonPlanner(Map<Integer, TransportLayer> idToTransportLayerMap, double lambdaFlowStartsPerSecond, FlowSizeDistribution flowSizeDistribution, PairDistribution pairDistribution) {
@@ -20,7 +22,7 @@ public class PerFlowWeightPoissonPlanner extends PoissonArrivalPlanner{
         long time = 0;
         int x = 0;
         long sum = 0;
-
+        Random weight_probability = Simulator.selectIndependentRandom("weight_probability");
         // Generate flow start events until the duration
         // of the experiment has lapsed
         long nextProgressLog = durationNs / 10;
@@ -39,8 +41,10 @@ public class PerFlowWeightPoissonPlanner extends PoissonArrivalPlanner{
             long size = super.flowSizeDistribution.generateFlowSizeByte();
 //            registerFlow(time, pair.getLeft(), pair.getRight(), flowSizeDistribution.generateFlowSizeByte(),(float)(weight/(lambdaFlowStartsPerSecond*0.061904f)),flowset_num);
 //            registerFlow(time, pair.getLeft(), pair.getRight(),size ,size/1460,0);
-            registerFlow(time, pair.getLeft(), pair.getRight(),size ,1,0);
-//            registerFlow(time, pair.getLeft(), pair.getRight(),size ,0.02f,0);
+//            registerFlow(time, pair.getLeft(), pair.getRight(),size ,1,0);
+
+            registerFlow(time, pair.getLeft(), pair.getRight(),size ,0.02f,0);
+
             //0.189559392 = median_flowsize_byte/1250000
             // Advance time to next arrival
             time += interArrivalTime;

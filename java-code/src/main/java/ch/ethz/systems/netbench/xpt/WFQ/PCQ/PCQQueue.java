@@ -62,9 +62,9 @@ public class PCQQueue implements Queue {
         this.reentrantLock = new ReentrantLock();
         this.ownId = ownId;
         this.targetId = targetId;
-        if(ownId>=144 && targetId>=144){
-            islogswitch = true;
-        }
+//        if(ownId>=144 && targetId>=144){
+//            islogswitch = true;
+//        }
         this.head_bpr_limit = Simulator.getConfiguration().getBooleanPropertyWithDefault("headqueue_bpr_limit", false);
     }
 
@@ -78,12 +78,12 @@ public class PCQQueue implements Queue {
         this.reentrantLock.lock();
         FullExtTcpPacket p = (FullExtTcpPacket) o;
         int result = -1;
-//        float weight = p.getWeight();
-        float weight_origin = p.getWeight();
-        float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
-        if(islogswitch){
-            SimulationLogger.log2Weight(ownId, targetId,p.getDiffFlowId3(),weight_origin,weight,Simulator.getCurrentTime());
-        }
+        float weight = p.getWeight();
+//        float weight_origin = p.getWeight();
+//        float weight = (float) this.OwnerPort.getFlowWeight(p.getFlowId(),weight_origin,p.isACK(),p.isSYN());
+//        if(islogswitch){
+//            SimulationLogger.log2Weight(ownId, targetId,p.getDiffFlowId3(),weight_origin,weight,Simulator.getCurrentTime());
+//        }
         p.addPath(this.OwnerPort.getOwnId());
         try {
 
@@ -147,7 +147,7 @@ public class PCQQueue implements Queue {
             }
         } catch (Exception e){
             e.printStackTrace();
-            System.out.println(weight_origin);
+//            System.out.println(weight_origin);
             System.out.println(weight);
             System.out.println("Probably the bid size has been exceeded, transmit less packets ");
             System.out.println("Exception PCQ offer: " + e.getMessage() +","+ e.getLocalizedMessage());

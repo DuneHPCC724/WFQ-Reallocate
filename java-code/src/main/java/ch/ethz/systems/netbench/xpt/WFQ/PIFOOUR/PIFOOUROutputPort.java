@@ -12,6 +12,8 @@ public class PIFOOUROutputPort extends OutputPort {
 
     public PIFOOUROutputPort(NetworkDevice ownNetworkDevice, NetworkDevice targetNetworkDevice, Link link, long sizeBytes) {
         super(ownNetworkDevice, targetNetworkDevice, link, new PIFOOURQueue(sizeBytes, targetNetworkDevice.getIdentifier(), ownNetworkDevice.getIdentifier()));
+        PIFOOURQueue q = (PIFOOURQueue) getQueue();
+        q.setOwnerPort(this);
     }
 
     /**
