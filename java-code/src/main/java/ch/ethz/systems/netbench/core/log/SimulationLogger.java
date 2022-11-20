@@ -412,9 +412,9 @@ public class SimulationLogger {
         }
     }
 
-    public static void logEnqueueEvent(int ownId, int targetId, String flowId, long seqNum, long round, long currentTime, long pktSize){
+    public static void logEnqueueEvent(int ownId, int targetId, String flowId, long seqNum, long round, long currentTime, long pktSize,float weight){
         try {
-            writerEnqueueEvent.write(ownId + "," + targetId + "," + flowId + "," + seqNum + "," + round + "," + currentTime + "," + pktSize + "\n");
+            writerEnqueueEvent.write(ownId + "," + targetId + "," + flowId + "," + seqNum + "," + round + "," + currentTime + "," + pktSize+ "," + weight + "\n");
         } catch (IOException e) {
             throw new LogFailureException(e);
         }
@@ -428,9 +428,9 @@ public class SimulationLogger {
         }
     }
 
-    public static void logDropEvent(int ownId, int targetId, String flowId, long seqNum, long round, long currentTime, long pktSize, int dropType){
+    public static void logDropEvent(int ownId, int targetId, String flowId, long seqNum, long round, long currentTime, long pktSize, int dropType,float weight){
         try {
-            writerDropEvent.write(ownId + "," + targetId + "," + flowId + "," +seqNum + "," + round + "," + currentTime + "," + pktSize + "," + dropType + "\n");
+            writerDropEvent.write(ownId + "," + targetId + "," + flowId + "," +seqNum + "," + round + "," + currentTime + "," + pktSize + "," + dropType+ "," + weight + "\n");
         } catch (IOException e) {
             throw new LogFailureException(e);
         }

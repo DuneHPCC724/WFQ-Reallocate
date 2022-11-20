@@ -3,9 +3,11 @@ package ch.ethz.systems.netbench.ext.poissontraffic;
 import ch.ethz.systems.netbench.core.Simulator;
 import ch.ethz.systems.netbench.core.network.TransportLayer;
 import ch.ethz.systems.netbench.ext.poissontraffic.flowsize.FlowSizeDistribution;
+import ch.ethz.systems.netbench.xpt.longtermDCTCPsocket.DCTCPStartLongSocketEvent;
 import ch.ethz.systems.netbench.xpt.longtermsocket.LongtermTransportLayer;
 import ch.ethz.systems.netbench.xpt.longtermsocket.StartLongSocketEvent;
 import org.apache.commons.lang3.tuple.Pair;
+import ch.ethz.systems.netbench.xpt.longtermDCTCPsocket.DCTCPLongtermTransportLayer;
 
 import java.util.Map;
 
@@ -49,6 +51,10 @@ public class UniformWeightLongPlanner extends UniformWeightPlanner{
         {
             StartLongSocketEvent longevent = new StartLongSocketEvent(timeFromNs,(LongtermTransportLayer)idToTransportLayerMap.get(srcId),dstId,weight,flow_set_num,resttimeNs,burst_bytes);
             Simulator.registerEvent(longevent);
+        }
+        if(DCTCPLongtermTransportLayer.class.isInstance(idToTransportLayerMap.get(srcId))){
+            DCTCPStartLongSocketEvent DClongevent = new DCTCPStartLongSocketEvent(timeFromNs,(DCTCPLongtermTransportLayer)idToTransportLayerMap.get(srcId),dstId,weight,flow_set_num,resttimeNs,burst_bytes);
+            Simulator.registerEvent(DClongevent);
         }
     }
 }

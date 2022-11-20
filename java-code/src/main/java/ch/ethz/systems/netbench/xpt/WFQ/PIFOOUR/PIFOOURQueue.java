@@ -110,7 +110,7 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
             /* As the original PBQ is has no limited size, the packet is always inserted */
             success = super.offer(packet); /* This method will always return true */
             if (islogswitch) {
-                SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), packet.getSequenceNumber(), round, Simulator.getCurrentTime(), packet.getSizeBit() / 8);
+                SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), packet.getSequenceNumber(), round, Simulator.getCurrentTime(), packet.getSizeBit() / 8,packet.getWeight());
             }
             QueueOccupied += packet.getSizeBit()/8;
             boolean dropflag = false;
@@ -121,7 +121,7 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
                 Object[] contentPIFO = this.toArray();
                 Arrays.sort(contentPIFO);
                 packet = (FullExtTcpPacket) contentPIFO[this.size()-1];
-                SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), packet.getSequenceNumber(), round, Simulator.getCurrentTime(), packet.getSizeBit() / 8, 0);
+                SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) packet).getDiffFlowId3(), packet.getSequenceNumber(), round, Simulator.getCurrentTime(), packet.getSizeBit() / 8, 0,packet.getWeight());
                 String Id = packet.getDiffFlowId3();
                 float weight = packet.getWeight();
 //                float weight = 1;
@@ -160,7 +160,7 @@ public class PIFOOURQueue extends PriorityBlockingQueue implements Queue {
 
     public void logEnDeEvent(FullExtTcpPacket p){
         if (islogswitch) {
-            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+            SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8,p.getWeight());
             SimulationLogger.logDequeueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), ((FullExtTcpPacket) p).getSequenceNumber(), round, Simulator.getCurrentTime(), p.getSizeBit() / 8, (p.getSizeBit()/8)*1.0/this.queuelength);
         }
     }

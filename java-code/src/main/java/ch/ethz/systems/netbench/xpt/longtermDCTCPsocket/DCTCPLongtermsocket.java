@@ -12,7 +12,6 @@ import java.util.Random;
 
 public class DCTCPLongtermsocket {
     private final int LongtermID;
-    private NewRenoTcpSocket newRenoTcpSocket;
     private long resttimeNs;        //expectated rest time      //maybe crate a object to return resttimes for every socket
     private long burst_bytes;
 

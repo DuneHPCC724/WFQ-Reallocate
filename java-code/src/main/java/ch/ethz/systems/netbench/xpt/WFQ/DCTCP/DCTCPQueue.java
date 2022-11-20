@@ -61,16 +61,16 @@ public class DCTCPQueue implements Queue{
                 result = true;
                 QueueOccupied = bytesEstimate;
                 if (islogswitch) {
-                    SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), 0, Simulator.getCurrentTime(), p.getSizeBit() / 8);
+                    SimulationLogger.logEnqueueEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), 0, Simulator.getCurrentTime(), p.getSizeBit() / 8,p.getWeight());
                 }
             }
             else {
                 result = false;
                 if (islogswitch) {
                     if (fullDrop(p)) {
-                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), 0, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0);
+                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), 0, Simulator.getCurrentTime(), p.getSizeBit() / 8, 0,p.getWeight());
                     } else {
-                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), 0, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1);
+                        SimulationLogger.logDropEvent(ownId, targetId, ((FullExtTcpPacket) p).getDiffFlowId3(), p.getSequenceNumber(), 0, Simulator.getCurrentTime(), p.getSizeBit() / 8, 1,p.getWeight());
                     }
                 }
             }

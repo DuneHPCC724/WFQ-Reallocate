@@ -1,6 +1,7 @@
 package ch.ethz.systems.netbench.xpt.longtermDCTCPsocket;
 
 import ch.ethz.systems.netbench.core.network.Socket;
+import ch.ethz.systems.netbench.xpt.WFQDCTCP.WFQDCTcpTransportLayer;
 import ch.ethz.systems.netbench.xpt.WFQTCP.WFQTcpTransportLayer;
 
 import java.util.HashMap;
@@ -8,7 +9,7 @@ import java.util.Map;
 
 
 //in this class: socket means burst socket, only Longsocket means Longterm Socket, and Longterm socket only excedds here
-public class DCTCPLongtermTransportLayer extends WFQTcpTransportLayer {
+public class DCTCPLongtermTransportLayer extends WFQDCTcpTransportLayer {
     private Map <Integer, DCTCPLongtermsocket> flowIDToLongSocket;
 
     public DCTCPLongtermTransportLayer(int identifier){

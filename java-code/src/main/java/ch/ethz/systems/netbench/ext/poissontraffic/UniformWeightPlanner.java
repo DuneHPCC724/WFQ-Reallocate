@@ -140,7 +140,7 @@ public class UniformWeightPlanner extends TrafficPlanner {
         switch(this.pairDistribution){
             case Incast:
                 this.createPlan_Incast();
-                this.createPlan_Outcast(durationNs);
+//                this.createPlan_Outcast(durationNs);
                 break;
             case Side_To_Side:
                 this.createPlan_Side();

@@ -912,6 +912,59 @@ def analyze_pifo_perflow_drop_rate(flows, interval):
                         f.write("average_schedule_drop: "+"None"+"\n")
                     f.write("\n")
 
+def drop_switch_perweight():
+    enqueue={}
+    drop={}
+    with open(run_folder_path+"/enqueue_event.csv.log") as ENQUE:
+        with open(run_folder_path+"/drop_event.csv.log") as DROP:
+            Enqueue_Reader = csv.reader(ENQUE)
+            Drop_Reader = csv.reader(DROP)
+            for row in Enqueue_Reader:
+                if(float(row[7]) in enqueue.keys()):
+                    enqueue[float(row[7])] += 1
+                else:
+                    enqueue[float(row[7])] = 1
+            for row in Drop_Reader:
+                if(float(row[8]) in drop.keys()):
+                    drop[float(row[8])] += 1
+                else:
+                    drop[float(row[8])] = 1
+    sortedkey = [key for key in enqueue.keys()]
+    sortedkey.sort()
+    drop_list=[]
+    with open(analysis_folder_path + "/drop_per_weight.statistics","w") as f:
+        for id in sortedkey:
+            temp=drop[id]/(drop[id]+enqueue[id])
+            f.write(str(id)+":"+str(temp)+"\n")
+            drop_list.append(temp)
+    return drop_list
+
+def drop_switch_perweight_pifo():
+    enqueue={}
+    drop={}
+    with open(run_folder_path+"/enqueue_event.csv.log") as ENQUE:
+        with open(run_folder_path+"/drop_event.csv.log") as DROP:
+            Enqueue_Reader = csv.reader(ENQUE)
+            Drop_Reader = csv.reader(DROP)
+            for row in Enqueue_Reader:
+                if(float(row[7]) in enqueue.keys()):
+                    enqueue[float(row[7])] += 1
+                else:
+                    enqueue[float(row[7])] = 1
+            for row in Drop_Reader:
+                if(float(row[8]) in drop.keys()):
+                    drop[float(row[8])] += 1
+                else:
+                    drop[float(row[8])] = 1
+    sortedkey = [key for key in enqueue.keys()]
+    sortedkey.sort()
+    drop_list=[]
+    with open(analysis_folder_path + "/drop_per_weight_pifo.statistics","w") as f:
+        for id in sortedkey:
+            temp=drop[id]/(enqueue[id])
+            f.write(str(id)+":"+str(temp)+"\n")
+            drop_list.append(temp)
+    return drop_list
 
 
 
@@ -1011,6 +1064,8 @@ util = analyze_buffer_util(flows)
 droprate=analyze_timeout_rate(flows)
 # analyze_promote_weight(flows)
 # analyze_burstflow_inorder()
+drop_switch_perweight()
+# drop_switch_perweight_pifo()
 
 median_pearsons,weightgoodput,bgoodput,totalput,avgput = analyze_Acked_Pearson(flows)
 
