@@ -182,7 +182,8 @@ public class BaseInitializer {
             portAtoB = outputPortGenerator.generate(
                     devA,
                     devB,
-                    linkGenerator_core.generate(devA, devB)
+//                    linkGenerator_core.generate(devA, devB)
+                    linkGenerator.generate(devA,devB)
             );
         }
         devA.addConnection(portAtoB);

@@ -69,11 +69,11 @@ public class MainFromProperties {
         else if (runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_tcp_evenly") || runConfiguration.getPropertyOrFail("transport_layer").equals("wfq_dctcp_evenly") ){
             planevenlyTraffic(runtimeNs,initializer.getIdToTransportLayer());
         }
-        else if(runConfiguration.getPropertyOrFail("transport_layer").equals("Mixing_LongtermTCP") ){
+        else if(runConfiguration.getPropertyOrFail("transport_layer").equals("Mixing_LongtermTCP")||runConfiguration.getPropertyOrFail("transport_layer").equals("Mixing_LongtermDCTCP") ){
             planevenlyTraffic(runtimeNs,initializer.getIdToTransportLayer());
             planLongTraffic(runtimeNs,initializer.getIdToTransportLayer());
         }
-        else if(runConfiguration.getPropertyOrFail("transport_layer").equals("AdpWFQTCP")){
+        else if(runConfiguration.getPropertyOrFail("transport_layer").equals("AdpWFQTCP")||runConfiguration.getPropertyOrFail("transport_layer").equals("AdpWFQDCTCP")){
             planTraffic(runtimeNs, initializer.getIdToTransportLayer());
         }
         else

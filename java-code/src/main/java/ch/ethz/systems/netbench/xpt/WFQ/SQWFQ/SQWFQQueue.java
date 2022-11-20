@@ -18,8 +18,8 @@ public class SQWFQQueue implements Queue{
 
     private final Map flowBytesSent;
 
-//    private double R = 1.25; // bytes per ns = 10/8
-    private double R = 5;
+    private double R = 1.25; // bytes per ns = 10/8
+//    private double R = 5;
 
     private long currentRound;
 
