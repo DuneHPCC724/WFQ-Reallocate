@@ -39,16 +39,24 @@ public class MainFromIntelliJ_Flow_Leaf {
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/14400/PCQ.properties"});
 //
 //        //18000
-        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/DCTCP.properties"});
-        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/PIFO.properties"});
-        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/AIFO.properties"});
-        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/SQ.properties"});
-        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/SQS.properties"});
-        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/PCQ.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/DCTCP.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/PIFO.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/AIFO.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/SQ.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/SQS.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/PCQ.properties"});
 //        //MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/18000/PCQ2.properties"});
-//
-//        //upperbound
-//        //3600
+
+        //21600
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/21600/DCTCP.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/21600/PIFO.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/21600/AIFO.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/21600/SQ.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/21600/SQS.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/albert/21600/PCQ.properties"});
+
+        //upperbound
+        //3600
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/3600/DCTCP.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/3600/PIFO.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/3600/AIFO.properties"});
@@ -87,6 +95,14 @@ public class MainFromIntelliJ_Flow_Leaf {
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/18000/SQ.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/18000/SQS.properties"});
 //        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/18000/PCQ.properties"});
+//
+//        //21600
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/21600/DCTCP.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/21600/PIFO.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/21600/AIFO.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/21600/SQ.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/21600/SQS.properties"});
+//        MainFromProperties.main(new String[]{"projects/WFQ/run/Flow_leaf/upperbound/21600/PCQ.properties"});
 
 
     }
