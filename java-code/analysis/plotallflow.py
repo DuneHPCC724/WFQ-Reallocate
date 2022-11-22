@@ -276,7 +276,8 @@ def smallflow10k():
     fig, ax = plt.subplots(figsize=(5, 3))
 
     # idx = [0.1, 0.3, 0.5, 0.7, 0.9]
-    idx = [7200, 10800, 14400, 18000, 21600]
+    # idx = [7200, 10800, 14400, 18000, 21600]
+    idx = [0,1,2,3,4,5,6,7,8]
 
     plt.plot(idx, dctcp_mean, label='DCTCP', color=colors[6],\
             marker='*', markersize=6, lw=1, linestyle=linestyles[0], clip_on=False)
@@ -294,8 +295,11 @@ def smallflow10k():
     # ax.set_xlim(0.1, 0.9)
     # ax.set_xticks(([0.1, 0.3, 0.5, 0.7, 0.9]))
     # ax.set_xlabel('Load')
-    ax.set_xlim(7200, 21600)
-    ax.set_xticks(([7200, 10800, 14400, 18000, 21600]))
+    # ax.set_xlim(7200, 21600)
+    # ax.set_xticks(([7200, 10800, 14400, 18000, 21600]))
+    ax.set_xlim(0,8)
+    ax.set_xticks(([0,1,2,3,4,5,6,7,8]))
+    ax.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500,19000])
     ax.set_xlabel('Load_traffic_lamda')
     ax.xaxis.set_ticks_position('bottom')
     ax.set_ylabel('Flow completion time (ms)')
@@ -310,7 +314,8 @@ def smallflow10k():
     fig1, ax1 = plt.subplots(figsize=(5, 3))
 
     # idx = [0.1, 0.3, 0.5, 0.7, 0.9]
-    idx = [7200, 10800, 14400, 18000, 21600]
+    # idx = [7200, 10800, 14400, 18000, 21600]
+    idx = [0,1,2,3,4,5,6,7,8]
 
     plt.plot(idx, dctcp_99, label='DCTCP', color=colors[6],\
             marker='*', markersize=6, lw=1, linestyle=linestyles[0], clip_on=False)
@@ -328,8 +333,11 @@ def smallflow10k():
     # ax1.set_xlim(0.1, 0.9)
     # ax1.set_xticks(([0.1, 0.3, 0.5, 0.7, 0.9]))
     # ax1.set_xlabel('Load')
-    ax1.set_xlim(7200, 21600)
-    ax1.set_xticks(([7200, 10800, 14400, 18000, 21600]))
+    # ax1.set_xlim(7200, 21600)
+    # ax1.set_xticks(([7200, 10800, 14400, 18000, 21600]))
+    ax1.set_xlim(0,8)
+    ax1.set_xticks(([0,1,2,3,4,5,6,7,8]))
+    ax1.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500,19000])
     ax1.set_xlabel('Load_traffic_lamda')
     ax1.xaxis.set_ticks_position('bottom')
     ax1.set_ylabel('Flow completion time (ms)')
@@ -384,7 +392,8 @@ def smallflow100k():
     fig, ax = plt.subplots(figsize=(5, 3))
 
     # idx = [0.1, 0.3, 0.5, 0.7, 0.9]
-    idx = [7200, 10800, 14400, 18000, 21600]
+    # idx = [7200, 10800, 14400, 18000, 21600]
+    idx = [0,1,2,3,4,5,6,7,8]
 
     plt.plot(idx, dctcp_mean, label='DCTCP', color=colors[6],\
             marker='*', markersize=6, lw=1, linestyle=linestyles[0], clip_on=False)
@@ -402,8 +411,11 @@ def smallflow100k():
     # ax.set_xlim(0.1, 0.9)
     # ax.set_xticks(([0.1, 0.3, 0.5, 0.7, 0.9]))
     # ax.set_xlabel('Load')
-    ax.set_xlim(7200, 21600)
-    ax.set_xticks(([7200, 10800, 14400, 18000, 21600]))
+    # ax.set_xlim(7200, 21600)
+    # ax.set_xticks(([7200, 10800, 14400, 18000, 21600]))
+    ax.set_xlim(0,8)
+    ax.set_xticks(([0,1,2,3,4,5,6,7,8]))
+    ax.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500,19000])
     ax.set_xlabel('Load_traffic_lamda')
     ax.xaxis.set_ticks_position('bottom')
     ax.set_ylabel('Flow completion time (ms)')
@@ -418,7 +430,8 @@ def smallflow100k():
     fig1, ax1 = plt.subplots(figsize=(5, 3))
 
     # idx = [0.1, 0.3, 0.5, 0.7, 0.9]
-    idx = [7200, 10800, 14400, 18000, 21600]
+    # idx = [7200, 10800, 14400, 18000, 21600]
+    idx = [0,1,2,3,4,5,6,7,8]
 
     plt.plot(idx, dctcp_99, label='DCTCP', color=colors[6],\
             marker='*', markersize=6, lw=1, linestyle=linestyles[0], clip_on=False)
@@ -436,8 +449,11 @@ def smallflow100k():
     # ax1.set_xlim(0.1, 0.9)
     # ax1.set_xticks(([0.1, 0.3, 0.5, 0.7, 0.9]))
     # ax1.set_xlabel('Load')
-    ax1.set_xlim(7200, 21600)
-    ax1.set_xticks(([7200, 10800, 14400, 18000, 21600]))
+    # ax1.set_xlim(7200, 21600)
+    # ax1.set_xticks(([7200, 10800, 14400, 18000, 21600]))
+    ax1.set_xlim(0,8)
+    ax1.set_xticks(([0,1,2,3,4,5,6,7,8]))
+    ax1.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500,19000])
     ax1.set_xlabel('Load_traffic_lamda')
     ax1.xaxis.set_ticks_position('bottom')
     ax1.set_ylabel('Flow completion time (ms)')

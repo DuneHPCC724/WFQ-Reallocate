@@ -30,7 +30,7 @@ public class AIFOQueue implements Queue{
 
     private long QueueOccupied;
 
-    private double k = 0.1;
+    private double k = 0.15;
 
     private int windowSize = 20;
 
