@@ -174,7 +174,7 @@ public class UniformWeightPlanner extends TrafficPlanner {
         long nextProgressLog = durationNs / 10;
         int weight_index = 0;
         while (time <= durationNs) {
-            long interArrivalTime = 10000000;
+            long interArrivalTime = 1000000;
             sum += interArrivalTime;
             // Register flow
             Pair<Integer, Integer> pair = choosePair();
