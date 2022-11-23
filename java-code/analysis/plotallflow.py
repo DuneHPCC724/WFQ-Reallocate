@@ -98,7 +98,7 @@ def allflow_1():
 
     xticks_idx = [0.35, 1.05, 1.75, 2.45, 3.15, 3.85, 4.55]
     # xticks_idx = idx[2]
-    xticks = ["10K", "20K", "30K", "50K", "80K", "0.2M-1M", "$\geq$2M"]
+    xticks = ["10K", "20K", "30K", "50K", "80K", "0.1M-1M", "$\geq$2M"]
     plt.xticks(xticks_idx, xticks)
     low = [0, 0, 0, 0, 0, 0, 0]
     ax.bar(idx[0], _mean_funcs[0], yerr=(low, _99th_funcs[0]), error_kw=dict(lw=1, capsize=3, capthick=1), width=width, align='center', ecolor=colors[6], capsize=10, label = "DCTCP", color=colors[6])
@@ -137,7 +137,7 @@ def allflow_load(load,_mean_funcs,_99th_funcs):
 
     xticks_idx = [0.35, 1.05, 1.75, 2.45, 3.15, 3.85, 4.55]
     # xticks_idx = idx[2]
-    xticks = ["10K", "20K", "30K", "50K", "80K", "0.2M-1M", "$\geq$2M"]
+    xticks = ["10K", "20K", "30K", "50K", "80K", "0.1M-1M", "$\geq$2M"]
     plt.xticks(xticks_idx, xticks)
     low = [0, 0, 0, 0, 0, 0, 0]
     ax.bar(idx[0], _mean_funcs[0], yerr=(low, _99th_funcs[0]), error_kw=dict(lw=1, capsize=3, capthick=1), width=width, align='center', ecolor=colors[6], capsize=10, label = "DCTCP", color=colors[6])
@@ -277,7 +277,7 @@ def smallflow10k():
 
     # idx = [0.1, 0.3, 0.5, 0.7, 0.9]
     # idx = [7200, 10800, 14400, 18000, 21600]
-    idx = [0,1,2,3,4,5,6,7,8]
+    idx = [0,1,2,3,4,5,6,7]
 
     plt.plot(idx, dctcp_mean, label='DCTCP', color=colors[6],\
             marker='*', markersize=6, lw=1, linestyle=linestyles[0], clip_on=False)
@@ -297,13 +297,13 @@ def smallflow10k():
     # ax.set_xlabel('Load')
     # ax.set_xlim(7200, 21600)
     # ax.set_xticks(([7200, 10800, 14400, 18000, 21600]))
-    ax.set_xlim(0,8)
-    ax.set_xticks(([0,1,2,3,4,5,6,7,8]))
-    ax.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500,19000])
+    ax.set_xlim(0,7)
+    ax.set_xticks(([0,1,2,3,4,5,6,7]))
+    ax.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500])
     ax.set_xlabel('Load_traffic_lamda')
     ax.xaxis.set_ticks_position('bottom')
     ax.set_ylabel('Flow completion time (ms)')
-    ax.set_ylim(ymin=0, ymax=1)
+    ax.set_ylim(ymin=0, ymax=0.6)
     # ax.set_yticks(([0, 30, 60, 90, 120]))
     ax.yaxis.set_ticks_position('left')
 
@@ -315,7 +315,7 @@ def smallflow10k():
 
     # idx = [0.1, 0.3, 0.5, 0.7, 0.9]
     # idx = [7200, 10800, 14400, 18000, 21600]
-    idx = [0,1,2,3,4,5,6,7,8]
+    idx = [0,1,2,3,4,5,6,7]
 
     plt.plot(idx, dctcp_99, label='DCTCP', color=colors[6],\
             marker='*', markersize=6, lw=1, linestyle=linestyles[0], clip_on=False)
@@ -335,13 +335,13 @@ def smallflow10k():
     # ax1.set_xlabel('Load')
     # ax1.set_xlim(7200, 21600)
     # ax1.set_xticks(([7200, 10800, 14400, 18000, 21600]))
-    ax1.set_xlim(0,8)
-    ax1.set_xticks(([0,1,2,3,4,5,6,7,8]))
-    ax1.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500,19000])
+    ax1.set_xlim(0,7)
+    ax1.set_xticks(([0,1,2,3,4,5,6,7]))
+    ax1.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500])
     ax1.set_xlabel('Load_traffic_lamda')
     ax1.xaxis.set_ticks_position('bottom')
     ax1.set_ylabel('Flow completion time (ms)')
-    ax1.set_ylim(ymin=0, ymax=5)
+    ax1.set_ylim(ymin=0, ymax=4)
     # ax1.set_yticks(([0, 30, 60, 90, 120]))
     ax1.yaxis.set_ticks_position('left')
 
@@ -393,7 +393,7 @@ def smallflow100k():
 
     # idx = [0.1, 0.3, 0.5, 0.7, 0.9]
     # idx = [7200, 10800, 14400, 18000, 21600]
-    idx = [0,1,2,3,4,5,6,7,8]
+    idx = [0,1,2,3,4,5,6,7]
 
     plt.plot(idx, dctcp_mean, label='DCTCP', color=colors[6],\
             marker='*', markersize=6, lw=1, linestyle=linestyles[0], clip_on=False)
@@ -413,13 +413,13 @@ def smallflow100k():
     # ax.set_xlabel('Load')
     # ax.set_xlim(7200, 21600)
     # ax.set_xticks(([7200, 10800, 14400, 18000, 21600]))
-    ax.set_xlim(0,8)
-    ax.set_xticks(([0,1,2,3,4,5,6,7,8]))
-    ax.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500,19000])
+    ax.set_xlim(0,7)
+    ax.set_xticks(([0,1,2,3,4,5,6,7]))
+    ax.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500])
     ax.set_xlabel('Load_traffic_lamda')
     ax.xaxis.set_ticks_position('bottom')
     ax.set_ylabel('Flow completion time (ms)')
-    ax.set_ylim(ymin=0, ymax=1.5)
+    ax.set_ylim(ymin=0, ymax=1)
     # ax.set_yticks(([0, 30, 60, 90, 120]))
     ax.yaxis.set_ticks_position('left')
 
@@ -431,7 +431,7 @@ def smallflow100k():
 
     # idx = [0.1, 0.3, 0.5, 0.7, 0.9]
     # idx = [7200, 10800, 14400, 18000, 21600]
-    idx = [0,1,2,3,4,5,6,7,8]
+    idx = [0,1,2,3,4,5,6,7]
 
     plt.plot(idx, dctcp_99, label='DCTCP', color=colors[6],\
             marker='*', markersize=6, lw=1, linestyle=linestyles[0], clip_on=False)
@@ -451,13 +451,13 @@ def smallflow100k():
     # ax1.set_xlabel('Load')
     # ax1.set_xlim(7200, 21600)
     # ax1.set_xticks(([7200, 10800, 14400, 18000, 21600]))
-    ax1.set_xlim(0,8)
-    ax1.set_xticks(([0,1,2,3,4,5,6,7,8]))
-    ax1.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500,19000])
+    ax1.set_xlim(0,7)
+    ax1.set_xticks(([0,1,2,3,4,5,6,7]))
+    ax1.set_xticklabels([7000,8500,10000,11500,13000,14500,16000,17500])
     ax1.set_xlabel('Load_traffic_lamda')
     ax1.xaxis.set_ticks_position('bottom')
     ax1.set_ylabel('Flow completion time (ms)')
-    ax1.set_ylim(ymin=0, ymax=7)
+    ax1.set_ylim(ymin=0, ymax=5)
     # ax1.set_yticks(([0, 30, 60, 90, 120]))
     ax1.yaxis.set_ticks_position('left')
 
