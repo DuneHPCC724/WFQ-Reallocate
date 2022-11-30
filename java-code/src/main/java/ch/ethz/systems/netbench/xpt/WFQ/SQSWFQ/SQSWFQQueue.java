@@ -36,6 +36,12 @@ public class SQSWFQQueue implements Queue{
 
     private long QueueOccupied;
 
+    private  int count;
+
+    private int samplecount;
+
+    private long realround;
+
     private double alpha;//move average factor
 
     private double rho;//control factor
@@ -69,6 +75,9 @@ public class SQSWFQQueue implements Queue{
         this.QueueOccupied = 0;
         this.rho = Simulator.getConfiguration().getDoublePropertyWithDefault("esprho",0.1);
         this.alpha = Simulator.getConfiguration().getDoublePropertyWithDefault("alpha_factor", 0.2);
+        this.count = 0;
+        this.realround = 0;
+        this.samplecount = Simulator.getConfiguration().getIntegerPropertyWithDefault("samplecount",1);
 
 //        if(ownId>=144 && targetId>=144){
 //            islogswitch = true;
@@ -330,7 +339,15 @@ public class SQSWFQQueue implements Queue{
 //    }
 
     public void updateRound(Packet p){
-        this.currentRound += (p.getSizeBit()/8*this.queuelength*1.0/this.QueueOccupied)/R;
+        this.realround += (p.getSizeBit()/8*this.queuelength*1.0/this.QueueOccupied)/R;
+        if(this.count==0){
+            this.currentRound = realround;
+        }
+        this.count = this.count+1;
+        if(this.count==samplecount){
+            this.count = 0;
+        }
+//        this.currentRound += (p.getSizeBit()/8*this.queuelength*1.0/this.QueueOccupied)/R;
     }
 
     public void logEnDeEvent(FullExtTcpPacket p){

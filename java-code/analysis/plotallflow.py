@@ -303,7 +303,7 @@ def smallflow10k():
     ax.set_xlabel('Load_traffic_lamda')
     ax.xaxis.set_ticks_position('bottom')
     ax.set_ylabel('Flow completion time (ms)')
-    ax.set_ylim(ymin=0, ymax=0.6)
+    ax.set_ylim(ymin=0, ymax=100)
     # ax.set_yticks(([0, 30, 60, 90, 120]))
     ax.yaxis.set_ticks_position('left')
 
@@ -341,7 +341,7 @@ def smallflow10k():
     ax1.set_xlabel('Load_traffic_lamda')
     ax1.xaxis.set_ticks_position('bottom')
     ax1.set_ylabel('Flow completion time (ms)')
-    ax1.set_ylim(ymin=0, ymax=4)
+    ax1.set_ylim(ymin=0, ymax=300)
     # ax1.set_yticks(([0, 30, 60, 90, 120]))
     ax1.yaxis.set_ticks_position('left')
 
@@ -419,7 +419,7 @@ def smallflow100k():
     ax.set_xlabel('Load_traffic_lamda')
     ax.xaxis.set_ticks_position('bottom')
     ax.set_ylabel('Flow completion time (ms)')
-    ax.set_ylim(ymin=0, ymax=1)
+    ax.set_ylim(ymin=0, ymax=100)
     # ax.set_yticks(([0, 30, 60, 90, 120]))
     ax.yaxis.set_ticks_position('left')
 
@@ -457,7 +457,7 @@ def smallflow100k():
     ax1.set_xlabel('Load_traffic_lamda')
     ax1.xaxis.set_ticks_position('bottom')
     ax1.set_ylabel('Flow completion time (ms)')
-    ax1.set_ylim(ymin=0, ymax=5)
+    ax1.set_ylim(ymin=0, ymax=300)
     # ax1.set_yticks(([0, 30, 60, 90, 120]))
     ax1.yaxis.set_ticks_position('left')
 

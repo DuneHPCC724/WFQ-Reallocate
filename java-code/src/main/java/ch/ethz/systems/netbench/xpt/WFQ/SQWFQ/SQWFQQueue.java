@@ -35,6 +35,12 @@ public class SQWFQQueue implements Queue{
 
     private long QueueOccupied;
 
+    private  int count;
+
+    private int samplecount;
+
+    private long realround;
+
     //add by LeafSpine
     private SQWFQOutputPort OwnerPort = null;
 
@@ -53,6 +59,9 @@ public class SQWFQQueue implements Queue{
         this.reentrantLock = new ReentrantLock();
 
         this.QueueOccupied = 0;
+        this.count = 0;
+        this.realround = 0;
+        this.samplecount = Simulator.getConfiguration().getIntegerPropertyWithDefault("samplecount",1);
 
 //        if(ownId>=144 && targetId>=144){
 //            islogswitch = true;
@@ -280,7 +289,15 @@ public class SQWFQQueue implements Queue{
 //    }
 
     public void updateRound(Packet p){
-        this.currentRound += (p.getSizeBit()/8*this.queuelength*1.0/this.QueueOccupied)/R;
+        this.realround += (p.getSizeBit()/8*this.queuelength*1.0/this.QueueOccupied)/R;
+        if(this.count==0){
+            this.currentRound = realround;
+        }
+        this.count = this.count+1;
+        if(this.count==samplecount){
+            this.count = 0;
+        }
+//        this.currentRound += (p.getSizeBit()/8*this.queuelength*1.0/this.QueueOccupied)/R;
 //        this.currentRound += (p.getSizeBit()/8*this.queuelength*1.0/this.QueueOccupied)/R/this.OwnerPort.weightTotal;
 //        SimulationLogger.log2Weight(ownId, targetId,"p.getDiffFlowId3()",0,(float) this.OwnerPort.weightTotal,Simulator.getCurrentTime());
     }

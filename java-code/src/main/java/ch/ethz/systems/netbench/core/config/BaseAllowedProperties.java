@@ -110,6 +110,7 @@ public class BaseAllowedProperties {
             "esprho",
             "alpha_factor",
             "headqueue_bpr_limit",
+            "samplecount",
 
             //for Bursty traffic:
             "traffic_long",
